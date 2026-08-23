@@ -1,0 +1,5 @@
+<svg width="200" height="64" viewBox="0 0 200 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="64" rx="12" fill="#111111"/>
+  <text x="100" y="33" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="15" font-weight="700">BANK</text>
+  <text x="100" y="49" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="15" font-weight="700">TRANSFER</text>
+</svg>
