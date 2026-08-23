@@ -1,0 +1,16 @@
+node_modules
+**/node_modules
+dist
+**/dist
+.next
+**/.next
+.git
+.env
+.env.*
+!.env.example
+npm-debug.log*
+uploads/
+**/uploads/
+logs/
+**/logs/
+postgres_data/

@@ -127,8 +127,8 @@ app.get('/api/health', async (_req, res) => {
 app.use(errorHandler);
 
 // ====== START SERVER ======
-app.listen(env.PORT, () => {
-  logger.info(`🚀 Server running on port ${env.PORT} in ${env.NODE_ENV} mode`);
+app.listen(env.PORT, '0.0.0.0', () => {
+  logger.info(`🚀 Server running on port ${env.PORT} on 0.0.0.0 in ${env.NODE_ENV} mode`);
 });
 
 export default app;
