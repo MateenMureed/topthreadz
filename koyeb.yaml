@@ -9,7 +9,7 @@ service:
   build:
     command: npm install && npm run build
   run:
-    command: npx prisma migrate deploy && npm start
+    command: npx prisma db push && npm start
   ports:
     - port: 8000
       path: /
