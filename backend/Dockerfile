@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ COPY . .
 
 RUN npm run build
 
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 
 WORKDIR /app
 
@@ -27,4 +27,4 @@ RUN mkdir -p uploads logs
 
 EXPOSE 5000
 
-CMD ["sh", "-c", "npx prisma db push && npm start"]
+CMD ["node", "dist/index.js"]
