@@ -106,6 +106,16 @@ app.get('/api/products/:id/similar', async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
+// Root Endpoint
+app.get('/', (_req, res) => {
+  res.json({
+    name: 'TopThreadz eCommerce API',
+    status: 'online',
+    healthCheck: '/api/health',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Health check
 app.get('/api/health', async (_req, res) => {
   let dbStatus = 'disconnected';
