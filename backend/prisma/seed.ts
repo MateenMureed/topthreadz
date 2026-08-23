@@ -5,10 +5,11 @@ const prisma = new PrismaClient();
 const SALT_ROUNDS = 12;
 
 async function main() {
-  console.log('👑 Creating new Admin account in Neon PostgreSQL database...');
+  console.log('👑 Creating/updating Admin account in Neon PostgreSQL database...');
 
   const adminEmail = 'mateenmurid@gmail.com';
-  const adminPasswordRaw = 'mm@Ma3nM.....';
+  // Standard clean password for admin login
+  const adminPasswordRaw = 'mm@Ma3nM';
   const hashedPassword = await bcrypt.hash(adminPasswordRaw, SALT_ROUNDS);
 
   const admin = await prisma.user.upsert({
@@ -17,6 +18,8 @@ async function main() {
       password: hashedPassword,
       role: Role.ADMIN,
       isVerified: true,
+      isLocked: false,
+      failedAttempts: 0,
       name: 'Admin',
     },
     create: {
@@ -25,10 +28,12 @@ async function main() {
       password: hashedPassword,
       role: Role.ADMIN,
       isVerified: true,
+      isLocked: false,
+      failedAttempts: 0,
     },
   });
 
-  console.log('✅ Admin account successfully created in Neon PostgreSQL!');
+  console.log('✅ Admin account successfully created/updated in Neon PostgreSQL!');
   console.log(`   ID: ${admin.id}`);
   console.log(`   Email: ${admin.email}`);
   console.log(`   Role: ${admin.role}`);

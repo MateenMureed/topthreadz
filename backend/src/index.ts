@@ -49,12 +49,7 @@ app.use(cors({
       return;
     }
 
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-      return;
-    }
-
-    if (env.NODE_ENV !== 'production' && isLocalDevOrigin(origin)) {
+    if (allowedOrigins.includes(origin) || /\.vercel\.app$/i.test(origin) || isLocalDevOrigin(origin)) {
       callback(null, true);
       return;
     }

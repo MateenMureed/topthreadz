@@ -3,11 +3,8 @@ import { z } from 'zod';
 export const signupSchema = z.object({
   name: z.string().min(2).max(100),
   email: z.string().email(),
-  phone: z.string().regex(/^(\+92|0)?3[0-9]{9}$/, 'Invalid Pakistani phone number'),
-  password: z.string().min(8).max(128)
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+  phone: z.string().optional().or(z.literal('')).or(z.string().min(3)),
+  password: z.string().min(6).max(128),
 });
 
 export const loginSchema = z.object({
