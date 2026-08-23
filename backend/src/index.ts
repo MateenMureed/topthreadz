@@ -25,6 +25,7 @@ import { recommendationService } from './modules/product/recommendation.service'
 import { authenticate, AuthRequest } from './middleware/auth.middleware';
 
 const app = express();
+app.set('trust proxy', 1);
 const allowedOrigins = [
   ...env.CORS_ORIGIN.split(','),
   env.FRONTEND_URL,

@@ -22,6 +22,7 @@ export const generalLimiter = rateLimit({
   message: { error: 'Too many requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
   skip: skipInDevelopment,
 });
 
@@ -31,6 +32,7 @@ export const loginLimiter = rateLimit({
   message: { error: 'Too many login attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
   skipSuccessfulRequests: true,
   skip: skipInDevelopment,
 });
@@ -41,5 +43,6 @@ export const paymentLimiter = rateLimit({
   message: { error: 'Too many payment requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
   skip: skipInDevelopment,
 });
