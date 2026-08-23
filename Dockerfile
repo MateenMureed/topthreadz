@@ -3,7 +3,7 @@ FROM node:20-slim AS builder
 WORKDIR /app
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -y && apt-get install -y apt-utils openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 COPY backend/package*.json ./
 COPY backend/prisma ./prisma/
@@ -19,7 +19,7 @@ FROM node:20-slim AS runner
 WORKDIR /app
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -y && apt-get install -y apt-utils openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 ENV NODE_ENV=production
 ENV PORT=5000

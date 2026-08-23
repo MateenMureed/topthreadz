@@ -37,9 +37,9 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
   }
 
   logger.error(`Unexpected error on ${req.method} ${req.originalUrl}:`, err);
+  const errorMessage = err instanceof Error ? err.message : String(err);
   res.status(500).json({
     success: false,
-    error: 'Internal Server Error',
-    ...(process.env.NODE_ENV !== 'production' && err instanceof Error ? { message: err.message } : {}),
+    error: errorMessage || 'Internal Server Error',
   });
 }
