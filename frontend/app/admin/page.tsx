@@ -793,6 +793,7 @@ function ProductsTab() {
   const [productStatusFilter, setProductStatusFilter] = useState<'ALL' | 'DRAFT' | 'PUBLISHED' | 'HIDDEN'>('ALL');
   const [stockView, setStockView] = useState<'ALL' | 'LOW' | 'OUT'>('ALL');
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [directImageUrl, setDirectImageUrl] = useState('');
   const [isSlugEditedManually, setIsSlugEditedManually] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [imageMeta, setImageMeta] = useState<ImageMeta[]>([]);
@@ -1160,6 +1161,29 @@ function ProductsTab() {
     }
   };
 
+  const handleAddImageUrl = () => {
+    const url = directImageUrl.trim();
+    if (!url) {
+      toast.error('Please enter an image URL');
+      return;
+    }
+    setForm((prev) => ({
+      ...prev,
+      images: [...prev.images, url],
+    }));
+    setImageMeta((prev) => [
+      ...prev,
+      {
+        url,
+        publicId: `url-${Date.now()}`,
+        alt: form.name || `Product image ${prev.length + 1}`,
+        isPrimary: prev.length === 0,
+      },
+    ]);
+    setDirectImageUrl('');
+    toast.success('Image URL added');
+  };
+
   const removeUploadedImage = (imageUrl: string) => {
     setForm((prev) => ({
       ...prev,
@@ -1467,13 +1491,28 @@ function ProductsTab() {
 
                 <section className="space-y-3 rounded-xl border border-surface-300 bg-white p-4 shadow-soft">
                   <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide">Media</p>
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-200 pb-3">
                     <p className="text-sm font-semibold">Product Images</p>
-                    <label className="btn-secondary !py-1.5 !px-3 text-xs cursor-pointer inline-flex items-center gap-1">
+                    <label className="btn-secondary !py-1.5 !px-3 text-xs cursor-pointer inline-flex items-center gap-1 shrink-0">
                       <FiUpload className="w-3.5 h-3.5" />
-                      {uploadingImages ? 'Uploading...' : 'Upload Images'}
+                      {uploadingImages ? 'Uploading File...' : 'Upload Image File(s)'}
                       <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" disabled={uploadingImages} />
                     </label>
+                  </div>
+
+                  {/* Direct Image URL Input Option */}
+                  <div className="flex gap-2 items-center pt-1">
+                    <input
+                      type="url"
+                      placeholder="Or paste image URL (e.g. https://...)"
+                      value={directImageUrl}
+                      onChange={(e) => setDirectImageUrl(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddImageUrl(); } }}
+                      className="input-field flex-1 text-xs"
+                    />
+                    <button type="button" onClick={handleAddImageUrl} className="btn-secondary !py-2 !px-3 text-xs shrink-0 font-bold">
+                      + Add URL
+                    </button>
                   </div>
                   {formErrors.images && <p className="text-xs text-red-600">{formErrors.images}</p>}
 
