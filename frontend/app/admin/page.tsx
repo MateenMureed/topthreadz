@@ -296,6 +296,7 @@ export default function AdminPage() {
 
 function HeroBannerManager() {
   const [currentBanner, setCurrentBanner] = useState('');
+  const [directUrl, setDirectUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -310,24 +311,30 @@ function HeroBannerManager() {
 
   const handleUpload = async () => {
     const file = fileRef.current?.files?.[0];
-    if (!file) {
-      toast.error('Please select an image file first');
+    const url = directUrl.trim();
+
+    if (!file && !url) {
+      toast.error('Please select an image file or enter an image URL');
       return;
     }
+
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('image', file);
+      if (file) formData.append('image', file);
+      if (url) formData.append('url', url);
+
       const res = await api.post('/admin/settings/hero-banner', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       const data = res.data?.data;
       if (data?.url) {
         setCurrentBanner(data.url);
-        toast.success('Hero banner uploaded to Cloudinary!');
+        setDirectUrl('');
+        toast.success('Hero banner updated successfully!');
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to upload banner');
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to update hero banner');
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = '';
@@ -338,6 +345,7 @@ function HeroBannerManager() {
     try {
       await api.delete('/admin/settings/hero-banner');
       setCurrentBanner('');
+      setDirectUrl('');
       toast.success('Hero banner removed');
     } catch {
       toast.error('Failed to remove banner');
@@ -345,11 +353,11 @@ function HeroBannerManager() {
   };
 
   return (
-    <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+    <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft space-y-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
           <h3 className="font-display text-lg font-bold text-surface-950">Homepage Hero Banner</h3>
-          <p className="text-xs text-surface-500">Upload an image to Cloudinary for your Homepage hero section. Visible to all visitors.</p>
+          <p className="text-xs text-surface-500">Upload an image file to Cloudinary or paste a direct image URL for your Homepage hero section.</p>
         </div>
         {currentBanner && (
           <button onClick={handleClear} className="btn-secondary !py-1.5 !px-3 text-xs text-red-600 border-red-200 hover:bg-red-50">
@@ -358,22 +366,38 @@ function HeroBannerManager() {
         )}
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 items-center">
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="input-field flex-1 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-900 file:text-white"
-        />
-        <button onClick={handleUpload} disabled={uploading} className="btn-primary shrink-0 !py-2.5 !px-5 text-xs disabled:opacity-60">
-          {uploading ? 'Uploading…' : 'Upload Hero Image'}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-semibold text-surface-700 block mb-1">Option 1: Upload Image File (Cloudinary)</label>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="input-field w-full file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-900 file:text-white"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-surface-700 block mb-1">Option 2: Direct Image URL</label>
+          <input
+            type="url"
+            placeholder="Paste image URL (e.g. https://...)"
+            value={directUrl}
+            onChange={(e) => setDirectUrl(e.target.value)}
+            className="input-field w-full"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <button onClick={handleUpload} disabled={uploading} className="btn-primary !py-2.5 !px-6 text-xs disabled:opacity-60">
+          {uploading ? 'Updating Banner…' : 'Save Hero Banner'}
         </button>
       </div>
 
       {currentBanner && (
-        <div className="mt-4 rounded-xl border border-surface-200 bg-surface-50 p-3">
+        <div className="rounded-xl border border-surface-200 bg-surface-50 p-3">
           <p className="text-xs font-semibold text-surface-600 mb-2">Active Hero Preview:</p>
-          <div className="relative h-40 w-full overflow-hidden rounded-lg border border-surface-300">
+          <div className="relative h-44 w-full overflow-hidden rounded-lg border border-surface-300 bg-black">
             <img src={currentBanner} alt="Hero Banner Preview" className="h-full w-full object-cover" />
           </div>
         </div>

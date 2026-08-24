@@ -18,10 +18,10 @@ export default function CartDrawer() {
   return (
     <>
       {/* Overlay */}
-      <div className="fixed inset-0 z-[65] bg-black/35 backdrop-blur-[2px] cursor-pointer" onClick={closeCart} />
+      <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-[2px] cursor-pointer" onClick={closeCart} />
 
       {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 z-[70] w-full sm:max-w-[400px] h-[100dvh] max-h-screen bg-white shadow-[0_0_40px_rgba(0,0,0,0.2)] animate-slide-in-right flex flex-col overflow-hidden">
+      <div className="fixed inset-y-0 right-0 z-[105] w-full sm:max-w-[400px] h-[100dvh] max-h-screen bg-white shadow-[0_0_40px_rgba(0,0,0,0.2)] animate-slide-in-right flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between px-4 py-3.5 border-b border-surface-200 bg-white">
           <h2 className="font-display text-base font-bold uppercase tracking-tight text-surface-900">Your Bag ({count})</h2>
@@ -123,29 +123,24 @@ export default function CartDrawer() {
           )}
         </div>
 
-        {/* Footer */}
+        {/* Footer / Sticky Action Bar matching Product page design */}
         {items.length > 0 && (
-          <div className="shrink-0 px-4 py-3.5 space-y-3 border-t border-surface-200 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.06)] pb-[calc(1rem+env(safe-area-inset-bottom))]">
-            <div className="flex justify-between items-center text-sm font-semibold text-surface-900">
-              <span>Total (Exact Sale Price)</span>
-              <span className="text-base font-bold text-surface-950">PKR {total.toLocaleString()}</span>
-            </div>
+          <div className="shrink-0 border-t border-surface-200 bg-white px-4 py-3.5 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-surface-500">Total Price</p>
+                <p className="text-lg sm:text-xl font-bold text-surface-950 leading-none mt-0.5">PKR {total.toLocaleString()}</p>
+              </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={closeCart}
-                className="w-full rounded-full border-2 border-surface-900 bg-white py-3 text-xs font-bold uppercase tracking-wider text-surface-900 transition hover:bg-surface-100 active:scale-95 text-center"
-              >
-                View Bag
-              </button>
-              <Link
-                href="/checkout"
-                onClick={closeCart}
-                className="w-full flex items-center justify-center rounded-full bg-surface-900 py-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-surface-800 active:scale-95 text-center shadow-sm"
-              >
-                Proceed to Checkout
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/checkout"
+                  onClick={closeCart}
+                  className="h-11 sm:h-12 px-6 sm:px-8 rounded-full bg-surface-950 hover:bg-surface-800 text-white text-xs sm:text-sm font-bold uppercase tracking-wide flex items-center justify-center transition-all shadow-md active:scale-95 whitespace-nowrap"
+                >
+                  Proceed to Checkout
+                </Link>
+              </div>
             </div>
           </div>
         )}

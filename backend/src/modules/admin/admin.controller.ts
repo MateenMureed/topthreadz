@@ -98,8 +98,24 @@ export class AdminController {
   async uploadHeroBanner(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const file = (req as any).file as Express.Multer.File | undefined;
-      if (!file) throw new Error('No image file provided');
-      if (!isCloudinaryConfigured()) throw new Error('Cloudinary is not configured');
+      const directUrl = (req.body?.url as string | undefined)?.trim();
+
+      let imageUrl = '';
+      let publicId = '';
+
+      if (file) {
+        if (isCloudinaryConfigured()) {
+          const uploaded = await uploadToCloudinary(file.buffer, 'topthreadz-hero');
+          imageUrl = uploaded.url;
+          publicId = uploaded.publicId;
+        } else {
+          throw new Error('Cloudinary keys (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) are missing on server. Please add Cloudinary keys or paste an Image URL.');
+        }
+      } else if (directUrl) {
+        imageUrl = directUrl;
+      } else {
+        throw new Error('Please select an image file or enter a direct image URL.');
+      }
 
       // Delete old banner from Cloudinary if exists
       const existing = await prisma.siteSetting.findUnique({ where: { key: 'hero_banner' } });
@@ -110,8 +126,7 @@ export class AdminController {
         } catch { /* ignore parse errors */ }
       }
 
-      const uploaded = await uploadToCloudinary(file.buffer, 'topthreadz-hero');
-      const payload = { url: uploaded.url, publicId: uploaded.publicId };
+      const payload = { url: imageUrl, publicId };
 
       await prisma.siteSetting.upsert({
         where: { key: 'hero_banner' },
