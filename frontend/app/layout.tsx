@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { Inter, Poppins } from 'next/font/google';
 import { Providers } from '@/lib/providers';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -13,19 +12,6 @@ import './globals.css';
 
 const CartDrawer = dynamic(() => import('@/components/CartDrawer'));
 const AuthModal = dynamic(() => import('@/components/AuthModal'));
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-});
-
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-  variable: '--font-poppins',
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://menswear.pk'),
@@ -99,7 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html lang="en" className={`scroll-smooth ${inter.variable} ${poppins.variable}`}>
+    <html lang="en" className="scroll-smooth">
       <body className="min-h-screen flex flex-col">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />

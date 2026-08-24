@@ -33,6 +33,11 @@ interface ProductImageMetaInput {
   isPrimary?: boolean;
 }
 
+export interface UploadedProductImage {
+  url: string;
+  publicId: string;
+}
+
 export interface ProductInput {
   name: string;
   description: string;
@@ -103,6 +108,6 @@ export const productService = {
     files.forEach((file) => formData.append('images', file));
     return api.post('/products/upload-images', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-    }).then((r) => r.data?.data?.images || [] as Array<{ url: string; publicId: string }>);
+    }).then((r): UploadedProductImage[] => r.data?.data?.images || []);
   },
 };

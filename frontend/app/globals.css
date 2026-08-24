@@ -45,15 +45,15 @@
 
 @layer components {
   .fashion-display {
-    font-family: var(--font-poppins), 'Inter', system-ui, sans-serif;
+    font-family: Poppins, Inter, system-ui, sans-serif;
   }
 
   .fashion-body {
-    font-family: var(--font-inter), system-ui, sans-serif;
+    font-family: Inter, system-ui, sans-serif;
   }
 
   .brand-wordmark {
-    font-family: var(--font-poppins), 'Inter', system-ui, sans-serif;
+    font-family: Poppins, Inter, system-ui, sans-serif;
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
