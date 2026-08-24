@@ -6,11 +6,15 @@ import { deleteFromCloudinary } from '../../config/cloudinary';
 
 export class ProductService {
   private normalizeUnstitchedMensProduct(data: CreateProductInput | UpdateProductInput): Record<string, unknown> {
+    const sizes = Array.isArray(data.sizes) && data.sizes.length > 0 
+      ? data.sizes 
+      : ['S', 'M', 'L', 'XL', 'XXL', '4.5m', '7 meter'];
+
     return {
       ...data,
-      category: 'Unstitched',
-      gender: 'MALE',
-      sizes: ['4.5m', '7 meter'],
+      category: data.category || 'Unstitched',
+      gender: data.gender || 'MALE',
+      sizes,
       comparePrice: null,
       salePrice: null,
       variants: Prisma.JsonNull,

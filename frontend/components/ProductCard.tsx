@@ -88,7 +88,7 @@ export default function ProductCard({
   }, [safeImageMeta]);
 
   const effectivePrice = price * (1 - discount / 100);
-  const defaultSize = sizes[0] || '1.5 Meter';
+  const defaultSize = sizes[0] || 'S';
   const isSlugLike = (value: string) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(value);
 
   const safeIdentifier = (() => {

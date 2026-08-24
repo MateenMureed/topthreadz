@@ -140,7 +140,7 @@ const COLOR_PRESET_OPTIONS = [
   'Cream',
 ];
 
-const FIXED_SIZE_OPTIONS = ['4.5m', '7 meter'];
+const FIXED_SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL', '4.5m', '7 meter'];
 
 interface ImageMeta {
   url: string;
@@ -801,12 +801,7 @@ function ProductsTab() {
     });
   }, [form.images, form.name]);
 
-  useEffect(() => {
-    setForm((prev) => {
-      const fixedSizes = FIXED_SIZE_OPTIONS.join(', ');
-      return prev.sizesText === fixedSizes ? prev : { ...prev, sizesText: fixedSizes };
-    });
-  }, []);
+
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'products'],
@@ -981,7 +976,7 @@ function ProductsTab() {
       stockStatus: form.stockStatus,
       lowStockThreshold: Number(form.lowStockThreshold || 0),
       sku: form.sku.trim() || undefined,
-      sizes: FIXED_SIZE_OPTIONS,
+      sizes: splitCsv(form.sizesText).length ? splitCsv(form.sizesText) : ['S', 'M', 'L', 'XL', 'XXL', '4.5m', '7 meter'],
       colors: splitCsv(form.colorsText),
       tags: Array.from(new Set(generatedTags)),
       images: orderedImages,
@@ -1294,7 +1289,7 @@ function ProductsTab() {
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide">Organization</p>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                       <label className="text-xs font-semibold text-surface-600">Collection / Season</label>
                       <input className="input-field" value={form.collection} onChange={(e) => setForm((prev) => ({ ...prev, collection: e.target.value }))} placeholder="Summer, Winter, Eid, Wedding" />
@@ -1310,6 +1305,22 @@ function ProductsTab() {
                         </select>
                         <button type="button" onClick={addColorFromPreset} className="btn-secondary !px-3 !py-2 text-xs">Add</button>
                       </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-semibold text-surface-600">Sizes</label>
+                        <div className="flex gap-1.5 text-[10px]">
+                          <button type="button" onClick={() => setForm(p => ({ ...p, sizesText: 'S, M, L, XL, XXL' }))} className="text-brand-600 font-semibold hover:underline">S-XXL</button>
+                          <span className="text-surface-300">•</span>
+                          <button type="button" onClick={() => setForm(p => ({ ...p, sizesText: '4.5m, 7 meter' }))} className="text-brand-600 font-semibold hover:underline">4.5m/7m</button>
+                        </div>
+                      </div>
+                      <input
+                        className="input-field"
+                        value={form.sizesText}
+                        onChange={(e) => setForm((prev) => ({ ...prev, sizesText: e.target.value }))}
+                        placeholder="S, M, L, XL, XXL or 4.5m, 7 meter"
+                      />
                     </div>
                   </div>
 

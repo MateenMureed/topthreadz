@@ -398,6 +398,31 @@ export default function ProductDetailPage() {
               ADD TO BAG
             </button>
 
+            {Array.isArray(product.sizes) && product.sizes.length > 0 && (
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-surface-500">Size</p>
+                  {selectedSize && <span className="text-xs text-surface-500 font-medium">Selected: {selectedSize}</span>}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes.map((size: string) => (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => setSelectedSize(size)}
+                      className={`rounded-xl border px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                        selectedSize === size
+                          ? 'border-surface-900 bg-surface-900 text-white shadow-sm'
+                          : 'border-surface-300 bg-white text-surface-700 hover:border-surface-400 hover:bg-surface-50'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {Array.isArray(product.colors) && product.colors.length > 0 && (
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-surface-500">Color</p>
@@ -426,11 +451,13 @@ export default function ProductDetailPage() {
                 <span className="text-2xl text-surface-600">{detailsExpanded ? '−' : '+'}</span>
               </button>
               {detailsExpanded && (
-                <div className="pb-3 text-sm text-surface-700 space-y-2">
-                  <p className="leading-relaxed line-clamp-3">{cleanedDescription}</p>
-                  <div className="grid grid-cols-1 gap-y-1">
+                <div className="pb-3 text-sm text-surface-700 space-y-3">
+                  <div className="leading-relaxed whitespace-pre-line text-surface-800 font-normal">
+                    {product.description || product.name}
+                  </div>
+                  <div className="grid grid-cols-1 gap-y-1 pt-3 border-t border-surface-200 text-xs">
                     {dynamicDetailRows.map((detail) => (
-                      <p key={detail.label}><span className="font-semibold">{detail.label}:</span> {detail.value}</p>
+                      <p key={detail.label}><span className="font-semibold text-surface-900">{detail.label}:</span> {detail.value}</p>
                     ))}
                   </div>
                 </div>
