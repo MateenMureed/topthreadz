@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useHydration } from '@/hooks/useHydration';
 import api from '@/services/api';
 import { productService } from '@/services/product.service';
+import { FormattedProductDescription } from '@/app/products/[id]/page';
 import {
   FiUsers,
   FiPackage,
@@ -1552,7 +1553,7 @@ function ProductsTab() {
               <p><span className="font-semibold">Tags:</span> {(detailsProduct.tags || []).join(', ') || 'N/A'}</p>
               <div>
                 <p className="font-semibold mb-1">Description:</p>
-                <p className="text-surface-600">{detailsProduct.description}</p>
+                <FormattedProductDescription content={detailsProduct.description} />
               </div>
               <div>
                 <p className="font-semibold mb-1">Images:</p>

@@ -33,35 +33,101 @@ function sanitizeRichHtml(html?: string) {
     .replace(/javascript:/gi, '');
 }
 
-function cleanLegacyDescription(text?: string) {
-  let output = (text || '').trim();
-  if (!output) return '';
+function decodeHtmlEntities(str: string): string {
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ');
+}
 
-  const removePatterns = [
-    /category:\s*[^.\n]+/gi,
-    /fit:\s*[^.\n]+/gi,
-    /available\s+sizes?:\s*[^.\n]+/gi,
-    /available\s+colors?:\s*[^.\n]+/gi,
-    /style\s*tip:\s*[^.\n]+/gi,
-    /color:\s*[^.\n]+/gi,
-    /length:\s*[^.\n]+/gi,
-    /fabric:\s*[^.\n]+/gi,
-    /weave\s*type:\s*[^.\n]+/gi,
-    /occasion:\s*[^.\n]+/gi,
-    /finish:\s*[^.\n]+/gi,
-    /product\s*category:\s*[^.\n]+/gi,
-    /season:\s*[^.\n]+/gi,
+function cleanDescriptionMetadata(text: string): string {
+  let cleaned = text || '';
+  
+  const metadataRegexes = [
+    /category:\s*[^\n<]+/gi,
+    /subcategory:\s*[^\n<]+/gi,
+    /available\s+sizes?:\s*[^\n<]+/gi,
+    /sizes?:\s*[^\n<]+/gi,
+    /available\s+colors?:\s*[^\n<]+/gi,
+    /product\s+category:\s*[^\n<]+/gi,
+    /fit:\s*[^\n<]+/gi,
+    /fabric:\s*[^\n<]+/gi,
+    /finish:\s*[^\n<]+/gi,
   ];
 
-  removePatterns.forEach((pattern) => {
-    output = output.replace(pattern, '');
+  metadataRegexes.forEach((regex) => {
+    cleaned = cleaned.replace(regex, '');
   });
 
-  output = output.replace(/\s+/g, ' ').trim();
-  if (!output) return '';
+  return cleaned.trim();
+}
 
-  const sentences = output.split(/(?<=[.!?])\s+/).filter(Boolean);
-  return sentences.slice(0, 2).join(' ').trim();
+export function FormattedProductDescription({ content }: { content?: string }) {
+  if (!content) return null;
+
+  const cleaned = cleanDescriptionMetadata(content);
+  if (!cleaned) return null;
+
+  // Check if content contains <li> tags
+  if (/<li/i.test(cleaned)) {
+    const liMatches = cleaned.match(/<li[^>]*>([\s\S]*?)<\/li>/gi) || [];
+    const listItems = liMatches
+      .map((li) => {
+        const rawText = li.replace(/<[^>]+>/g, '');
+        return decodeHtmlEntities(rawText).trim();
+      })
+      .filter(Boolean);
+
+    const nonLiText = decodeHtmlEntities(
+      cleaned.replace(/<li[^>]*>[\s\S]*?<\/li>/gi, '').replace(/<[^>]+>/g, '').trim()
+    );
+
+    return (
+      <div className="space-y-3">
+        {nonLiText && <p className="leading-relaxed text-surface-800 font-normal">{nonLiText}</p>}
+        {listItems.length > 0 && (
+          <ul className="space-y-2">
+            {listItems.map((item, idx) => (
+              <li key={idx} className="flex items-start gap-2.5 text-sm text-surface-800 font-normal">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-surface-900" />
+                <span className="flex-1 leading-relaxed">{item}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  }
+
+  // Fallback for plain text or newline separated text
+  const decoded = decodeHtmlEntities(cleaned);
+  const lines = decoded.split('\n').map((l) => l.trim()).filter(Boolean);
+
+  const isBulletList = lines.length > 1 && lines.every((line) => /^[-*•]/.test(line));
+
+  if (isBulletList) {
+    return (
+      <ul className="space-y-2">
+        {lines.map((line, idx) => (
+          <li key={idx} className="flex items-start gap-2.5 text-sm text-surface-800 font-normal">
+            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-surface-900" />
+            <span className="flex-1 leading-relaxed">{line.replace(/^[-*•]\s*/, '')}</span>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  return (
+    <div className="space-y-2 text-sm text-surface-800 leading-relaxed font-normal">
+      {lines.map((line, idx) => (
+        <p key={idx}>{line}</p>
+      ))}
+    </div>
+  );
 }
 
 function normalizeSlug(value: string) {
@@ -254,8 +320,8 @@ export default function ProductDetailPage() {
   const addToBagTheme = colorTheme?.addToBagClass || 'bg-surface-800 text-white';
   const galleryImages: string[] = Array.isArray(product.images) ? product.images.map((image: string) => resolveImageUrl(image)).filter(Boolean) : [];
   const primaryImage = galleryImages[0] || '';
-  const plainDescription = stripHtml(product.description);
-  const cleanedDescription = cleanLegacyDescription(plainDescription) || product.name;
+  const plainDescription = stripHtml(product.description || '');
+  const cleanedDescription = plainDescription ? plainDescription.replace(/category:\s*[^\n<]+/gi, '').replace(/sizes?:\s*[^\n<]+/gi, '').trim() : product.name;
   const dynamicDetailRows = [
     { label: 'Category', value: product.category },
     { label: 'Subcategory', value: product.subcategory },
@@ -452,9 +518,7 @@ export default function ProductDetailPage() {
               </button>
               {detailsExpanded && (
                 <div className="pb-3 text-sm text-surface-700 space-y-3">
-                  <div className="leading-relaxed whitespace-pre-line text-surface-800 font-normal">
-                    {product.description || product.name}
-                  </div>
+                  <FormattedProductDescription content={product.description || product.name} />
                   <div className="grid grid-cols-1 gap-y-1 pt-3 border-t border-surface-200 text-xs">
                     {dynamicDetailRows.map((detail) => (
                       <p key={detail.label}><span className="font-semibold text-surface-900">{detail.label}:</span> {detail.value}</p>
