@@ -148,7 +148,9 @@ export default function ProductCard({
     });
 
     toast.success(`Added ${defaultSize} to cart`);
-    openCart();
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+      openCart();
+    }
   };
 
   const handleToggleWishlist = async (e: React.MouseEvent<HTMLButtonElement>) => {

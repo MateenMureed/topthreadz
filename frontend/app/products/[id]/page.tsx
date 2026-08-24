@@ -12,6 +12,7 @@ import Image from 'next/image';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
 import { FiMinus, FiPlus, FiHeart } from 'react-icons/fi';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 import ScrollReveal from '@/components/ScrollReveal';
 import { isBackendUploadUrl, resolveImageUrl } from '@/lib/images';
@@ -150,6 +151,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [addedInline, setAddedInline] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(true);
   const [careExpanded, setCareExpanded] = useState(false);
   const { addItem, openCart } = useCartStore();
@@ -380,8 +382,16 @@ export default function ProductDetailPage() {
       size: selectedSize || undefined,
       color: selectedColor || undefined,
     });
-    toast.success('Added to cart!');
-    openCart();
+
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    if (isMobile) {
+      setAddedInline(true);
+      toast.success('Added to cart!');
+      setTimeout(() => setAddedInline(false), 4000);
+    } else {
+      toast.success('Added to cart!');
+      openCart();
+    }
   };
 
   const handleToggleWishlist = async () => {
@@ -461,8 +471,23 @@ export default function ProductDetailPage() {
               className={`w-full rounded-full px-6 py-3.5 text-sm font-bold uppercase tracking-wide transition-colors hover:brightness-90 disabled:opacity-60 ${addToBagTheme}`}
               id="add-to-cart"
             >
-              ADD TO BAG
+              {addedInline ? '✓ Added to Bag' : 'ADD TO BAG'}
             </button>
+
+            {addedInline && (
+              <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-xs text-emerald-900 transition-all animate-fade-in flex items-center justify-between gap-2 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-[10px]">✓</span>
+                  <span className="font-semibold">Added to Bag!</span>
+                </div>
+                <Link
+                  href="/checkout"
+                  className="rounded-lg bg-emerald-800 px-3 py-1.5 font-bold text-white transition hover:bg-emerald-900"
+                >
+                  Checkout →
+                </Link>
+              </div>
+            )}
 
             {Array.isArray(product.sizes) && product.sizes.length > 0 && (
               <div className="space-y-2 pt-1">
@@ -647,7 +672,7 @@ export default function ProductDetailPage() {
           disabled={product.stock === 0}
           className={`h-11 px-8 rounded-full text-[13px] font-bold uppercase tracking-wide transition-all active:scale-95 ${addToBagTheme}`}
         >
-          {product.stock === 0 ? 'Sold Out' : 'Add to Bag'}
+          {addedInline ? '✓ Added' : product.stock === 0 ? 'Sold Out' : 'Add to Bag'}
         </button>
       </div>
     </div>

@@ -39,7 +39,7 @@ export default function CheckoutPage() {
 
   const [checkoutEmail, setCheckoutEmail] = useState('');
   const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('FIXED');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('SAFEPAY');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD');
   const [emailMode, setEmailMode] = useState<SectionMode>('edit');
   const [shippingMode, setShippingMode] = useState<SectionMode>('edit');
   const [paymentMode, setPaymentMode] = useState<SectionMode>('edit');
@@ -437,37 +437,52 @@ export default function CheckoutPage() {
 
             {paymentExpanded ? (
               paymentMode === 'edit' ? (
-              <div className="mt-4 space-y-2">
-                <label className="border border-black rounded-lg bg-white p-3 flex items-center gap-3 cursor-pointer">
+              <div className="mt-4 space-y-3">
+                <label className="border-2 border-surface-900 rounded-xl bg-surface-50/50 p-4 flex items-center gap-3 cursor-pointer shadow-sm">
                   <input
                     type="radio"
-                    checked={paymentMethod === 'SAFEPAY'}
-                    onChange={() => setPaymentMethod('SAFEPAY')}
+                    name="payment_method"
+                    checked={paymentMethod === 'COD'}
+                    onChange={() => setPaymentMethod('COD')}
+                    className="h-4 w-4 accent-surface-900"
                   />
-                  <span className="font-bold text-black min-w-44">CREDIT / DEBIT CARD</span>
-                  <div className="ml-auto flex items-center gap-2">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-surface-900 text-sm">CASH ON DELIVERY (COD)</span>
+                      <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide">Active</span>
+                    </div>
+                    <p className="text-xs text-surface-600 mt-0.5">Pay with cash when your parcel is delivered to your address.</p>
+                  </div>
+                  <div className="ml-auto flex items-center gap-2 shrink-0">
+                    <Image src="/payment-logos/cod.svg" alt="Cash on delivery" width={72} height={24} sizes="72px" className="h-6 w-auto shrink-0" />
+                  </div>
+                </label>
+
+                <label className="border border-surface-200 rounded-xl bg-surface-100/60 p-4 flex items-center gap-3 opacity-75 cursor-not-allowed">
+                  <input
+                    type="radio"
+                    name="payment_method"
+                    disabled
+                    checked={false}
+                    className="h-4 w-4 opacity-50"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-surface-600 text-sm">CREDIT / DEBIT CARD</span>
+                      <span className="rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 uppercase tracking-wide">Coming Soon</span>
+                    </div>
+                    <p className="text-xs text-surface-500 mt-0.5">Online card payment via Safepay will be activated soon.</p>
+                  </div>
+                  <div className="ml-auto flex items-center gap-2 shrink-0 opacity-60">
                     <Image src="/payment-logos/visa.svg" alt="Visa" width={72} height={24} sizes="72px" className="h-6 w-auto shrink-0" />
                     <Image src="/payment-logos/mastercard.svg" alt="Mastercard" width={72} height={24} sizes="72px" className="h-6 w-auto shrink-0" />
                   </div>
                 </label>
 
-
-                <label className="border border-surface-300 rounded-lg bg-white p-3 flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    checked={paymentMethod === 'COD'}
-                    onChange={() => setPaymentMethod('COD')}
-                  />
-                  <span className="font-bold text-black min-w-44">CASH ON DELIVERY</span>
-                  <div className="ml-auto flex items-center gap-2">
-                    <Image src="/payment-logos/cod.svg" alt="Cash on delivery" width={72} height={24} sizes="72px" className="h-6 w-auto shrink-0" />
-                  </div>
-                </label>
-
-                <p className="text-sm text-surface-700 mt-2">
-                  Online payments are securely processed by Safepay.
+                <p className="text-xs text-surface-500 mt-1">
+                  Cash on Delivery is currently available for all orders across Pakistan.
                 </p>
-                <button type="button" onClick={savePaymentSection} className="btn-primary mt-2 px-5 py-2">Save Payment</button>
+                <button type="button" onClick={savePaymentSection} className="btn-primary mt-2 px-6 py-2.5 text-xs font-bold uppercase tracking-wide">Save Payment</button>
               </div>
               ) : (
                 <p className="mt-3 text-black font-medium">
