@@ -57,13 +57,10 @@ export default function CheckoutPage() {
 
   const cityOptions = address.province ? (PAKISTAN_LOCATIONS[address.province] || []) : [];
   const subtotal = getSubtotal();
-  const tax = Math.round(subtotal * 0.17);
   const delivery = shippingMethod === 'SAME_DAY' ? 250 : 0;
-  const priceInclTax = Math.round(subtotal + tax);
-  const total = Math.round(priceInclTax + delivery);
+  const total = Math.round(subtotal + delivery);
   const bagItem = items[0];
   const bagItemImage = resolveImageUrl(bagItem?.image);
-
   const isEmailValid = useMemo(() => /.+@.+\..+/.test(checkoutEmail.trim()), [checkoutEmail]);
   const isPhoneValid = useMemo(() => /^(\+92|0)?3[0-9]{9}$/.test(address.phone.trim()), [address.phone]);
 
@@ -524,7 +521,7 @@ export default function CheckoutPage() {
           <div className="sidebar-line-card">
             <p className="font-bold text-black text-2xl">ORDER SUMMARY</p>
             <div className="mt-4 space-y-3 text-sm text-black">
-              <div className="flex justify-between"><span>Price incl. tax</span><span className="font-bold">PKR {priceInclTax.toLocaleString()}</span></div>
+              <div className="flex justify-between"><span>Subtotal</span><span className="font-bold">PKR {subtotal.toLocaleString()}</span></div>
               <div className="flex justify-between"><span>Shipping</span><span className="font-bold">PKR {delivery.toLocaleString()}</span></div>
               <div className="flex justify-between border-t border-surface-300 pt-3"><span>Total Amount</span><span className="font-bold">PKR {total.toLocaleString()}</span></div>
             </div>

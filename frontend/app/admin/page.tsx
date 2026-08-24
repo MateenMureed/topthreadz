@@ -294,6 +294,73 @@ export default function AdminPage() {
   );
 }
 
+function HeroBannerManager() {
+  const [bannerUrl, setBannerUrl] = useState('');
+  const [currentBanner, setCurrentBanner] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('topthreadz_hero_banner') || '';
+      setCurrentBanner(saved);
+      setBannerUrl(saved);
+    }
+  }, []);
+
+  const handleSaveBanner = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('topthreadz_hero_banner', bannerUrl.trim());
+      setCurrentBanner(bannerUrl.trim());
+      toast.success(bannerUrl.trim() ? 'Homepage hero banner updated!' : 'Hero banner reset to default');
+    }
+  };
+
+  const handleClearBanner = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('topthreadz_hero_banner');
+      setCurrentBanner('');
+      setBannerUrl('');
+      toast.success('Hero banner reset to default');
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+        <div>
+          <h3 className="font-display text-lg font-bold text-surface-950">Homepage Hero Banner Image</h3>
+          <p className="text-xs text-surface-500">Upload or paste an image URL to customize the main Hero section on your Homepage.</p>
+        </div>
+        {currentBanner && (
+          <button onClick={handleClearBanner} className="btn-secondary !py-1.5 !px-3 text-xs text-red-600 border-red-200 hover:bg-red-50">
+            Reset Banner
+          </button>
+        )}
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 items-center">
+        <input
+          className="input-field flex-1"
+          placeholder="Paste Image URL (e.g. https://images.unsplash.com/... or Cloudinary URL)"
+          value={bannerUrl}
+          onChange={(e) => setBannerUrl(e.target.value)}
+        />
+        <button onClick={handleSaveBanner} className="btn-primary shrink-0 !py-2.5 !px-5 text-xs">
+          Save Hero Image
+        </button>
+      </div>
+
+      {currentBanner && (
+        <div className="mt-4 rounded-xl border border-surface-200 bg-surface-50 p-3">
+          <p className="text-xs font-semibold text-surface-600 mb-2">Active Hero Preview:</p>
+          <div className="relative h-40 w-full overflow-hidden rounded-lg border border-surface-300">
+            <img src={currentBanner} alt="Hero Banner Preview" className="h-full w-full object-cover" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DashboardTab({ onNavigate }: { onNavigate: (tab: AdminTab) => void }) {
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'dashboard'],
@@ -340,6 +407,8 @@ function DashboardTab({ onNavigate }: { onNavigate: (tab: AdminTab) => void }) {
           </div>
         </div>
       </div>
+
+      <HeroBannerManager />
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {cards.map((card, i) => (
           <div key={i} className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft">

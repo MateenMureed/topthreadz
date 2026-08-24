@@ -10,9 +10,7 @@ export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal, getItemCount } = useCartStore();
 
   const subtotal = getSubtotal();
-  const tax = Math.round(subtotal * 0.17);
-  const priceInclTax = Math.round(subtotal + tax);
-  const total = priceInclTax;
+  const total = subtotal;
   const count = getItemCount();
 
   if (!isOpen) return null;
@@ -23,21 +21,22 @@ export default function CartDrawer() {
       <div className="fixed inset-0 z-[65] bg-black/35 backdrop-blur-[2px] cursor-pointer" onClick={closeCart} />
 
       {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 z-[70] w-full sm:max-w-[380px] bg-white shadow-[0_0_40px_rgba(0,0,0,0.2)] animate-slide-in-right flex flex-col overflow-hidden">
+      <div className="fixed inset-y-0 right-0 z-[70] w-full sm:max-w-[400px] h-[100dvh] max-h-screen bg-white shadow-[0_0_40px_rgba(0,0,0,0.2)] animate-slide-in-right flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-surface-200">
-          <h2 className="font-display text-lg font-semibold uppercase tracking-tight">Your Bag ({count})</h2>
+        <div className="flex shrink-0 items-center justify-between px-4 py-3.5 border-b border-surface-200 bg-white">
+          <h2 className="font-display text-base font-bold uppercase tracking-tight text-surface-900">Your Bag ({count})</h2>
           <button
             onClick={closeCart}
-            className="p-1.5 rounded-lg hover:bg-surface-100 transition-colors"
+            className="p-1.5 rounded-full hover:bg-surface-100 transition-colors text-surface-700"
             id="close-cart"
+            aria-label="Close cart"
           >
-            <FiX className="w-4 h-4" />
+            <FiX className="w-5 h-5" />
           </button>
         </div>
 
         {/* Items */}
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-3">
           {items.length === 0 ? (
             <div className="text-center py-20">
               <FiShoppingBag className="w-12 h-12 text-surface-300 mx-auto mb-4" />
@@ -126,27 +125,24 @@ export default function CartDrawer() {
 
         {/* Footer */}
         {items.length > 0 && (
-          <div className="px-4 py-3 space-y-3 border-t border-surface-200 bg-white">
-            <div className="sidebar-line-card">
-              <p className="font-display text-lg font-semibold uppercase">Order Summary</p>
-              <div className="mt-3 space-y-2 text-sm">
-                <div className="flex justify-between"><span>Price Incl. Tax</span><span className="font-semibold">PKR {priceInclTax.toLocaleString()}</span></div>
-                <div className="border-t border-surface-200 pt-2 flex justify-between"><span>Total</span><span className="font-semibold">PKR {total.toLocaleString()}</span></div>
-              </div>
+          <div className="shrink-0 px-4 py-3.5 space-y-3 border-t border-surface-200 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.06)] pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <div className="flex justify-between items-center text-sm font-semibold text-surface-900">
+              <span>Total (Exact Sale Price)</span>
+              <span className="text-base font-bold text-surface-950">PKR {total.toLocaleString()}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={closeCart}
-                className="text-center rounded-xl border-2 border-surface-700 py-2.5 text-sm font-semibold"
+                className="w-full rounded-full border-2 border-surface-900 bg-white py-3 text-xs font-bold uppercase tracking-wider text-surface-900 transition hover:bg-surface-100 active:scale-95 text-center"
               >
                 View Bag
               </button>
               <Link
                 href="/checkout"
                 onClick={closeCart}
-                className="bag-pill-btn !py-2.5 !text-xs"
+                className="w-full flex items-center justify-center rounded-full bg-surface-900 py-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-surface-800 active:scale-95 text-center shadow-sm"
               >
                 Proceed to Checkout
               </Link>
