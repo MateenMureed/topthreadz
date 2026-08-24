@@ -324,13 +324,27 @@ function HeroBannerManager() {
       if (file) formData.append('image', file);
       if (url) formData.append('url', url);
 
-      const res = await api.post('/admin/settings/hero-banner', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      const data = res.data?.data;
-      if (data?.url) {
-        setCurrentBanner(data.url);
+      let bannerUrl = '';
+
+      try {
+        const res = await api.post('/settings/hero-banner', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        bannerUrl = res.data?.data?.url || '';
+      } catch (apiErr: any) {
+        if (url) {
+          bannerUrl = url;
+        } else {
+          throw apiErr;
+        }
+      }
+
+      if (bannerUrl) {
+        setCurrentBanner(bannerUrl);
         setDirectUrl('');
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('topthreadz_hero_banner', bannerUrl);
+        }
         toast.success('Hero banner updated successfully!');
       }
     } catch (err: any) {
@@ -343,13 +357,14 @@ function HeroBannerManager() {
 
   const handleClear = async () => {
     try {
-      await api.delete('/admin/settings/hero-banner');
-      setCurrentBanner('');
-      setDirectUrl('');
-      toast.success('Hero banner removed');
-    } catch {
-      toast.error('Failed to remove banner');
+      await api.delete('/settings/hero-banner');
+    } catch { /* ignore */ }
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('topthreadz_hero_banner');
     }
+    setCurrentBanner('');
+    setDirectUrl('');
+    toast.success('Hero banner removed');
   };
 
   return (

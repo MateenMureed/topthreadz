@@ -16,6 +16,7 @@ import paymentRoutes from './modules/payment/payment.routes';
 import adminRoutes from './modules/admin/admin.routes';
 import experienceRoutes from './modules/experience/experience.routes';
 import { adminController } from './modules/admin/admin.controller';
+import { upload } from './middleware/upload.middleware';
 import { recommendationService } from './modules/product/recommendation.service';
 import { authenticate, AuthRequest } from './middleware/auth.middleware';
 
@@ -77,6 +78,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/experience', experienceRoutes);
 
 app.get('/api/settings/hero-banner', adminController.getHeroBanner.bind(adminController));
+app.post('/api/settings/hero-banner', upload.single('image'), adminController.uploadHeroBanner.bind(adminController));
+app.delete('/api/settings/hero-banner', adminController.deleteHeroBanner.bind(adminController));
 
 app.get('/api/recommendations', authenticate, async (req: AuthRequest, res, next) => {
   try { res.json({ success: true, data: await recommendationService.getRecommendations(req.user!.userId) }); }
