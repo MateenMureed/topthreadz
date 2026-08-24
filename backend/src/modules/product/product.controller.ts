@@ -7,18 +7,11 @@ export class ProductController {
   async uploadImages(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const files = (req.files as Express.Multer.File[]) || [];
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
-
-      let urls: string[] = [];
-      if (isCloudinaryConfigured()) {
-        urls = await Promise.all(
-          files.map((file) => uploadToCloudinary(file.path))
-        );
-      } else {
-        urls = files.map((file) => `${baseUrl}/uploads/${file.filename}`);
+      if (!isCloudinaryConfigured()) {
+        throw new Error('Cloudinary must be configured for product image uploads.');
       }
-
-      res.json({ success: true, data: { urls } });
+      const images = await Promise.all(files.map((file) => uploadToCloudinary(file.buffer)));
+      res.json({ success: true, data: { urls: images.map((image) => image.url), images } });
     } catch (error) { next(error); }
   }
 

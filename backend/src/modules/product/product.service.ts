@@ -2,6 +2,7 @@ import prisma from '../../utils/prisma';
 import { NotFoundError } from '../../utils/errors';
 import { CreateProductInput, UpdateProductInput } from './product.schema';
 import { Prisma } from '@prisma/client';
+import { deleteFromCloudinary } from '../../config/cloudinary';
 
 export class ProductService {
   private normalizeUnstitchedMensProduct(data: CreateProductInput | UpdateProductInput): Record<string, unknown> {
@@ -183,13 +184,16 @@ export class ProductService {
       updateData.slug = await this.ensureUniqueSlug(this.generateSlug(data.name), id);
     }
 
-    return prisma.product.update({ where: { id }, data: updateData as Prisma.ProductUncheckedUpdateInput });
+    const updated = await prisma.product.update({ where: { id }, data: updateData as Prisma.ProductUncheckedUpdateInput });
+    if (data.images) await this.removeDeletedCloudinaryImages(product.imageMeta, data.images);
+    return updated;
   }
 
   async delete(id: string) {
     const product = await prisma.product.findUnique({ where: { id } });
     if (!product) throw new NotFoundError('Product not found');
     await prisma.product.delete({ where: { id } });
+    await this.removeDeletedCloudinaryImages(product.imageMeta, []);
     return { message: 'Product deleted' };
   }
 
@@ -435,6 +439,15 @@ export class ProductService {
       counter += 1;
       slug = `${baseSlug}-${counter}`;
     }
+  }
+
+  private async removeDeletedCloudinaryImages(imageMeta: Prisma.JsonValue | null, retainedUrls: string[]) {
+    if (!Array.isArray(imageMeta)) return;
+    const retained = new Set(retainedUrls);
+    const removed = imageMeta
+      .filter((item): item is { url?: string; publicId?: string } => Boolean(item && typeof item === 'object' && !Array.isArray(item)))
+      .filter((item) => item.publicId && !retained.has(item.url || ''));
+    await Promise.all(removed.map((item) => deleteFromCloudinary(item.publicId!)));
   }
 
   private interpretNaturalLanguageQuery(query: string) {

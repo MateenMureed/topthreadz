@@ -144,6 +144,7 @@ const FIXED_SIZE_OPTIONS = ['4.5m', '7 meter'];
 
 interface ImageMeta {
   url: string;
+  publicId?: string;
   alt: string;
   isPrimary: boolean;
 }
@@ -788,6 +789,7 @@ function ProductsTab() {
         return {
           url,
           alt: found?.alt || form.name || `Product image ${index + 1}`,
+          publicId: found?.publicId,
           isPrimary: found?.isPrimary || index === 0,
         };
       });
@@ -923,6 +925,7 @@ function ProductsTab() {
       productStatus: product.productStatus || 'DRAFT',
       images: product.images || [],
     });
+    setImageMeta(Array.isArray(product.imageMeta) ? product.imageMeta : []);
     setShowInlineForm(true);
     setIsSlugEditedManually(true);
     setFormErrors({});
@@ -1005,8 +1008,8 @@ function ProductsTab() {
 
     setUploadingImages(true);
     try {
-      const uploadedUrlsRaw = await productService.uploadImages(files);
-      const uploadedUrls = Array.isArray(uploadedUrlsRaw) ? uploadedUrlsRaw : [];
+      const uploadedImages = await productService.uploadImages(files);
+      const uploadedUrls = uploadedImages.map((image) => image.url).filter(Boolean);
 
       if (uploadedUrls.length === 0) {
         toast.error('Upload succeeded but no image URLs were returned');
@@ -1017,6 +1020,12 @@ function ProductsTab() {
         ...prev,
         images: [...prev.images, ...uploadedUrls],
       }));
+      setImageMeta((prev) => [...prev, ...uploadedImages.map((image, index) => ({
+        url: image.url,
+        publicId: image.publicId,
+        alt: form.name || `Product image ${prev.length + index + 1}`,
+        isPrimary: prev.length === 0 && index === 0,
+      }))]);
       toast.success(`${uploadedUrls.length} image(s) uploaded`);
     } catch (error: any) {
       toast.error(error?.response?.data?.error || 'Image upload failed');

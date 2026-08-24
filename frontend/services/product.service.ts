@@ -28,6 +28,7 @@ export interface AiSearchQuery {
 
 interface ProductImageMetaInput {
   url: string;
+  publicId?: string;
   alt?: string;
   isPrimary?: boolean;
 }
@@ -102,11 +103,6 @@ export const productService = {
     files.forEach((file) => formData.append('images', file));
     return api.post('/products/upload-images', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-    }).then((r) => {
-      const payload = r.data;
-      const candidates = [payload?.data?.urls, payload?.urls, payload?.data, payload];
-      const urls = candidates.find((entry) => Array.isArray(entry));
-      return (urls || []) as string[];
-    });
+    }).then((r) => r.data?.data?.images || [] as Array<{ url: string; publicId: string }>);
   },
 };

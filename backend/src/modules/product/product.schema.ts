@@ -16,6 +16,7 @@ export const createProductSchema = z.object({
   images: z.array(z.string()).default([]),
   imageMeta: z.array(z.object({
     url: z.string(),
+    publicId: z.string().optional(),
     alt: z.string().optional(),
     isPrimary: z.boolean().optional(),
   })).optional(),

@@ -6,8 +6,10 @@ export const env = {
   PORT: parseInt(process.env.PORT || '5000', 10),
   DATABASE_URL: process.env.DATABASE_URL!,
   
-  JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || 'access-secret-change-me',
-  JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'refresh-secret-change-me',
+  // JWT_SECRET is the Vercel-friendly single-secret name. Keep the existing
+  // names as aliases so current deployments and tokens remain compatible.
+  JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'access-secret-change-me',
+  JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'refresh-secret-change-me',
   JWT_ACCESS_EXPIRY: process.env.JWT_ACCESS_EXPIRY || '15m',
   JWT_REFRESH_EXPIRY: process.env.JWT_REFRESH_EXPIRY || '7d',
 
@@ -28,7 +30,6 @@ export const env = {
   SAFEPAY_WEBHOOK_SECRET: process.env.SAFEPAY_WEBHOOK_SECRET || '',
   SAFEPAY_CURRENCY: process.env.SAFEPAY_CURRENCY || 'PKR',
 
-  UPLOAD_DIR: process.env.UPLOAD_DIR || 'uploads',
   MAX_FILE_SIZE: parseInt(process.env.MAX_FILE_SIZE || '5242880', 10), // 5MB
 
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || '',
@@ -38,6 +39,8 @@ export const env = {
   RATE_LIMIT_WINDOW: parseInt(process.env.RATE_LIMIT_WINDOW || '900000', 10), // 15 min
   RATE_LIMIT_MAX: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
   LOGIN_RATE_LIMIT_MAX: parseInt(process.env.LOGIN_RATE_LIMIT_MAX || '5', 10),
+  UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL || '',
+  UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN || '',
 
   TAX_RATE: parseFloat(process.env.TAX_RATE || '0.17'), // 17% GST Pakistan
   DELIVERY_CHARGE: parseFloat(process.env.DELIVERY_CHARGE || '200'), // PKR 200
