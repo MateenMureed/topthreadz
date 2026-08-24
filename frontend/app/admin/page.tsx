@@ -358,7 +358,7 @@ function HeroBannerManager() {
   }, []);
 
   const handleUpload = async () => {
-    const file = fileRef.current?.files?.[0];
+    let file = fileRef.current?.files?.[0];
     const url = directUrl.trim();
 
     if (!file && !url) {
