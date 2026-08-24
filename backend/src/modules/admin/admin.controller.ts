@@ -3,6 +3,7 @@ import { adminService } from './admin.service';
 import { AuthRequest } from '../../middleware/auth.middleware';
 import { isCloudinaryConfigured, uploadToCloudinary, deleteFromCloudinary } from '../../config/cloudinary';
 import prisma from '../../utils/prisma';
+import logger from '../../utils/logger';
 
 export class AdminController {
   async getDashboard(_req: AuthRequest, res: Response, next: NextFunction) {
