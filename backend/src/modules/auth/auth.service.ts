@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import prisma from '../../utils/prisma';
 import { signAccessToken } from '../../utils/jwt';
 import { BadRequestError, UnauthorizedError, ConflictError, NotFoundError } from '../../utils/errors';
@@ -105,7 +105,7 @@ export class AuthService {
       return { message: 'If an account exists, a reset link will be sent.' };
     }
 
-    const resetToken = uuidv4();
+    const resetToken = randomUUID();
     const resetExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     await prisma.user.update({
