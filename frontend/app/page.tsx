@@ -4,20 +4,36 @@ import Link from 'next/link';
 import { FiArrowRight } from 'react-icons/fi';
 import { useQuery } from '@tanstack/react-query';
 import { productService } from '@/services/product.service';
+import api from '@/services/api';
 import ProductGrid from '@/components/ProductGrid';
 
 export default function HomePage() {
+  const { data: heroResponse } = useQuery({
+    queryKey: ['home', 'hero-banner'],
+    queryFn: () => api.get('/settings/hero-banner').then((response) => response.data),
+    retry: false,
+  });
   const { data: productsResponse, isLoading } = useQuery({
     queryKey: ['home', 'products'],
     queryFn: () => productService.getAll({ limit: 50, sortBy: 'newest' }),
   });
 
   const products = productsResponse?.data?.products || [];
+  const heroBanner = heroResponse?.data?.url as string | undefined;
 
   return (
     <div className="bg-white text-black">
       {/* Hero Section */}
       <section className="border-b border-surface-300 overflow-hidden">
+        {heroBanner ? (
+          <Link href="/products" className="block" aria-label="Shop all products">
+            <img
+              src={heroBanner}
+              alt="Top Threadz collection"
+              className="block h-auto w-full object-cover"
+            />
+          </Link>
+        ) : (
         <div className="bg-surface-950 text-white">
           <div className="max-w-7xl mx-auto px-4 py-16 md:py-24 text-center">
             <p className="brand-wordmark text-sm md:text-base text-surface-400">Top Threadz</p>
@@ -36,6 +52,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+        )}
       </section>
 
       <section className="max-w-7xl mx-auto px-4 py-12 md:py-14">
