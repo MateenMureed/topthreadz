@@ -246,6 +246,11 @@ export default function ProductCard({
           >
             <FiHeart className={`h-4 w-4 md:h-[18px] md:w-[18px] ${isWishlisted ? 'fill-current' : ''}`} />
           </button>
+
+          {/* Quick View Hover Overlay */}
+          <div className="absolute inset-x-0 bottom-0 z-10 hidden md:flex items-center justify-center bg-black/70 backdrop-blur-md py-2 text-white text-[11px] font-bold uppercase tracking-[0.18em] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+            Quick View →
+          </div>
         </div>
 
         <div className="pt-3 md:pt-4">

@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { FiPackage } from 'react-icons/fi';
 import ProductCard from './ProductCard';
 import ScrollReveal from './ScrollReveal';
 
@@ -55,7 +57,8 @@ export default function ProductGrid({
         ? 'md:grid-cols-3 lg:grid-cols-3'
         : 'md:grid-cols-3 lg:grid-cols-4';
 
-  const gridClass = `grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6 ${desktopGridClass}`;
+  const isSparse = uniqueProducts.length > 0 && uniqueProducts.length < gridCols;
+  const gridClass = `grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6 ${desktopGridClass} ${isSparse ? 'justify-center mx-auto max-w-5xl' : ''}`;
 
   const renderSkeletonGrid = () => (
     <div className={gridClass}>
@@ -102,6 +105,29 @@ export default function ProductGrid({
     </div>
   );
 
+  const renderPlaceholderCard = () => (
+    <div className="rounded-2xl border-2 border-dashed border-surface-300 bg-surface-50/70 p-6 sm:p-8 text-center flex flex-col items-center justify-center min-h-[380px] h-full transition-all hover:border-surface-400 hover:bg-surface-100/60">
+      <div className="w-14 h-14 rounded-full bg-surface-200/80 flex items-center justify-center text-surface-700 mb-4 shadow-inner">
+        <FiPackage className="w-6 h-6" />
+      </div>
+      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-surface-500 mb-1">
+        TOP THREADZ COLLECTION
+      </span>
+      <h3 className="font-display text-lg font-bold text-surface-900 mb-2">
+        More Arriving Soon
+      </h3>
+      <p className="text-xs text-surface-600 max-w-[220px] mx-auto mb-5 leading-relaxed">
+        New unstitched wash & wear fabrics and exclusive drops are currently being curated.
+      </p>
+      <Link
+        href="/products"
+        className="inline-flex items-center gap-1.5 rounded-full bg-surface-950 px-4 py-2 text-xs font-bold text-white uppercase tracking-wider hover:bg-surface-800 transition-all shadow-sm"
+      >
+        Explore All Drops →
+      </Link>
+    </div>
+  );
+
   if (!isMounted || loading) {
     return (
       <div>
@@ -113,12 +139,11 @@ export default function ProductGrid({
 
   if (uniqueProducts.length === 0) {
     return (
-      <div className="text-center py-20">
-        <div className="w-20 h-20 mx-auto bg-surface-100 rounded-2xl flex items-center justify-center mb-4">
-          <span className="text-3xl">No Items</span>
+      <div>
+        {showGridControls && isMounted ? renderGridControls() : null}
+        <div className="max-w-md mx-auto py-8">
+          {renderPlaceholderCard()}
         </div>
-        <p className="text-surface-500 text-lg font-medium">No products found</p>
-        <p className="text-surface-400 text-sm mt-1">Try adjusting your filters or search</p>
       </div>
     );
   }
@@ -136,6 +161,13 @@ export default function ProductGrid({
             <ProductCard {...product} />
           </ScrollReveal>
         ))}
+
+        {/* Fallback card when only 1 item exists */}
+        {uniqueProducts.length === 1 && (
+          <ScrollReveal delay={100} animation="slide-up">
+            {renderPlaceholderCard()}
+          </ScrollReveal>
+        )}
       </div>
     </div>
   );
