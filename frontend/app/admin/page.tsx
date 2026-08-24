@@ -45,6 +45,54 @@ function resolveImageUrl(url: string) {
   return `${BACKEND_BASE_URL}/${url}`;
 }
 
+async function compressImageFile(file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.82): Promise<File> {
+  if (file.size < 350 * 1024) return file;
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(file);
+
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return resolve(file);
+            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '') + '.webp', {
+              type: 'image/webp',
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          },
+          'image/webp',
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+    };
+    reader.onerror = () => resolve(file);
+  });
+}
+
 function AdminImage({
   src,
   alt,
@@ -320,6 +368,9 @@ function HeroBannerManager() {
 
     setUploading(true);
     try {
+      if (file) {
+        file = await compressImageFile(file, 1920, 1080, 0.85);
+      }
       const formData = new FormData();
       if (file) formData.append('image', file);
       if (url) formData.append('url', url);
@@ -1129,11 +1180,13 @@ function ProductsTab() {
   };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    if (files.length === 0) return;
+    const rawFiles = Array.from(event.target.files || []);
+    if (rawFiles.length === 0) return;
 
     setUploadingImages(true);
     try {
+      // Compress image files client-side to keep request payload tiny (< 300KB)
+      const files = await Promise.all(rawFiles.map((file) => compressImageFile(file)));
       const uploadedImages = await productService.uploadImages(files);
       const uploadedUrls = uploadedImages.map((image) => image.url).filter(Boolean);
 

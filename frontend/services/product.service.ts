@@ -103,11 +103,17 @@ export const productService = {
   remove: (id: string) =>
     api.delete(`/products/${id}`).then(r => r.data),
 
-  uploadImages: (files: File[]) => {
-    const formData = new FormData();
-    files.forEach((file) => formData.append('images', file));
-    return api.post('/products/upload-images', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }).then((r): UploadedProductImage[] => r.data?.data?.images || []);
+  uploadImages: async (files: File[]): Promise<UploadedProductImage[]> => {
+    const results: UploadedProductImage[] = [];
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('images', file);
+      const res = await api.post('/products/upload-images', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const images: UploadedProductImage[] = res.data?.data?.images || [];
+      results.push(...images);
+    }
+    return results;
   },
 };
