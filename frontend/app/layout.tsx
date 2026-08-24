@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import MobileNav from '@/components/MobileNav';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import AuthRouteHandler from '@/components/AuthRouteHandler';
+import WhatsAppButton from '@/components/WhatsAppButton';
 import { STANDARD_SEO_TAGS } from '@/lib/standardProductDetails';
 import './globals.css';
 
@@ -104,6 +105,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <MobileNav />
           <CartDrawer />
           <AuthModal />
+          <WhatsAppButton />
         </Providers>
         <div id="plusCursor" aria-hidden="true" />
       </body>

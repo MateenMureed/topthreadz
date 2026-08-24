@@ -96,8 +96,8 @@ export default function HomePage() {
             </span>
             <div className="h-px flex-1 bg-surface-200" />
           </div>
-          <h2 className="text-2xl md:text-4xl font-display font-bold text-surface-950">
-            Featured Fabrics & Menswear Drops
+          <h2 className="text-2xl md:text-4xl font-display font-bold text-surface-950 uppercase tracking-tight">
+            Shop Our Collection
           </h2>
         </div>
 
