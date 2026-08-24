@@ -12,10 +12,12 @@ export default function HomePage() {
   const [heroBanner, setHeroBanner] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get('/admin/settings/hero-banner')
-      .then(res => {
-        const data = res.data?.data;
-        if (data?.url) setHeroBanner(data.url);
+    let baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').trim().replace(/\/+$/, '');
+    if (!baseUrl.endsWith('/api')) baseUrl += '/api';
+    fetch(`${baseUrl}/settings/hero-banner`)
+      .then(res => res.json())
+      .then(data => {
+        if (data?.data?.url) setHeroBanner(data.data.url);
       })
       .catch(() => { /* ignore */ });
   }, []);

@@ -301,7 +301,7 @@ function HeroBannerManager() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    api.get('/admin/settings/hero-banner')
+    api.get('/settings/hero-banner')
       .then(res => {
         const data = res.data?.data;
         if (data?.url) setCurrentBanner(data.url);
