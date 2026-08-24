@@ -295,31 +295,52 @@ export default function AdminPage() {
 }
 
 function HeroBannerManager() {
-  const [bannerUrl, setBannerUrl] = useState('');
   const [currentBanner, setCurrentBanner] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('topthreadz_hero_banner') || '';
-      setCurrentBanner(saved);
-      setBannerUrl(saved);
-    }
+    api.get('/admin/settings/hero-banner')
+      .then(res => {
+        const data = res.data?.data;
+        if (data?.url) setCurrentBanner(data.url);
+      })
+      .catch(() => { /* ignore */ });
   }, []);
 
-  const handleSaveBanner = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('topthreadz_hero_banner', bannerUrl.trim());
-      setCurrentBanner(bannerUrl.trim());
-      toast.success(bannerUrl.trim() ? 'Homepage hero banner updated!' : 'Hero banner reset to default');
+  const handleUpload = async () => {
+    const file = fileRef.current?.files?.[0];
+    if (!file) {
+      toast.error('Please select an image file first');
+      return;
+    }
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await api.post('/admin/settings/hero-banner', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const data = res.data?.data;
+      if (data?.url) {
+        setCurrentBanner(data.url);
+        toast.success('Hero banner uploaded to Cloudinary!');
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to upload banner');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
     }
   };
 
-  const handleClearBanner = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('topthreadz_hero_banner');
+  const handleClear = async () => {
+    try {
+      await api.delete('/admin/settings/hero-banner');
       setCurrentBanner('');
-      setBannerUrl('');
-      toast.success('Hero banner reset to default');
+      toast.success('Hero banner removed');
+    } catch {
+      toast.error('Failed to remove banner');
     }
   };
 
@@ -327,25 +348,25 @@ function HeroBannerManager() {
     <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
         <div>
-          <h3 className="font-display text-lg font-bold text-surface-950">Homepage Hero Banner Image</h3>
-          <p className="text-xs text-surface-500">Upload or paste an image URL to customize the main Hero section on your Homepage.</p>
+          <h3 className="font-display text-lg font-bold text-surface-950">Homepage Hero Banner</h3>
+          <p className="text-xs text-surface-500">Upload an image to Cloudinary for your Homepage hero section. Visible to all visitors.</p>
         </div>
         {currentBanner && (
-          <button onClick={handleClearBanner} className="btn-secondary !py-1.5 !px-3 text-xs text-red-600 border-red-200 hover:bg-red-50">
-            Reset Banner
+          <button onClick={handleClear} className="btn-secondary !py-1.5 !px-3 text-xs text-red-600 border-red-200 hover:bg-red-50">
+            Remove Banner
           </button>
         )}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 items-center">
         <input
-          className="input-field flex-1"
-          placeholder="Paste Image URL (e.g. https://images.unsplash.com/... or Cloudinary URL)"
-          value={bannerUrl}
-          onChange={(e) => setBannerUrl(e.target.value)}
+          ref={fileRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="input-field flex-1 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-900 file:text-white"
         />
-        <button onClick={handleSaveBanner} className="btn-primary shrink-0 !py-2.5 !px-5 text-xs">
-          Save Hero Image
+        <button onClick={handleUpload} disabled={uploading} className="btn-primary shrink-0 !py-2.5 !px-5 text-xs disabled:opacity-60">
+          {uploading ? 'Uploading…' : 'Upload Hero Image'}
         </button>
       </div>
 

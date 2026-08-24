@@ -147,8 +147,21 @@ export default function ProductCard({
       color: colors[0] || undefined,
     });
 
-    toast.success(`Added ${defaultSize} to cart`);
-    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      toast((t) => (
+        <div className="flex items-center justify-between gap-3 text-xs w-full">
+          <span>Added <strong>{defaultSize}</strong> to cart!</span>
+          <Link
+            href="/checkout"
+            onClick={() => toast.dismiss(t.id)}
+            className="rounded-lg bg-emerald-700 px-2.5 py-1 text-white font-bold shrink-0 hover:bg-emerald-800"
+          >
+            Checkout →
+          </Link>
+        </div>
+      ), { duration: 4000 });
+    } else {
+      toast.success(`Added ${defaultSize} to cart`);
       openCart();
     }
   };

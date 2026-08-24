@@ -1,6 +1,8 @@
-import { Response, NextFunction } from 'express';
+import { Response, NextFunction, Request } from 'express';
 import { adminService } from './admin.service';
 import { AuthRequest } from '../../middleware/auth.middleware';
+import { isCloudinaryConfigured, uploadToCloudinary, deleteFromCloudinary } from '../../config/cloudinary';
+import prisma from '../../utils/prisma';
 
 export class AdminController {
   async getDashboard(_req: AuthRequest, res: Response, next: NextFunction) {
@@ -82,6 +84,56 @@ export class AdminController {
     try {
       const result = await adminService.cleanupLegacyData(req.user!.userId);
       res.json({ success: true, data: result });
+    } catch (error) { next(error); }
+  }
+
+  // ── Hero Banner ──────────────────────────────────────────────────────
+  async getHeroBanner(_req: Request, res: Response, next: NextFunction) {
+    try {
+      const setting = await prisma.siteSetting.findUnique({ where: { key: 'hero_banner' } });
+      res.json({ success: true, data: setting ? JSON.parse(setting.value) : null });
+    } catch (error) { next(error); }
+  }
+
+  async uploadHeroBanner(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const file = (req as any).file as Express.Multer.File | undefined;
+      if (!file) throw new Error('No image file provided');
+      if (!isCloudinaryConfigured()) throw new Error('Cloudinary is not configured');
+
+      // Delete old banner from Cloudinary if exists
+      const existing = await prisma.siteSetting.findUnique({ where: { key: 'hero_banner' } });
+      if (existing) {
+        try {
+          const old = JSON.parse(existing.value);
+          if (old.publicId) await deleteFromCloudinary(old.publicId);
+        } catch { /* ignore parse errors */ }
+      }
+
+      const uploaded = await uploadToCloudinary(file.buffer, 'topthreadz-hero');
+      const payload = { url: uploaded.url, publicId: uploaded.publicId };
+
+      await prisma.siteSetting.upsert({
+        where: { key: 'hero_banner' },
+        update: { value: JSON.stringify(payload) },
+        create: { key: 'hero_banner', value: JSON.stringify(payload) },
+      });
+
+      res.json({ success: true, data: payload });
+    } catch (error) { next(error); }
+  }
+
+  async deleteHeroBanner(_req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const existing = await prisma.siteSetting.findUnique({ where: { key: 'hero_banner' } });
+      if (existing) {
+        try {
+          const old = JSON.parse(existing.value);
+          if (old.publicId) await deleteFromCloudinary(old.publicId);
+        } catch { /* ignore */ }
+        await prisma.siteSetting.delete({ where: { key: 'hero_banner' } });
+      }
+      res.json({ success: true, data: null });
     } catch (error) { next(error); }
   }
 }

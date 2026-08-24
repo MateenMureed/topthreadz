@@ -386,7 +386,18 @@ export default function ProductDetailPage() {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     if (isMobile) {
       setAddedInline(true);
-      toast.success('Added to cart!');
+      toast((t) => (
+        <div className="flex items-center justify-between gap-3 text-xs w-full">
+          <span>Added to Bag!</span>
+          <Link
+            href="/checkout"
+            onClick={() => toast.dismiss(t.id)}
+            className="rounded-lg bg-emerald-700 px-2.5 py-1 text-white font-bold shrink-0 hover:bg-emerald-800"
+          >
+            Proceed to Checkout →
+          </Link>
+        </div>
+      ), { duration: 4000 });
       setTimeout(() => setAddedInline(false), 4000);
     } else {
       toast.success('Added to cart!');
