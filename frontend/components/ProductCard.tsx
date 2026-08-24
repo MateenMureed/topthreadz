@@ -209,7 +209,7 @@ export default function ProductCard({
                 fill
                 unoptimized={isBackendUploadUrl(frontSrc)}
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className="h-full w-full object-contain object-center transition-transform duration-[600ms] ease-out will-change-transform group-hover:scale-[1.35] mix-blend-multiply"
+                className="h-full w-full object-cover object-center transition-transform duration-[600ms] ease-out will-change-transform group-hover:scale-[1.35]"
                 style={{ transformOrigin: '50% 50%' }}
                 draggable={false}
               />
