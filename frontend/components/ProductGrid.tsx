@@ -34,6 +34,11 @@ export default function ProductGrid({
 }: ProductGridProps) {
   const [gridCols, setGridCols] = useState<2 | 3 | 4>(4);
   const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const uniqueProducts = useMemo(() => {
     const seen = new Set<string>();
     return products.filter((product) => {
@@ -51,10 +56,6 @@ export default function ProductGrid({
         : 'md:grid-cols-3 lg:grid-cols-4';
 
   const gridClass = `grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6 ${desktopGridClass}`;
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const renderSkeletonGrid = () => (
     <div className={gridClass}>
@@ -75,19 +76,24 @@ export default function ProductGrid({
   );
 
   const renderGridControls = () => (
-    <div className="mb-5 hidden sm:flex justify-end">
-      <div className="inline-flex items-center gap-1 rounded-full border border-surface-200 bg-white/90 p-1 shadow-sm backdrop-blur">
-        {[2, 3, 4].map((cols) => (
+    <div className="mb-5 hidden md:flex items-center justify-between border-b border-surface-200 pb-3">
+      <span className="text-xs font-bold uppercase tracking-wider text-surface-500">
+        Grid Layout Controls
+      </span>
+      <div className="inline-flex items-center gap-1.5 rounded-full border border-surface-300 bg-white p-1 shadow-sm">
+        <span className="px-2 text-xs font-semibold text-surface-600">Columns:</span>
+        {([2, 3, 4] as const).map((cols) => (
           <button
             key={cols}
             type="button"
-            onClick={() => setGridCols(cols as 2 | 3 | 4)}
-            className={`h-9 w-9 rounded-full text-sm font-semibold transition-all ${gridCols === cols
-              ? 'bg-surface-900 text-white shadow-md'
-              : 'text-surface-500 hover:bg-surface-100 hover:text-surface-800'
-              }`}
+            onClick={() => setGridCols(cols)}
+            className={`h-8 w-8 rounded-full text-xs font-bold transition-all ${
+              gridCols === cols
+                ? 'bg-surface-950 text-white shadow-md scale-105'
+                : 'text-surface-600 hover:bg-surface-100 hover:text-surface-900'
+            }`}
             aria-label={`Show ${cols} column grid`}
-            title={`${cols} columns`}
+            title={`${cols} Columns`}
           >
             {cols}
           </button>
