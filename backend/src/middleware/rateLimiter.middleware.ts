@@ -27,7 +27,7 @@ function createLimiter(name: string, windowMs: number, max: number) {
     if (!redisConfigured) {
       if (!warnedAboutRedis) {
         warnedAboutRedis = true;
-        logger.warn('Persistent rate limiting is disabled: configure UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.');
+        logger.info('Upstash Redis not configured: rate limiting running in pass-through mode. Configure UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN for persistent rate limiting.');
       }
       return next();
     }

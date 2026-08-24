@@ -21,13 +21,25 @@ import { authenticate, AuthRequest } from './middleware/auth.middleware';
 const app = express();
 app.set('trust proxy', 1);
 const allowedOrigins = [...env.CORS_ORIGIN.split(','), env.FRONTEND_URL]
-  .map((origin) => origin.trim()).filter(Boolean);
+  .map((origin) => origin.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
 const isLocalDevOrigin = (origin: string) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
+const isVercelDomain = (origin: string) => /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
   origin: (origin, callback) => {
-    if (env.NODE_ENV !== 'production' || !origin || allowedOrigins.includes(origin) || isLocalDevOrigin(origin)) {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+    const cleanOrigin = origin.trim().replace(/\/+$/, '');
+    if (
+      env.NODE_ENV !== 'production' ||
+      allowedOrigins.includes(cleanOrigin) ||
+      isLocalDevOrigin(cleanOrigin) ||
+      isVercelDomain(cleanOrigin)
+    ) {
       callback(null, true);
       return;
     }
@@ -36,7 +48,19 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
+
+app.get('/favicon.ico', (_req, res) => res.status(204).end());
+
+// Path normalizer: ensure requests without /api prefix (e.g. /products or /auth/login) are automatically routed to /api/*
+app.use((req, _res, next) => {
+  if (!req.url.startsWith('/api') && req.url !== '/' && !req.url.startsWith('/favicon.ico')) {
+    req.url = '/api' + req.url;
+  }
+  next();
+});
+
 app.use(generalLimiter);
 app.use(express.json({ limit: '10mb', verify: (req, _res, buffer) => { (req as typeof req & { rawBody?: Buffer }).rawBody = buffer; } }));
 app.use(express.urlencoded({ extended: true }));
