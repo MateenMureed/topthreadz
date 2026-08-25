@@ -200,6 +200,13 @@ export default function ProductCard({
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
+          {/* Top-left white Sale badge overlay matching reference screenshot */}
+          {discount > 0 ? (
+            <span className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10 rounded-full bg-white px-3 py-1 text-[11px] sm:text-xs font-bold text-black shadow-md border border-black/5 tracking-tight">
+              Sale
+            </span>
+          ) : null}
+
           <div className="absolute inset-0">
             {frontSrc ? (
               <Image
