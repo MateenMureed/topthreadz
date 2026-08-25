@@ -38,7 +38,15 @@ export class ExperienceService {
     });
   }
 
-  async toggleWishlist(userId: string, productId: string) {
+  async toggleWishlist(userId: string, productIdOrSlug: string) {
+    let product = await prisma.product.findUnique({ where: { id: productIdOrSlug } });
+    if (!product) {
+      product = await prisma.product.findUnique({ where: { slug: productIdOrSlug } });
+    }
+    if (!product) {
+      throw new NotFoundError('Product not found');
+    }
+    const productId = product.id;
     const existing = await prisma.wishlistItem.findFirst({ where: { userId, productId } });
     if (existing) {
       await prisma.wishlistItem.delete({ where: { id: existing.id } });

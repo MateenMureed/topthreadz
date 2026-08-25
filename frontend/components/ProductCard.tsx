@@ -61,6 +61,15 @@ export default function ProductCard({
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
 
+  useEffect(() => {
+    try {
+      const localWishlist: string[] = JSON.parse(localStorage.getItem('topthreadz_wishlist') || '[]');
+      if (localWishlist.includes(id) || (slug && localWishlist.includes(slug))) {
+        setIsWishlisted(true);
+      }
+    } catch {}
+  }, [id, slug]);
+
   // Inline zoom refs — direct DOM manipulation for 60fps performance
   const imgRef = useRef<HTMLImageElement>(null);
   const placeholderRef = useRef<HTMLDivElement>(null);
@@ -172,19 +181,37 @@ export default function ProductCard({
     e.preventDefault();
     e.stopPropagation();
 
-    if (!isAuthenticated) {
-      toast.error('Please login to use wishlist');
-      return;
-    }
-
     if (wishlistLoading) return;
+    setWishlistLoading(true);
 
     try {
-      setWishlistLoading(true);
-      const result = await experienceService.toggleWishlist(id);
-      const nextState = Boolean(result?.data?.wishlisted);
+      let nextState = !isWishlisted;
+
+      if (isAuthenticated) {
+        try {
+          const result = await experienceService.toggleWishlist(id);
+          if (result?.data?.wishlisted !== undefined) {
+            nextState = Boolean(result.data.wishlisted);
+          }
+        } catch {
+          // Fallback to local toggle if server call fails
+        }
+      }
+
+      // Sync with localStorage
+      try {
+        const localWishlist: string[] = JSON.parse(localStorage.getItem('topthreadz_wishlist') || '[]');
+        let updated: string[];
+        if (nextState) {
+          updated = Array.from(new Set([...localWishlist, id, ...(slug ? [slug] : [])]));
+        } else {
+          updated = localWishlist.filter((itemKey) => itemKey !== id && itemKey !== slug);
+        }
+        localStorage.setItem('topthreadz_wishlist', JSON.stringify(updated));
+      } catch {}
+
       setIsWishlisted(nextState);
-      toast.success(nextState ? 'Added to wishlist' : 'Removed from wishlist');
+      toast.success(nextState ? 'Added to wishlist ❤️' : 'Removed from wishlist');
     } catch {
       toast.error('Could not update wishlist');
     } finally {

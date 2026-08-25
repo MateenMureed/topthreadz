@@ -406,19 +406,35 @@ export default function ProductDetailPage() {
   };
 
   const handleToggleWishlist = async () => {
-    if (!isAuthenticated) {
-      toast.error('Please login to use wishlist');
-      return;
-    }
-
-    if (wishlistLoading) return;
+    if (wishlistLoading || !product?.id) return;
+    setWishlistLoading(true);
 
     try {
-      setWishlistLoading(true);
-      const result = await experienceService.toggleWishlist(product.id);
-      const nextState = Boolean(result?.data?.wishlisted);
+      let nextState = !isWishlisted;
+
+      if (isAuthenticated) {
+        try {
+          const result = await experienceService.toggleWishlist(product.id);
+          if (result?.data?.wishlisted !== undefined) {
+            nextState = Boolean(result.data.wishlisted);
+          }
+        } catch {}
+      }
+
+      // Sync with localStorage
+      try {
+        const localWishlist: string[] = JSON.parse(localStorage.getItem('topthreadz_wishlist') || '[]');
+        let updated: string[];
+        if (nextState) {
+          updated = Array.from(new Set([...localWishlist, product.id, ...(product.slug ? [product.slug] : [])]));
+        } else {
+          updated = localWishlist.filter((itemKey) => itemKey !== product.id && itemKey !== product.slug);
+        }
+        localStorage.setItem('topthreadz_wishlist', JSON.stringify(updated));
+      } catch {}
+
       setIsWishlisted(nextState);
-      toast.success(nextState ? 'Added to wishlist' : 'Removed from wishlist');
+      toast.success(nextState ? 'Added to wishlist ❤️' : 'Removed from wishlist');
     } catch {
       toast.error('Could not update wishlist');
     } finally {
