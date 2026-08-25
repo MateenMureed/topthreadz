@@ -5,8 +5,9 @@ import { upload } from '../../middleware/upload.middleware';
 
 const router = Router();
 
-// ── Public: hero banner (no auth needed) ─────────────────────────────
+// ── Public: settings & hero banner (no auth needed) ──────────────────
 router.get('/settings/hero-banner', adminController.getHeroBanner.bind(adminController));
+router.get('/settings/store', adminController.getStoreSettings.bind(adminController));
 
 // ── Admin-only routes ────────────────────────────────────────────────
 router.use(authenticate, authorize('ADMIN'));
@@ -33,8 +34,10 @@ router.get('/audit-logs', adminController.getAuditLogs.bind(adminController));
 // Maintenance
 router.post('/maintenance/cleanup-legacy-data', adminController.cleanupLegacyData.bind(adminController));
 
-// Hero Banner (admin upload/delete)
+// Hero Banner & Store Settings (admin upload/update)
 router.post('/settings/hero-banner', upload.single('image'), adminController.uploadHeroBanner.bind(adminController));
 router.delete('/settings/hero-banner', adminController.deleteHeroBanner.bind(adminController));
+router.put('/settings/store', adminController.updateStoreSettings.bind(adminController));
 
 export default router;
+

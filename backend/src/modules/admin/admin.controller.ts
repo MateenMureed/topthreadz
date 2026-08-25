@@ -160,6 +160,65 @@ export class AdminController {
       res.json({ success: true, data: null });
     } catch (error) { next(error); }
   }
+
+  // ── Store Settings ──────────────────────────────────────────────────
+  async getStoreSettings(_req: Request, res: Response, next: NextFunction) {
+    const DEFAULT_STORE_SETTINGS = {
+      whatsappNumber: '923009070520',
+      phoneNumber: '+92 300 1234567',
+      email: 'support@topthreadz.pk',
+      operatingDays: 'Mon to Fri: 9:00 AM - 6:00 PM',
+      address: 'F-8 Markaz, Islamabad, Pakistan',
+      privacyPolicy: '',
+      termsOfService: '',
+      deliveryPolicy: '',
+      exchangeReturnPolicy: '',
+    };
+    try {
+      const setting = await prisma.siteSetting.findUnique({ where: { key: 'store_settings' } });
+      const data = setting ? { ...DEFAULT_STORE_SETTINGS, ...JSON.parse(setting.value) } : DEFAULT_STORE_SETTINGS;
+      res.json({ success: true, data });
+    } catch (error) {
+      res.json({ success: true, data: DEFAULT_STORE_SETTINGS });
+    }
+  }
+
+  async updateStoreSettings(req: Request, res: Response, next: NextFunction) {
+    const DEFAULT_STORE_SETTINGS = {
+      whatsappNumber: '923009070520',
+      phoneNumber: '+92 300 1234567',
+      email: 'support@topthreadz.pk',
+      operatingDays: 'Mon to Fri: 9:00 AM - 6:00 PM',
+      address: 'F-8 Markaz, Islamabad, Pakistan',
+      privacyPolicy: '',
+      termsOfService: '',
+      deliveryPolicy: '',
+      exchangeReturnPolicy: '',
+    };
+    try {
+      const body = req.body || {};
+      const payload = {
+        whatsappNumber: body.whatsappNumber?.trim() || DEFAULT_STORE_SETTINGS.whatsappNumber,
+        phoneNumber: body.phoneNumber?.trim() || DEFAULT_STORE_SETTINGS.phoneNumber,
+        email: body.email?.trim() || DEFAULT_STORE_SETTINGS.email,
+        operatingDays: body.operatingDays?.trim() || DEFAULT_STORE_SETTINGS.operatingDays,
+        address: body.address?.trim() || DEFAULT_STORE_SETTINGS.address,
+        privacyPolicy: body.privacyPolicy || '',
+        termsOfService: body.termsOfService || '',
+        deliveryPolicy: body.deliveryPolicy || '',
+        exchangeReturnPolicy: body.exchangeReturnPolicy || '',
+      };
+
+      await prisma.siteSetting.upsert({
+        where: { key: 'store_settings' },
+        update: { value: JSON.stringify(payload) },
+        create: { key: 'store_settings', value: JSON.stringify(payload) },
+      });
+
+      res.json({ success: true, data: payload });
+    } catch (error) { next(error); }
+  }
 }
 
 export const adminController = new AdminController();
+

@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
+import { authService } from '@/services/auth.service';
 import { useHydration } from '@/hooks/useHydration';
 import api from '@/services/api';
 import { productService } from '@/services/product.service';
@@ -32,6 +34,7 @@ import {
   FiTruck,
   FiTag,
   FiDownload,
+  FiLogOut,
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
@@ -198,7 +201,7 @@ interface ImageMeta {
   isPrimary: boolean;
 }
 
-type AdminTab = 'dashboard' | 'products' | 'orders' | 'users' | 'payments';
+type AdminTab = 'dashboard' | 'products' | 'orders' | 'users' | 'payments' | 'settings';
 
 type OrderStatusFilter = 'ALL' | 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 type PaymentStatusFilter = 'ALL' | 'PENDING' | 'VERIFIED' | 'FAILED' | 'REFUNDED';
@@ -240,10 +243,50 @@ const paymentStatusBadgeClass = (status?: string) => {
 };
 
 export default function AdminPage() {
+  const router = useRouter();
   const hydrated = useHydration();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, logout } = useAuthStore();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch { /* ignore */ }
+    logout();
+    toast.success('Signed out of Admin Panel');
+    router.push('/login');
+  };
+
+  // Admin Auto Inactivity Logout Timeout (15 Minutes)
+  useEffect(() => {
+    if (!isAuthenticated || user?.role !== 'ADMIN') return;
+
+    const INACTIVITY_LIMIT_MS = 15 * 60 * 1000;
+    let timer: NodeJS.Timeout;
+
+    const resetTimer = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        logout();
+        toast.error('Session expired due to 15 minutes of inactivity. Please log in again.', {
+          duration: 6000,
+          id: 'admin-timeout-toast',
+        });
+        router.push('/login');
+      }, INACTIVITY_LIMIT_MS);
+    };
+
+    resetTimer();
+
+    const activityEvents = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
+    activityEvents.forEach(evt => window.addEventListener(evt, resetTimer, { passive: true }));
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      activityEvents.forEach(evt => window.removeEventListener(evt, resetTimer));
+    };
+  }, [isAuthenticated, user?.role, logout, router]);
 
   if (!hydrated) {
     return (
@@ -269,6 +312,7 @@ export default function AdminPage() {
     { key: 'products', label: 'Products', icon: FiPackage },
     { key: 'users', label: 'Customers', icon: FiUsers },
     { key: 'payments', label: 'Payments', icon: FiClock },
+    { key: 'settings', label: 'Settings', icon: FiSettings },
   ] as const;
 
   return (
@@ -295,7 +339,13 @@ export default function AdminPage() {
           </nav>
           <div className="mt-4 rounded-xl border border-surface-200 bg-surface-50 p-3 text-xs text-surface-600">
             <p className="font-semibold text-surface-900">Store setup</p>
-            <p className="mt-1">Catalog, orders, payments, customers, and fulfillment are managed from one workspace.</p>
+            <p className="mt-1 mb-3">Catalog, orders, payments, customers, and settings are managed here.</p>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 rounded-lg bg-red-50 text-red-700 border border-red-200 px-3 py-2 text-xs font-bold hover:bg-red-100 transition-colors"
+            >
+              <FiLogOut className="w-4 h-4" /> Logout
+            </button>
           </div>
         </aside>
 
@@ -306,12 +356,23 @@ export default function AdminPage() {
                 <p className="text-xs font-semibold uppercase tracking-wide text-surface-500">Admin workspace</p>
                 <h1 className="text-2xl font-bold text-surface-950">Operations Command Center</h1>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 items-center">
                 <button className="btn-secondary !rounded-lg !px-3 !py-2 text-xs" onClick={() => toast.success('Export tools are ready for order and catalog reports.')}>
                   <FiDownload className="mr-1 inline" /> Export
                 </button>
-                <button className="btn-secondary !rounded-lg !px-3 !py-2 text-xs" onClick={() => toast.success('Store settings can be connected here next.')}>
+                <button
+                  className={`btn-secondary !rounded-lg !px-3 !py-2 text-xs ${activeTab === 'settings' ? '!bg-surface-900 !text-white' : ''}`}
+                  onClick={() => setActiveTab('settings')}
+                >
                   <FiSettings className="mr-1 inline" /> Settings
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100 transition-colors flex items-center gap-1"
+                  aria-label="Logout"
+                >
+                  <FiLogOut className="w-3.5 h-3.5" />
+                  <span>Logout</span>
                 </button>
               </div>
             </div>
@@ -336,6 +397,7 @@ export default function AdminPage() {
           {activeTab === 'products' && <ProductsTab />}
           {activeTab === 'users' && <ShopifyCustomersTab />}
           {activeTab === 'payments' && <ShopifyPaymentsTab />}
+          {activeTab === 'settings' && <StoreSettingsTab />}
         </main>
       </div>
     </div>
@@ -2007,3 +2069,204 @@ function ShopifyPaymentsTab() {
     </div>
   );
 }
+
+function StoreSettingsTab() {
+  const queryClient = useQueryClient();
+  const { data: settingsData, isLoading } = useQuery({
+    queryKey: ['store-settings'],
+    queryFn: () => api.get('/settings/store').then((res) => res.data?.data),
+  });
+
+  const [form, setForm] = useState({
+    whatsappNumber: '',
+    phoneNumber: '',
+    email: '',
+    operatingDays: '',
+    address: '',
+    privacyPolicy: '',
+    termsOfService: '',
+    deliveryPolicy: '',
+    exchangeReturnPolicy: '',
+  });
+
+  useEffect(() => {
+    if (settingsData) {
+      setForm({
+        whatsappNumber: settingsData.whatsappNumber || '923009070520',
+        phoneNumber: settingsData.phoneNumber || '+92 300 1234567',
+        email: settingsData.email || 'support@topthreadz.pk',
+        operatingDays: settingsData.operatingDays || 'Mon to Fri: 9:00 AM - 6:00 PM',
+        address: settingsData.address || 'F-8 Markaz, Islamabad, Pakistan',
+        privacyPolicy: settingsData.privacyPolicy || '',
+        termsOfService: settingsData.termsOfService || '',
+        deliveryPolicy: settingsData.deliveryPolicy || '',
+        exchangeReturnPolicy: settingsData.exchangeReturnPolicy || '',
+      });
+    }
+  }, [settingsData]);
+
+  const saveMutation = useMutation({
+    mutationFn: (data: typeof form) => api.put('/settings/store', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['store-settings'] });
+      toast.success('Store contact details and policies saved successfully!');
+    },
+    onError: () => {
+      toast.error('Failed to save store settings.');
+    },
+  });
+
+  if (isLoading) {
+    return <div className="p-8 text-center text-surface-500">Loading store settings...</div>;
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Hero Banner Section */}
+      <HeroBannerManager />
+
+      {/* Store Contact & Policy Settings */}
+      <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft">
+        <h2 className="text-xl font-bold text-surface-950 mb-1">Store Contact Information & Policies</h2>
+        <p className="text-xs text-surface-500 mb-6">
+          These details are included in the website Footer, floating WhatsApp chat button, and customer policy pages.
+        </p>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            saveMutation.mutate(form);
+          }}
+          className="space-y-6"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-surface-700 mb-1.5">
+                WhatsApp Number
+              </label>
+              <input
+                type="text"
+                value={form.whatsappNumber}
+                onChange={(e) => setForm({ ...form, whatsappNumber: e.target.value })}
+                placeholder="e.g. 923009070520"
+                className="w-full rounded-xl border border-surface-300 px-3.5 py-2.5 text-sm font-medium focus:border-black outline-none"
+              />
+              <p className="text-[11px] text-surface-400 mt-1">Used for floating WhatsApp button and Need Help footer column.</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-surface-700 mb-1.5">
+                Phone Number
+              </label>
+              <input
+                type="text"
+                value={form.phoneNumber}
+                onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })}
+                placeholder="e.g. +92 300 1234567"
+                className="w-full rounded-xl border border-surface-300 px-3.5 py-2.5 text-sm font-medium focus:border-black outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-surface-700 mb-1.5">
+                Support Email
+              </label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="e.g. support@topthreadz.pk"
+                className="w-full rounded-xl border border-surface-300 px-3.5 py-2.5 text-sm font-medium focus:border-black outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-surface-700 mb-1.5">
+                Operating Days & Hours
+              </label>
+              <input
+                type="text"
+                value={form.operatingDays}
+                onChange={(e) => setForm({ ...form, operatingDays: e.target.value })}
+                placeholder="e.g. Mon to Fri: 9:00 AM - 6:00 PM"
+                className="w-full rounded-xl border border-surface-300 px-3.5 py-2.5 text-sm font-medium focus:border-black outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-surface-200">
+            <h3 className="text-lg font-bold text-surface-950 mb-1">Customer Care Policies</h3>
+            <p className="text-xs text-surface-500 mb-4">
+              Enter custom policy text overrides or leave blank to use standard default guidelines.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-surface-700 mb-1">
+                  Privacy Policy Content
+                </label>
+                <textarea
+                  rows={3}
+                  value={form.privacyPolicy}
+                  onChange={(e) => setForm({ ...form, privacyPolicy: e.target.value })}
+                  placeholder="Custom privacy policy text..."
+                  className="w-full rounded-xl border border-surface-300 p-3 text-sm focus:border-black outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-surface-700 mb-1">
+                  Terms of Service Content
+                </label>
+                <textarea
+                  rows={3}
+                  value={form.termsOfService}
+                  onChange={(e) => setForm({ ...form, termsOfService: e.target.value })}
+                  placeholder="Custom terms of service text..."
+                  className="w-full rounded-xl border border-surface-300 p-3 text-sm focus:border-black outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-surface-700 mb-1">
+                  Delivery Policy Content
+                </label>
+                <textarea
+                  rows={3}
+                  value={form.deliveryPolicy}
+                  onChange={(e) => setForm({ ...form, deliveryPolicy: e.target.value })}
+                  placeholder="Custom delivery policy text..."
+                  className="w-full rounded-xl border border-surface-300 p-3 text-sm focus:border-black outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-surface-700 mb-1">
+                  Exchange & Return Policy Content
+                </label>
+                <textarea
+                  rows={3}
+                  value={form.exchangeReturnPolicy}
+                  onChange={(e) => setForm({ ...form, exchangeReturnPolicy: e.target.value })}
+                  placeholder="Custom exchange and return policy text..."
+                  className="w-full rounded-xl border border-surface-300 p-3 text-sm focus:border-black outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <button
+              type="submit"
+              disabled={saveMutation.isPending}
+              className="btn-primary !px-6 !py-3 text-sm font-bold uppercase tracking-wider"
+            >
+              {saveMutation.isPending ? 'Saving...' : 'Save Settings'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
