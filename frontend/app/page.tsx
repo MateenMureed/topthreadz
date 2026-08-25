@@ -81,51 +81,51 @@ export default function HomePage() {
         <ProductGrid products={products} loading={isLoading} showGridControls={false} />
       </section>
 
-      {/* Post-Catalog Feature Badges Section */}
-      <section className="bg-surface-100 border-y border-surface-200 py-12 md:py-16">
-        <div className="w-full max-w-[1536px] mx-auto px-3 sm:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* Post-Catalog Feature Badges Section (Mobile-Optimized 2-Column Grid) */}
+      <section className="bg-surface-100 border-y border-surface-200 py-6 sm:py-10 md:py-12">
+        <div className="w-full max-w-[1536px] mx-auto px-2.5 sm:px-4 md:px-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5">
             {/* Fast Delivery */}
-            <div className="flex items-start gap-4 p-6 bg-white rounded-2xl shadow-soft border border-surface-200">
-              <div className="p-3 bg-surface-950 text-white rounded-xl shrink-0">
-                <FiTruck className="w-6 h-6" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4 p-3.5 sm:p-5 bg-white rounded-2xl shadow-soft border border-surface-200/90 transition-all hover:shadow-md">
+              <div className="p-2.5 bg-surface-950 text-white rounded-xl shrink-0 shadow-sm">
+                <FiTruck className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h3 className="font-display font-bold text-lg text-surface-950">Fast Delivery</h3>
-                <p className="text-xs text-surface-600 mt-1 leading-relaxed">Quick shipping on all orders nationwide.</p>
+                <h3 className="font-display font-bold text-xs sm:text-base text-surface-950 leading-tight">Fast Delivery</h3>
+                <p className="text-[10px] sm:text-xs text-surface-600 mt-0.5 leading-snug">Quick shipping on all orders nationwide.</p>
               </div>
             </div>
 
             {/* Support */}
-            <div className="flex items-start gap-4 p-6 bg-white rounded-2xl shadow-soft border border-surface-200">
-              <div className="p-3 bg-surface-950 text-white rounded-xl shrink-0">
-                <FiHeadphones className="w-6 h-6" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4 p-3.5 sm:p-5 bg-white rounded-2xl shadow-soft border border-surface-200/90 transition-all hover:shadow-md">
+              <div className="p-2.5 bg-surface-950 text-white rounded-xl shrink-0 shadow-sm">
+                <FiHeadphones className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h3 className="font-display font-bold text-lg text-surface-950">Support</h3>
-                <p className="text-xs text-surface-600 mt-1 leading-relaxed">We’re here 24/7 to help with any inquiries.</p>
+                <h3 className="font-display font-bold text-xs sm:text-base text-surface-950 leading-tight">Support</h3>
+                <p className="text-[10px] sm:text-xs text-surface-600 mt-0.5 leading-snug">We’re here 24/7 to help with any inquiries.</p>
               </div>
             </div>
 
             {/* Premium Quality */}
-            <div className="flex items-start gap-4 p-6 bg-white rounded-2xl shadow-soft border border-surface-200">
-              <div className="p-3 bg-surface-950 text-white rounded-xl shrink-0">
-                <FiCheckCircle className="w-6 h-6" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4 p-3.5 sm:p-5 bg-white rounded-2xl shadow-soft border border-surface-200/90 transition-all hover:shadow-md">
+              <div className="p-2.5 bg-surface-950 text-white rounded-xl shrink-0 shadow-sm">
+                <FiCheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h3 className="font-display font-bold text-lg text-surface-950">100% Authentic</h3>
-                <p className="text-xs text-surface-600 mt-1 leading-relaxed">4.5m unstitched Boski & wash n wear suits.</p>
+                <h3 className="font-display font-bold text-xs sm:text-base text-surface-950 leading-tight">100% Authentic</h3>
+                <p className="text-[10px] sm:text-xs text-surface-600 mt-0.5 leading-snug">4.5m unstitched Boski & wash n wear suits.</p>
               </div>
             </div>
 
             {/* Easy Returns */}
-            <div className="flex items-start gap-4 p-6 bg-white rounded-2xl shadow-soft border border-surface-200">
-              <div className="p-3 bg-surface-950 text-white rounded-xl shrink-0">
-                <FiShield className="w-6 h-6" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4 p-3.5 sm:p-5 bg-white rounded-2xl shadow-soft border border-surface-200/90 transition-all hover:shadow-md">
+              <div className="p-2.5 bg-surface-950 text-white rounded-xl shrink-0 shadow-sm">
+                <FiShield className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h3 className="font-display font-bold text-lg text-surface-950">Hassle-Free Returns</h3>
-                <p className="text-xs text-surface-600 mt-1 leading-relaxed">7-day easy exchange & money-back policy.</p>
+                <h3 className="font-display font-bold text-xs sm:text-base text-surface-950 leading-tight">Hassle-Free Returns</h3>
+                <p className="text-[10px] sm:text-xs text-surface-600 mt-0.5 leading-snug">7-day easy exchange & money-back policy.</p>
               </div>
             </div>
           </div>
