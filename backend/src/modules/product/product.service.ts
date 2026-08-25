@@ -103,6 +103,7 @@ export class ProductService {
       { trending: 'desc' },
       { createdAt: 'desc' },
     ];
+    const isPriceSort = query.sortBy === 'price_asc' || query.sortBy === 'price_desc';
     switch (query.sortBy) {
       case 'recommended':
         orderBy = [
@@ -112,8 +113,11 @@ export class ProductService {
           { createdAt: 'desc' },
         ];
         break;
-      case 'price_asc': orderBy = { price: 'asc' }; break;
-      case 'price_desc': orderBy = { price: 'desc' }; break;
+      case 'price_asc':
+      case 'price_desc':
+        // Will sort in-memory by discounted price below
+        orderBy = { price: query.sortBy === 'price_asc' ? 'asc' : 'desc' };
+        break;
       case 'newest': orderBy = { createdAt: 'desc' }; break;
     }
 
@@ -121,6 +125,16 @@ export class ProductService {
       prisma.product.findMany({ where, skip, take: limit, orderBy }),
       prisma.product.count({ where }),
     ]);
+
+    // Sort by effective discounted price when price sorting is requested
+    if (isPriceSort && products.length > 1) {
+      const getEffectivePrice = (p: { price: number; discount: number }) =>
+        p.price * (1 - (p.discount || 0) / 100);
+      products.sort((a, b) => {
+        const diff = getEffectivePrice(a) - getEffectivePrice(b);
+        return query.sortBy === 'price_asc' ? diff : -diff;
+      });
+    }
 
     let typoFixedQuery: string | null = null;
     if (searchText && products.length === 0) {

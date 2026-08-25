@@ -23,6 +23,7 @@ interface ProductCardProps {
   discount: number;
   images: string[];
   category: string;
+  subcategory?: string;
   sizes?: string[];
   colors?: string[];
   slug?: string;
@@ -49,6 +50,7 @@ export default function ProductCard({
   discount,
   images,
   category,
+  subcategory,
   sizes = [],
   colors = [],
   slug,
@@ -200,10 +202,10 @@ export default function ProductCard({
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
-          {/* Top-left white Sale badge overlay matching reference screenshot */}
-          {discount > 0 ? (
-            <span className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10 rounded-full bg-white px-3 py-1 text-[11px] sm:text-xs font-bold text-black shadow-md border border-black/5 tracking-tight">
-              Sale
+          {/* Top-left category badge */}
+          {(subcategory || category) ? (
+            <span className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10 rounded-full bg-white px-3 py-1 text-[10px] sm:text-[11px] font-bold text-surface-800 shadow-md border border-black/5 tracking-tight uppercase">
+              {subcategory || category}
             </span>
           ) : null}
 
@@ -271,14 +273,13 @@ export default function ProductCard({
             <span className="text-[15px] min-[768px]:max-[1023px]:text-[17px] font-semibold leading-none text-slate-900 md:text-[16px]">PKR {Math.round(effectivePrice).toLocaleString()}</span>
           </div>
 
-          <div className="mt-2 md:mt-2.5 flex items-center gap-1.5">
-            {discount > 0 ? (
+          {discount > 0 ? (
+            <div className="mt-2 md:mt-2.5 flex items-center gap-1.5">
               <span className="rounded-full bg-[#f8623f] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.02em] text-white">
                 {discount}% Off
               </span>
-            ) : null}
-            <span className="rounded-full bg-[#f8e9ea] px-2 py-0.5 text-[10px] font-semibold text-[#e05661]">Just In</span>
-          </div>
+            </div>
+          ) : null}
         </div>
       </article>
     </Link>

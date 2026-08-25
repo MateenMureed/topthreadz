@@ -916,7 +916,7 @@ function ProductsTab() {
   const [form, setForm] = useState<ProductFormState>(emptyProductForm);
 
   const colorList = splitCsv(form.colorsText);
-  const subcategoryOptions = ['Traditional', 'Formal', 'Semi-Formal', 'Casual', 'Office Wear', 'Festive Wear', 'Jummah Collection', 'Wedding Wear'];
+  const subcategoryOptions = ['Summer Collection', 'Winter Collection', 'Wedding', 'Formal', 'Semi-Formal', 'Casual', 'Office Wear', 'Festive Wear', 'Jummah Collection', 'Traditional'];
 
   const previewPrice = Number(form.price || 0);
   const previewDiscount = Number(form.discount || 0);

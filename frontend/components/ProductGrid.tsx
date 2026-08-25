@@ -13,6 +13,7 @@ interface Product {
   discount: number;
   images: string[];
   category: string;
+  subcategory?: string;
   slug: string;
   sizes?: string[];
   colors?: string[];

@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import {
-  FiArrowRight,
   FiChevronDown,
   FiTruck,
   FiHeadphones,
@@ -52,43 +51,14 @@ export default function HomePage() {
             </a>
           </div>
         ) : (
-          <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24 text-center">
-            <p className="brand-wordmark text-xs uppercase tracking-[0.25em] text-surface-400 font-bold">Top Threadz</p>
-            <h1 className="mt-4 text-4xl md:text-6xl font-display font-bold leading-tight text-white">
-              Pure Style.
-              <br />
-              Pure Confidence.
-            </h1>
-            <p className="mt-5 text-surface-300 max-w-2xl mx-auto text-sm md:text-base">
-              Black and white essentials for modern menswear. Discover premium drops, unstitched wash & wear fabrics, and bold sale picks.
-            </p>
-
-            {/* Primary & Secondary CTA Buttons */}
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-              <Link
-                href="/products"
-                className="btn-primary !bg-white !text-surface-950 hover:!bg-surface-100 !px-7 !py-3.5 text-xs font-bold uppercase tracking-wider shadow-md"
-              >
-                Shop All <FiArrowRight className="inline ml-2" />
-              </Link>
-              <Link
-                href="/products?sortBy=newest"
-                className="rounded-full border-2 border-white/80 px-7 py-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-white hover:text-surface-950 shadow-sm"
-              >
-                New Arrivals
-              </Link>
-            </div>
-
-            {/* Scroll Down Indicator */}
-            <div className="mt-12 flex justify-center">
-              <a
-                href="#catalog"
-                className="inline-flex flex-col items-center gap-1 text-surface-400 hover:text-white transition-colors text-[10px] font-bold uppercase tracking-widest"
-              >
-                <span>Explore Collection</span>
-                <FiChevronDown className="w-4 h-4 animate-bounce text-white mt-1" />
-              </a>
-            </div>
+          <div className="relative w-full bg-surface-100 py-20 md:py-32 flex items-center justify-center">
+            <a
+              href="#catalog"
+              className="inline-flex flex-col items-center gap-1 text-surface-400 hover:text-surface-600 transition-colors text-[10px] font-bold uppercase tracking-widest"
+            >
+              <span>Explore Collection</span>
+              <FiChevronDown className="w-4 h-4 animate-bounce mt-1" />
+            </a>
           </div>
         )}
       </section>
