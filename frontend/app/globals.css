@@ -45,6 +45,7 @@ option {
   color: #0f172a !important;
 }
 
+@layer base {
   ::selection {
     @apply bg-surface-300 text-surface-900;
   }
