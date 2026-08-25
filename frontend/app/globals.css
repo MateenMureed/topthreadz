@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: light !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root, html, body {
+    color-scheme: light !important;
+    background-color: #fcfcfc !important;
+    color: #18181b !important;
+  }
+}
+
 @layer base {
   * {
     margin: 0;
@@ -10,15 +22,18 @@
   }
 
   html {
+    color-scheme: light !important;
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-surface-50 text-surface-800 font-sans;
+    color-scheme: light !important;
+    @apply bg-surface-50 text-surface-900 font-sans;
     min-height: 100vh;
-    background-image: linear-gradient(180deg, #ffffff 0%, #f6f6f6 55%, #efefef 100%);
+    background-color: #fafafa !important;
+    background-image: linear-gradient(180deg, #ffffff 0%, #f6f6f6 55%, #f2f2f2 100%);
     background-attachment: fixed;
   }
 

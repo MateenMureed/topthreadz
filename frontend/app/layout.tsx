@@ -86,8 +86,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html lang="en" className="scroll-smooth">
-      <body className="min-h-screen flex flex-col">
+    <html lang="en" className="scroll-smooth light" style={{ colorScheme: 'light' }}>
+      <body className="min-h-screen flex flex-col bg-[#fafafa] text-surface-900">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
         <Providers>
