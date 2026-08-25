@@ -30,7 +30,7 @@ export default function Footer() {
   const operatingDays = settings?.operatingDays || 'Mon to Fri: 9:00 AM - 6:00 PM';
 
   return (
-    <footer className="block bg-[#f4f4f3] text-surface-800 font-sans border-t border-surface-300 pt-10 pb-28 lg:pb-12 mt-16">
+    <footer className="block bg-[#f4f4f3] text-surface-800 font-sans border-t border-surface-200/80 pt-8 sm:pt-10 pb-28 lg:pb-12 mt-0 sm:mt-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* ── MODERN FOOTER BRAND HEADER & WHATSAPP CARD ── */}
