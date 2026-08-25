@@ -4,38 +4,46 @@
 
 :root {
   color-scheme: light !important;
+  --bg-main: #fafafa;
+  --text-main: #0f172a;
 }
 
 @media (prefers-color-scheme: dark) {
   :root, html, body {
     color-scheme: light !important;
-    background-color: #fcfcfc !important;
-    color: #18181b !important;
+    background-color: #fafafa !important;
+    color: #0f172a !important;
   }
 }
 
-@layer base {
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+html {
+  color-scheme: light !important;
+  background-color: #fafafa !important;
+  color: #0f172a !important;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-  html {
-    color-scheme: light !important;
-    scroll-behavior: smooth;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+body {
+  color-scheme: light !important;
+  background-color: #fafafa !important;
+  color: #0f172a !important;
+  min-height: 100vh;
+}
 
-  body {
-    color-scheme: light !important;
-    @apply bg-surface-50 text-surface-900 font-sans;
-    min-height: 100vh;
-    background-color: #fafafa !important;
-    background-image: linear-gradient(180deg, #ffffff 0%, #f6f6f6 55%, #f2f2f2 100%);
-    background-attachment: fixed;
-  }
+svg {
+  color: inherit;
+}
+
+input, select, textarea, button {
+  color-scheme: light !important;
+}
+
+option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
 
   ::selection {
     @apply bg-surface-300 text-surface-900;

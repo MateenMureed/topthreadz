@@ -130,7 +130,7 @@ function ProductsPageContent() {
   const activeCategory = subcategory || 'All';
 
   return (
-    <div className="max-w-[1500px] mx-auto px-4 py-6">
+    <div className="max-w-[1500px] mx-auto px-4 py-6 bg-[#fafafa]">
       {/* ── CATEGORY PILL TABS ── */}
       <div className="mb-6 overflow-x-auto scrollbar-hide -mx-4 px-4">
         <div className="flex items-center gap-2 pb-2 min-w-max">
@@ -138,10 +138,10 @@ function ProductsPageContent() {
             <button
               key={cat}
               onClick={() => handleCategoryPill(cat)}
-              className={`whitespace-nowrap rounded-full px-4 py-2 text-xs sm:text-sm font-semibold transition-all border ${
+              className={`whitespace-nowrap rounded-full px-4 py-2 text-xs sm:text-sm font-bold transition-all border ${
                 activeCategory === cat
-                  ? 'bg-surface-950 text-white border-surface-950 shadow-md'
-                  : 'bg-white text-surface-700 border-surface-300 hover:border-surface-500 hover:bg-surface-50'
+                  ? 'bg-slate-950 text-white border-slate-950 shadow-md'
+                  : 'bg-white text-slate-800 border-slate-300 hover:border-slate-500 hover:bg-slate-100'
               }`}
             >
               {cat}
@@ -154,8 +154,8 @@ function ProductsPageContent() {
       <div className="mb-6 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
         {/* Search */}
         <div className="relative flex-1 min-w-0">
-          <div className="h-11 rounded-xl border border-surface-300 bg-white flex items-center px-4 gap-2 shadow-sm">
-            <FiSearch className="w-4 h-4 text-surface-400 shrink-0" />
+          <div className="h-11 rounded-xl border border-slate-300 bg-white flex items-center px-4 gap-2 shadow-sm">
+            <FiSearch className="w-4.5 h-4.5 text-slate-700 shrink-0" />
             <input
               type="text"
               placeholder="Search by product or fabric..."
@@ -165,7 +165,7 @@ function ProductsPageContent() {
                 setShowSearchSuggestions(true);
               }}
               onFocus={() => setShowSearchSuggestions(true)}
-              className="w-full bg-transparent outline-none text-sm font-medium text-surface-800 placeholder:text-surface-400"
+              className="w-full bg-transparent outline-none text-sm font-semibold text-slate-900 placeholder:text-slate-400"
             />
             {search && (
               <button
@@ -175,16 +175,16 @@ function ProductsPageContent() {
                   setSearchSuggestions([]);
                   setShowSearchSuggestions(false);
                 }}
-                className="text-surface-400 hover:text-surface-700"
+                className="text-slate-600 hover:text-slate-950 p-1"
               >
-                <FiX className="w-4 h-4" />
+                <FiX className="w-4 h-4 text-slate-700" />
               </button>
             )}
           </div>
 
           {/* Search Suggestions Dropdown */}
           {showSearchSuggestions && searchSuggestions.length > 0 && (
-            <div className="absolute z-20 mt-2 w-full bg-white border border-surface-200 rounded-xl shadow-soft-md max-h-72 overflow-auto">
+            <div className="absolute z-20 mt-2 w-full bg-white border border-slate-300 rounded-xl shadow-lg max-h-72 overflow-auto">
               {searchSuggestions.map((suggestion, index) => (
                 <button
                   key={`${suggestion.id}-${index}`}
@@ -194,10 +194,10 @@ function ProductsPageContent() {
                     setSearch('');
                     router.push(`/products/${suggestion.id}`);
                   }}
-                  className="w-full text-left px-3 py-2.5 hover:bg-surface-50 transition-colors"
+                  className="w-full text-left px-3.5 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
                 >
-                  <p className="text-sm font-medium text-surface-700 line-clamp-1">{suggestion.name}</p>
-                  <p className="text-xs text-surface-400">PKR {Math.round(suggestion.price || 0).toLocaleString()}</p>
+                  <p className="text-sm font-bold text-slate-950 line-clamp-1">{suggestion.name}</p>
+                  <p className="text-xs font-semibold text-slate-600">PKR {Math.round(suggestion.price || 0).toLocaleString()}</p>
                 </button>
               ))}
             </div>
@@ -205,17 +205,17 @@ function ProductsPageContent() {
         </div>
 
         {/* Sort */}
-        <div className="h-11 rounded-xl border border-surface-300 bg-white flex items-center px-4 shadow-sm min-w-[180px] sm:max-w-[220px]">
+        <div className="h-11 rounded-xl border border-slate-300 bg-white flex items-center px-4 shadow-sm min-w-[180px] sm:max-w-[220px]">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full bg-transparent text-sm font-medium text-surface-700 outline-none"
+            className="w-full bg-transparent text-sm font-bold text-slate-900 outline-none cursor-pointer"
             id="sort-select"
           >
-            <option value="newest">Newest</option>
-            <option value="recommended">Recommended</option>
-            <option value="price_asc">Price: Low to High</option>
-            <option value="price_desc">Price: High to Low</option>
+            <option value="newest" className="bg-white text-slate-900 font-medium">Newest</option>
+            <option value="recommended" className="bg-white text-slate-900 font-medium">Recommended</option>
+            <option value="price_asc" className="bg-white text-slate-900 font-medium">Price: Low to High</option>
+            <option value="price_desc" className="bg-white text-slate-900 font-medium">Price: High to Low</option>
           </select>
         </div>
 
@@ -223,26 +223,26 @@ function ProductsPageContent() {
         {(subcategory || search) && (
           <button
             onClick={clearFilters}
-            className="h-11 rounded-xl border border-surface-300 bg-white px-4 text-sm font-semibold text-surface-600 hover:bg-surface-50 hover:border-surface-400 transition-all flex items-center gap-2 shadow-sm shrink-0"
+            className="h-11 rounded-xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-800 hover:bg-slate-100 hover:border-slate-400 transition-all flex items-center gap-2 shadow-sm shrink-0"
           >
-            <FiX className="w-4 h-4" /> Clear
+            <FiX className="w-4 h-4 text-slate-800" /> Clear
           </button>
         )}
       </div>
 
       {/* ── ITEM COUNT ── */}
-      <div className="mb-4 flex items-center justify-between text-surface-600 font-semibold text-sm px-1">
-        <span>{(firstPagePagination?.total || products.length || 0).toLocaleString()} items</span>
+      <div className="mb-4 flex items-center justify-between text-slate-800 font-bold text-sm px-1">
+        <span>{(firstPagePagination?.total || products.length || 0).toLocaleString()} items available</span>
         {subcategory && (
-          <span className="inline-flex items-center gap-2 rounded-full border border-surface-300 px-3 py-1 text-xs font-semibold text-surface-800 bg-white">
+          <span className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-3.5 py-1 text-xs font-bold text-slate-950 bg-white shadow-xs">
             {subcategory}
             <button
               type="button"
-              className="text-surface-500 hover:text-surface-700"
+              className="text-slate-600 hover:text-slate-950"
               onClick={() => setSubcategory('')}
               aria-label="Clear subcategory filter"
             >
-              <FiX className="w-3.5 h-3.5" />
+              <FiX className="w-3.5 h-3.5 text-slate-800" />
             </button>
           </span>
         )}
@@ -256,14 +256,14 @@ function ProductsPageContent() {
         <div ref={observerTarget} className="mt-8 flex justify-center py-6">
           {isFetchingNextPage ? (
             <div className="flex gap-2">
-              <div className="w-2 h-2 rounded-full bg-surface-400 animate-bounce" />
-              <div className="w-2 h-2 rounded-full bg-surface-400 animate-bounce" style={{ animationDelay: '0.2s' }} />
-              <div className="w-2 h-2 rounded-full bg-surface-400 animate-bounce" style={{ animationDelay: '0.4s' }} />
+              <div className="w-2.5 h-2.5 rounded-full bg-slate-700 animate-bounce" />
+              <div className="w-2.5 h-2.5 rounded-full bg-slate-700 animate-bounce" style={{ animationDelay: '0.2s' }} />
+              <div className="w-2.5 h-2.5 rounded-full bg-slate-700 animate-bounce" style={{ animationDelay: '0.4s' }} />
             </div>
           ) : hasNextPage ? (
             <div className="h-8" />
           ) : products.length > 0 ? (
-            <p className="text-sm font-semibold text-surface-400 uppercase tracking-widest">End of Results</p>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">End of Catalog</p>
           ) : null}
         </div>
       </div>
@@ -273,7 +273,7 @@ function ProductsPageContent() {
 
 export default function ProductsPage() {
   return (
-    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-8">Loading products...</div>}>
+    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-8 text-slate-900 font-bold">Loading products...</div>}>
       <ProductsPageContent />
     </Suspense>
   );

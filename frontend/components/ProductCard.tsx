@@ -231,7 +231,7 @@ export default function ProductCard({
         >
           {/* Top-left category badge */}
           {(subcategory || category) ? (
-            <span className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10 rounded-full bg-white px-3 py-1 text-[10px] sm:text-[11px] font-bold text-surface-800 shadow-md border border-black/5 tracking-tight uppercase">
+            <span className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10 rounded-full bg-slate-950 px-3 py-1 text-[10px] sm:text-[11px] font-bold text-white shadow-md border border-black/10 tracking-wider uppercase">
               {subcategory || category}
             </span>
           ) : null}
@@ -261,48 +261,47 @@ export default function ProductCard({
           <button
             type="button"
             onClick={handleAddToCart}
-            className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 z-10 flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 lg:h-14 lg:w-14 flex-col items-center justify-center rounded-full bg-[#dedddc]/95 text-[#292929] shadow-sm backdrop-blur-sm transition-transform duration-200 hover:scale-105"
+            className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 z-10 flex h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 flex-col items-center justify-center rounded-full bg-slate-950 text-white shadow-md transition-all duration-200 hover:bg-black hover:scale-105 active:scale-95"
             aria-label="Add to bag"
             title="Add to bag"
           >
             <span className="relative">
-              <FiShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-[18px] md:w-[18px]" />
-              <span className="absolute -right-1 -top-1 text-[8px] sm:text-[9px] md:text-[10px] font-bold leading-none">+</span>
+              <FiShoppingBag className="h-4 w-4 stroke-[2.5]" />
+              <span className="absolute -right-1 -top-1 text-[9px] font-bold leading-none">+</span>
             </span>
-            <span className="mt-0.5 text-[8px] md:text-[10px] font-semibold leading-none tracking-[0.08em] hidden md:block">ADD</span>
           </button>
 
           <button
             type="button"
             onClick={handleToggleWishlist}
             disabled={wishlistLoading}
-            className={`absolute right-2 top-2 sm:right-3 sm:top-3 z-10 inline-flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 items-center justify-center rounded-full shadow-sm backdrop-blur-sm transition-transform duration-200 hover:scale-105 ${isWishlisted ? 'bg-pink-50 text-pink-500' : 'bg-white/90 text-surface-900'}`}
+            className={`absolute right-2 top-2 sm:right-3 sm:top-3 z-10 inline-flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-105 ${isWishlisted ? 'bg-pink-50 text-pink-600 border border-pink-200' : 'bg-white text-slate-950 border border-slate-200'}`}
             aria-label="Add to wishlist"
             title="Love"
           >
-            <FiHeart className={`h-4 w-4 md:h-[18px] md:w-[18px] ${isWishlisted ? 'fill-current' : ''}`} />
+            <FiHeart className={`h-4 w-4 ${isWishlisted ? 'fill-current text-pink-600' : 'text-slate-950 stroke-[2.5]'}`} />
           </button>
 
           {/* Quick View Hover Overlay */}
-          <div className="absolute inset-x-0 bottom-0 z-10 hidden md:flex items-center justify-center bg-black/70 backdrop-blur-md py-2 text-white text-[11px] font-bold uppercase tracking-[0.18em] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          <div className="absolute inset-x-0 bottom-0 z-10 hidden md:flex items-center justify-center bg-slate-950/80 backdrop-blur-md py-2 text-white text-[11px] font-bold uppercase tracking-[0.18em] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
             Quick View →
           </div>
         </div>
 
         <div className="pt-3 md:pt-4">
-          <p className="truncate text-[11px] min-[768px]:max-[1023px]:text-xs font-medium text-slate-500 uppercase tracking-widest">{category}</p>
-          <h3 className="mt-1 line-clamp-2 text-[15px] font-medium leading-snug text-slate-900 min-[768px]:max-[1023px]:text-[17px] md:text-[16px]">{name}</h3>
+          <p className="truncate text-[11px] min-[768px]:max-[1023px]:text-xs font-bold text-slate-600 uppercase tracking-widest">{category}</p>
+          <h3 className="mt-1 line-clamp-2 text-[14px] sm:text-[15px] font-bold leading-snug text-slate-950">{name}</h3>
 
           <div className="mt-1.5 md:mt-2 flex items-center gap-2">
             {discount > 0 ? (
-              <span className="text-[13px] min-[768px]:max-[1023px]:text-[15px] font-normal leading-none text-slate-500 line-through md:text-[14px]">PKR {price.toLocaleString()}</span>
+              <span className="text-[12px] sm:text-[13px] font-semibold leading-none text-slate-400 line-through">PKR {price.toLocaleString()}</span>
             ) : null}
-            <span className="text-[15px] min-[768px]:max-[1023px]:text-[17px] font-semibold leading-none text-slate-900 md:text-[16px]">PKR {Math.round(effectivePrice).toLocaleString()}</span>
+            <span className="text-[15px] sm:text-[16px] font-black leading-none text-slate-950">PKR {Math.round(effectivePrice).toLocaleString()}</span>
           </div>
 
           {discount > 0 ? (
             <div className="mt-2 md:mt-2.5 flex items-center gap-1.5">
-              <span className="rounded-full bg-[#f8623f] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.02em] text-white">
+              <span className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.02em] text-white shadow-xs">
                 {discount}% Off
               </span>
             </div>
