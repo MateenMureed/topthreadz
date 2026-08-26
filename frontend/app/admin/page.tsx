@@ -2125,7 +2125,11 @@ function StoreSettingsTab() {
     },
     onError: (err: any) => {
       const msg = err?.response?.data?.message || err?.message || 'Failed to save store settings.';
-      toast.error(msg);
+      if (err?.response?.status === 401) {
+        toast.error('Session expired or unauthorized. Please log out and log back in to Admin.');
+      } else {
+        toast.error(msg);
+      }
     },
   });
 

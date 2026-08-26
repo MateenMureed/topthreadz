@@ -12,20 +12,29 @@ export interface AuthRequest extends Request {
 
 export function authenticate(req: AuthRequest, _res: Response, next: NextFunction): void {
   try {
+    let token: string | undefined;
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedError('Access token required');
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    } else if (req.cookies?.accessToken) {
+      token = req.cookies.accessToken;
+    } else if (req.cookies?.token) {
+      token = req.cookies.token;
     }
 
-    const token = authHeader.split(' ')[1];
+    if (!token) {
+      throw new UnauthorizedError('Access token required. Please log in.');
+    }
+
     const payload = verifyAccessToken(token);
     req.user = payload;
     next();
   } catch (error: any) {
     if (error.name === 'TokenExpiredError') {
-      next(new UnauthorizedError('Access token expired'));
+      next(new UnauthorizedError('Session expired. Please log out and log in again.'));
     } else if (error.name === 'JsonWebTokenError') {
-      next(new UnauthorizedError('Invalid access token'));
+      next(new UnauthorizedError('Invalid access token. Please log in again.'));
     } else {
       next(error);
     }
