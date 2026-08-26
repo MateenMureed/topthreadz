@@ -9,13 +9,11 @@ import {
   FiFileText,
   FiHelpCircle,
   FiMail,
-  FiMapPin,
   FiPhone,
   FiRefreshCw,
   FiShield,
   FiTruck,
 } from 'react-icons/fi';
-import { FaWhatsapp } from 'react-icons/fa';
 
 export default function Footer() {
   const { data: settings } = useQuery({
@@ -24,392 +22,174 @@ export default function Footer() {
     retry: false,
   });
 
-  const whatsappNumber = settings?.whatsappNumber || '923009070520';
-  const cleanWhatsapp = whatsappNumber.replace(/\D/g, '');
-
   const phoneNumber = settings?.phoneNumber || '+92 300 1234567';
   const email = settings?.email || 'support@topthreadz.pk';
-
   const operatingDays =
     settings?.operatingDays || 'Mon – Fri: 9:00 AM – 6:00 PM';
 
   return (
-    <footer className="relative overflow-hidden bg-surface-950 text-white">
-      {/* Decorative background */}
+    <footer className="relative bg-surface-950 text-white overflow-hidden border-t border-white/10">
+      {/* Decorative subtle ambient background */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-32 right-[-8rem] h-80 w-80 rounded-full bg-white/[0.04] blur-3xl"
-      />
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-[-10rem] left-[-8rem] h-80 w-80 rounded-full bg-white/[0.03] blur-3xl"
+        className="pointer-events-none absolute -top-24 right-[-6rem] h-64 w-64 rounded-full bg-white/[0.03] blur-3xl"
       />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-
-        {/* =========================================================
-            TOP BRAND / CTA
-        ========================================================== */}
-        <div className="border-b border-white/10 py-10 sm:py-14 lg:py-16">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr_0.8fr] lg:items-end">
-
-            {/* Brand */}
-            <div>
-              <Link
-                href="/"
-                className="group inline-flex items-center gap-3"
-              >
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white text-sm font-black tracking-tight text-surface-950 shadow-lg transition-transform duration-300 group-hover:scale-105">
-                  TT
-                </span>
-
-                <span className="text-lg font-black tracking-[0.18em]">
-                  TOP THREADZ
-                </span>
-              </Link>
-
-              <h2 className="mt-6 max-w-2xl font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-                Premium fabric.
-                <br />
-                <span className="text-white/50">
-                  Made for your style.
-                </span>
-              </h2>
-
-              <p className="mt-5 max-w-xl text-sm leading-7 text-white/60 sm:text-base">
-                Discover premium unstitched men&apos;s fabric from Top Threadz,
-                carefully selected for comfort, quality and timeless Pakistani
-                menswear.
-              </p>
-            </div>
-
-            {/* WhatsApp CTA */}
-            {cleanWhatsapp && (
-              <div className="lg:justify-self-end">
-                <a
-                  href={`https://wa.me/${cleanWhatsapp}?text=Hi%20Top%20Threadz%2C%20I%20need%20assistance.`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.06] p-4 transition-all duration-300 hover:border-white/20 hover:bg-white/[0.1] sm:p-5 lg:w-[320px]"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#25D366] text-white">
-                      <FaWhatsapp className="h-5 w-5" />
-                    </span>
-
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-white/40">
-                        Need help?
-                      </p>
-
-                      <p className="mt-0.5 text-sm font-bold">
-                        Chat with us
-                      </p>
-                    </div>
-                  </div>
-
-                  <FiArrowUpRight className="h-5 w-5 text-white/40 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-white" />
-                </a>
-              </div>
-            )}
+        {/* Main Compact Footer Grid */}
+        <div className="py-8 sm:py-10 grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8 border-b border-white/10">
+          {/* Brand Info */}
+          <div className="col-span-2 md:col-span-1 space-y-2.5">
+            <Link href="/" className="inline-flex items-center gap-2.5 group">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-surface-950 font-black text-xs tracking-tight shadow-md transition-transform duration-300 group-hover:scale-105">
+                TT
+              </span>
+              <span className="text-sm font-black tracking-[0.16em] text-white">
+                TOP THREADZ
+              </span>
+            </Link>
+            <p className="text-xs text-white/60 leading-relaxed max-w-xs">
+              Premium unstitched men&apos;s fabric in Pakistan. Exceptional quality, comfort, and timeless menswear.
+            </p>
           </div>
-        </div>
 
-        {/* =========================================================
-            MAIN FOOTER CONTENT
-        ========================================================== */}
-        <div className="grid grid-cols-1 gap-0 border-b border-white/10 py-8 sm:grid-cols-2 sm:gap-x-8 lg:grid-cols-4 lg:gap-12 lg:py-12">
-
-          {/* Shop */}
-          <div className="border-b border-white/10 py-6 first:pt-0 sm:border-0 sm:py-0">
-            <h3 className="text-xs font-bold uppercase tracking-[0.18em] text-white/40">
+          {/* Quick Links / Shop */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-3">
               Shop
-            </h3>
-
-            <ul className="mt-5 space-y-3.5">
+            </h4>
+            <ul className="space-y-2 text-xs">
               <li>
                 <Link
                   href="/products"
-                  className="group inline-flex items-center gap-1.5 text-sm font-medium text-white/70 transition-colors hover:text-white"
+                  className="text-white/70 hover:text-white transition-colors inline-flex items-center gap-1"
                 >
-                  All Products
-                  <FiArrowUpRight className="h-3.5 w-3.5 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
+                  All Products <FiArrowUpRight className="h-3 w-3 opacity-60" />
                 </Link>
               </li>
-
               <li>
                 <Link
                   href="/products?sortBy=newest"
-                  className="group inline-flex items-center gap-1.5 text-sm font-medium text-white/70 transition-colors hover:text-white"
+                  className="text-white/70 hover:text-white transition-colors"
                 >
                   New Arrivals
-                  <FiArrowUpRight className="h-3.5 w-3.5 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
                 </Link>
               </li>
-
               <li>
                 <Link
                   href="/orders"
-                  className="group inline-flex items-center gap-1.5 text-sm font-medium text-white/70 transition-colors hover:text-white"
+                  className="text-white/70 hover:text-white transition-colors"
                 >
-                  Track My Order
-                  <FiArrowUpRight className="h-3.5 w-3.5 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
+                  Track Order
                 </Link>
               </li>
-
               <li>
                 <Link
                   href="/faq"
-                  className="group inline-flex items-center gap-1.5 text-sm font-medium text-white/70 transition-colors hover:text-white"
+                  className="text-white/70 hover:text-white transition-colors"
                 >
                   FAQs
-                  <FiArrowUpRight className="h-3.5 w-3.5 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Customer Care */}
-          <div className="border-b border-white/10 py-6 sm:border-0 sm:py-0">
-            <h3 className="text-xs font-bold uppercase tracking-[0.18em] text-white/40">
-              Customer Care
-            </h3>
-
-            <ul className="mt-5 space-y-3.5">
+          {/* Policies */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-3">
+              Policies
+            </h4>
+            <ul className="space-y-2 text-xs">
               <li>
                 <Link
                   href="/delivery"
-                  className="group inline-flex items-center gap-2 text-sm font-medium text-white/70 transition-colors hover:text-white"
+                  className="text-white/70 hover:text-white transition-colors inline-flex items-center gap-1.5"
                 >
-                  <FiTruck className="h-4 w-4 text-white/30" />
-                  Delivery Policy
+                  <FiTruck className="h-3.5 w-3.5 text-white/40" /> Delivery Policy
                 </Link>
               </li>
-
               <li>
                 <Link
                   href="/returns"
-                  className="group inline-flex items-center gap-2 text-sm font-medium text-white/70 transition-colors hover:text-white"
+                  className="text-white/70 hover:text-white transition-colors inline-flex items-center gap-1.5"
                 >
-                  <FiRefreshCw className="h-4 w-4 text-white/30" />
-                  Returns & Exchanges
+                  <FiRefreshCw className="h-3.5 w-3.5 text-white/40" /> Exchanges & Returns
                 </Link>
               </li>
-
               <li>
                 <Link
                   href="/privacy"
-                  className="group inline-flex items-center gap-2 text-sm font-medium text-white/70 transition-colors hover:text-white"
+                  className="text-white/70 hover:text-white transition-colors inline-flex items-center gap-1.5"
                 >
-                  <FiShield className="h-4 w-4 text-white/30" />
-                  Privacy Policy
+                  <FiShield className="h-3.5 w-3.5 text-white/40" /> Privacy Policy
                 </Link>
               </li>
-
               <li>
                 <Link
                   href="/terms"
-                  className="group inline-flex items-center gap-2 text-sm font-medium text-white/70 transition-colors hover:text-white"
+                  className="text-white/70 hover:text-white transition-colors inline-flex items-center gap-1.5"
                 >
-                  <FiFileText className="h-4 w-4 text-white/30" />
-                  Terms of Service
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  href="/faq"
-                  className="group inline-flex items-center gap-2 text-sm font-medium text-white/70 transition-colors hover:text-white"
-                >
-                  <FiHelpCircle className="h-4 w-4 text-white/30" />
-                  Help Center
+                  <FiFileText className="h-3.5 w-3.5 text-white/40" /> Terms of Service
                 </Link>
               </li>
             </ul>
           </div>
 
           {/* Contact */}
-          <div className="border-b border-white/10 py-6 sm:border-0 sm:py-0">
-            <h3 className="text-xs font-bold uppercase tracking-[0.18em] text-white/40">
-              Contact
-            </h3>
-
-            <div className="mt-5 space-y-4">
-
+          <div className="col-span-2 md:col-span-1">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-3">
+              Contact Us
+            </h4>
+            <ul className="space-y-2 text-xs text-white/70">
               {phoneNumber && (
-                <a
-                  href={`tel:${phoneNumber.replace(/\s+/g, '')}`}
-                  className="group flex items-start gap-3"
-                >
-                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.06]">
-                    <FiPhone className="h-3.5 w-3.5 text-white/50" />
-                  </span>
-
-                  <span>
-                    <span className="block text-[10px] font-bold uppercase tracking-wider text-white/30">
-                      Phone
-                    </span>
-
-                    <span className="mt-0.5 block break-all text-sm font-medium text-white/70 transition-colors group-hover:text-white">
-                      {phoneNumber}
-                    </span>
-                  </span>
-                </a>
+                <li>
+                  <a
+                    href={`tel:${phoneNumber.replace(/\s+/g, '')}`}
+                    className="hover:text-white transition-colors inline-flex items-center gap-2"
+                  >
+                    <FiPhone className="h-3.5 w-3.5 text-white/40 shrink-0" />
+                    <span>{phoneNumber}</span>
+                  </a>
+                </li>
               )}
-
-              <a
-                href={`mailto:${email}`}
-                className="group flex items-start gap-3"
-              >
-                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.06]">
-                  <FiMail className="h-3.5 w-3.5 text-white/50" />
-                </span>
-
-                <span>
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-white/30">
-                    Email
-                  </span>
-
-                  <span className="mt-0.5 block break-all text-sm font-medium text-white/70 transition-colors group-hover:text-white">
-                    {email}
-                  </span>
-                </span>
-              </a>
-
-              <div className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.06]">
-                  <FiClock className="h-3.5 w-3.5 text-white/50" />
-                </span>
-
-                <span>
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-white/30">
-                    Support Hours
-                  </span>
-
-                  <span className="mt-0.5 block text-sm font-medium leading-6 text-white/70">
-                    {operatingDays}
-                  </span>
-                </span>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.06]">
-                  <FiMapPin className="h-3.5 w-3.5 text-white/50" />
-                </span>
-
-                <span>
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-white/30">
-                    Delivery
-                  </span>
-
-                  <span className="mt-0.5 block text-sm font-medium text-white/70">
-                    Nationwide across Pakistan
-                  </span>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Brand Promise */}
-          <div className="py-6 sm:py-0">
-            <h3 className="text-xs font-bold uppercase tracking-[0.18em] text-white/40">
-              Top Threadz
-            </h3>
-
-            <p className="mt-5 text-sm leading-7 text-white/55">
-              Premium unstitched men&apos;s fabric designed for modern Pakistani
-              menswear — combining refined style, comfort and everyday
-              versatility.
-            </p>
-
-            <div className="mt-6 space-y-2.5">
-              {[
-                'Premium fabric selection',
-                'Nationwide delivery',
-                'Secure checkout',
-                'Dedicated customer support',
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="flex items-center gap-2.5 text-xs font-semibold text-white/65"
+              <li>
+                <a
+                  href={`mailto:${email}`}
+                  className="hover:text-white transition-colors inline-flex items-center gap-2 break-all"
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
-                  {item}
-                </div>
-              ))}
-            </div>
-
-            {cleanWhatsapp && (
-              <a
-                href={`https://wa.me/${cleanWhatsapp}?text=Hi%20Top%20Threadz%2C%20I%20need%20assistance.`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2.5 text-xs font-bold text-white/80 transition-all hover:border-white/20 hover:bg-white/[0.1] hover:text-white"
-              >
-                <FaWhatsapp className="h-4 w-4 text-[#25D366]" />
-                WhatsApp Support
-              </a>
-            )}
+                  <FiMail className="h-3.5 w-3.5 text-white/40 shrink-0" />
+                  <span>{email}</span>
+                </a>
+              </li>
+              <li className="inline-flex items-center gap-2 text-white/60">
+                <FiClock className="h-3.5 w-3.5 text-white/40 shrink-0" />
+                <span>{operatingDays}</span>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* =========================================================
-            BOTTOM BAR
-        ========================================================== */}
-        <div className="flex flex-col gap-5 py-6 sm:flex-row sm:items-center sm:justify-between">
-
-          <div className="text-center sm:text-left">
-            <p className="text-xs font-medium text-white/40">
-              © {new Date().getFullYear()} Top Threadz. All rights reserved.
-            </p>
-
-            <p className="mt-1 text-[10px] text-white/25">
-              Premium Unstitched Men&apos;s Fabric in Pakistan
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] font-semibold text-white/40">
-            <Link
-              href="/privacy"
-              className="transition-colors hover:text-white"
-            >
+        {/* Bottom Bar */}
+        <div className="py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
+          <p>© {new Date().getFullYear()} Top Threadz. All rights reserved.</p>
+          <div className="flex flex-wrap items-center justify-center gap-3 text-[11px]">
+            <Link href="/privacy" className="hover:text-white transition-colors">
               Privacy
             </Link>
-
-            <span className="text-white/15">•</span>
-
-            <Link
-              href="/terms"
-              className="transition-colors hover:text-white"
-            >
+            <span>•</span>
+            <Link href="/terms" className="hover:text-white transition-colors">
               Terms
             </Link>
-
-            <span className="text-white/15">•</span>
-
-            <Link
-              href="/delivery"
-              className="transition-colors hover:text-white"
-            >
+            <span>•</span>
+            <Link href="/delivery" className="hover:text-white transition-colors">
               Delivery
             </Link>
-
-            <span className="text-white/15">•</span>
-
-            <Link
-              href="/returns"
-              className="transition-colors hover:text-white"
-            >
+            <span>•</span>
+            <Link href="/returns" className="hover:text-white transition-colors">
               Returns
             </Link>
-
-            <span className="text-white/15">•</span>
-
-            <Link
-              href="/faq"
-              className="transition-colors hover:text-white"
-            >
+            <span>•</span>
+            <Link href="/faq" className="hover:text-white transition-colors">
               FAQ
             </Link>
           </div>
