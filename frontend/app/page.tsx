@@ -88,7 +88,7 @@ export default function HomePage() {
           </h2>
         </div>
 
-        <ProductGrid products={products} loading={isLoading} showGridControls={false} initialGridCols={homepageGridCols} />
+        <ProductGrid products={products} loading={isLoading} showGridControls={true} initialGridCols={homepageGridCols} />
       </section>
 
       {/* Post-Catalog Feature Badges Section (Mobile-Optimized Grid) */}

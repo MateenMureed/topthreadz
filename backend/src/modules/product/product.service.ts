@@ -51,17 +51,27 @@ export class ProductService {
 
     const where: Prisma.ProductWhereInput = { isActive: true };
 
-    if (query.category) {
-      where.category = query.category;
+    if (query.category && !query.subcategory && !query.collection) {
+      where.category = { equals: query.category, mode: 'insensitive' };
     }
-    if (query.subcategory) {
-      where.subcategory = query.subcategory;
+    if (query.subcategory && query.collection) {
+      where.subcategory = { equals: query.subcategory, mode: 'insensitive' };
+      where.collection = { equals: query.collection, mode: 'insensitive' };
+    } else if (query.subcategory) {
+      where.OR = [
+        { subcategory: { equals: query.subcategory, mode: 'insensitive' } },
+        { collection: { equals: query.subcategory, mode: 'insensitive' } },
+        { category: { equals: query.subcategory, mode: 'insensitive' } },
+      ];
+    } else if (query.collection) {
+      where.OR = [
+        { collection: { equals: query.collection, mode: 'insensitive' } },
+        { subcategory: { equals: query.collection, mode: 'insensitive' } },
+        { category: { equals: query.collection, mode: 'insensitive' } },
+      ];
     }
     if (query.brand) {
-      where.brand = query.brand;
-    }
-    if (query.collection) {
-      where.collection = query.collection;
+      where.brand = { equals: query.brand, mode: 'insensitive' };
     }
     if (query.gender) {
       where.gender = query.gender;

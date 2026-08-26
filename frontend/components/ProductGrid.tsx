@@ -44,6 +44,12 @@ export default function ProductGrid({
     setIsMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (initialGridCols) {
+      setGridCols(initialGridCols);
+    }
+  }, [initialGridCols]);
+
   const uniqueProducts = useMemo(() => {
     const seen = new Set<string>();
     return products.filter((product) => {
