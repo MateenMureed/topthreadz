@@ -19,39 +19,164 @@ import { FaWhatsapp } from 'react-icons/fa';
 const FAQS_LIST = [
   {
     category: 'Product & Quality',
-    question: 'What is the fabric length and quality of Top Threadz unstitched suits?',
+    question: 'What type of fabric does Top Threadz sell?',
     answer:
-      'All our unstitched suits come in standard 4.5 meter suit cuts. We offer premium blended wash & wear and Boski-inspired fabrics with a formal plain weave and soft finish, crafted specifically for all-season comfort across Pakistan.',
+      'Top Threadz specializes in premium unstitched men’s fabric in Pakistan, including wash & wear and other selected fabrics. Our collection is designed for a clean, comfortable and premium formal look.',
+  },
+  {
+    category: 'Product & Quality',
+    question: 'How much fabric is included in one suit?',
+    answer:
+      'Our standard unstitched men’s suit fabric is provided according to the product specification shown on the individual product page. Please check the product details before placing your order for the exact fabric length and included pieces.',
+  },
+  {
+    category: 'Product & Quality',
+    question: 'Are Top Threadz fabrics unstitched?',
+    answer:
+      'Yes. Top Threadz primarily offers unstitched men’s fabric. The fabric is supplied for customers who want to have it stitched according to their preferred style, size and design.',
+  },
+  {
+    category: 'Product & Quality',
+    question: 'Do the actual fabric colors look exactly like the website images?',
+    answer:
+      'We make every effort to display product colors as accurately as possible. However, colors may appear slightly different depending on your screen, device settings, lighting and photography conditions.',
+  },
+  {
+    category: 'Product & Quality',
+    question: 'Is Top Threadz fabric suitable for everyday wear?',
+    answer:
+      'Our collection includes fabrics designed for comfortable everyday and formal wear. Please check the individual product description for specific information about the fabric, finish, season and recommended use.',
+  },
+
+  {
+    category: 'Shipping & Delivery',
+    question: 'Do you deliver across Pakistan?',
+    answer:
+      'Yes. Top Threadz provides delivery across Pakistan through available courier and logistics partners. Delivery availability and charges may vary depending on your location.',
   },
   {
     category: 'Shipping & Delivery',
-    question: 'How fast is delivery across Pakistan?',
+    question: 'How long does delivery take?',
     answer:
-      'We provide fast delivery nationwide! Deliveries in major cities (Lahore, Karachi, Islamabad, Rawalpindi, Faisalabad) arrive within 2 to 3 business days. Other cities and rural areas take 3 to 5 business days.',
+      'Delivery time depends on your location, courier availability, order processing and other operational factors. Estimated delivery information may be displayed during checkout or communicated after your order is confirmed.',
+  },
+  {
+    category: 'Shipping & Delivery',
+    question: 'How much does delivery cost?',
+    answer:
+      'Shipping charges depend on the delivery location, parcel size, applicable promotions and courier charges. The applicable delivery fee, if any, will normally be shown during checkout before you confirm your order.',
+  },
+  {
+    category: 'Shipping & Delivery',
+    question: 'How can I track my Top Threadz order?',
+    answer:
+      'Once your order has been dispatched, tracking information may be provided through your account, email, SMS, WhatsApp or another available notification method. You can use the tracking ID to check your parcel status with the relevant courier.',
+  },
+  {
+    category: 'Shipping & Delivery',
+    question: 'Can I change my delivery address after placing an order?',
+    answer:
+      'Please contact Top Threadz as soon as possible if you need to change your delivery address. Address changes may only be possible before the order is dispatched. Once the parcel has been handed over to the courier, changes may not be possible.',
+  },
+
+  {
+    category: 'Payment Methods',
+    question: 'What payment methods does Top Threadz accept?',
+    answer:
+      'Available payment methods may include Cash on Delivery (COD), bank transfer and online payment options. The payment methods available to you will be displayed during checkout.',
   },
   {
     category: 'Payment Methods',
-    question: 'What payment methods do you accept?',
+    question: 'Is Cash on Delivery available?',
     answer:
-      'We accept Cash on Delivery (COD) nationwide so you can inspect your package before payment, as well as secure online bank payment options.',
+      'Cash on Delivery may be available for eligible orders within Pakistan. Availability can depend on your delivery location, order value and other operational conditions.',
+  },
+  {
+    category: 'Payment Methods',
+    question: 'Is online payment secure?',
+    answer:
+      'When online payment is available, payment information is processed through the applicable payment service provider using appropriate security measures. Top Threadz does not intentionally store complete payment card details on its own systems unless explicitly stated.',
+  },
+  {
+    category: 'Payment Methods',
+    question: 'What should I do if my payment was deducted but my order was not confirmed?',
+    answer:
+      'If your account was charged but your order was not successfully confirmed, please contact Top Threadz support with your payment transaction details and, if available, your Order ID. We will review the transaction and assist you according to the applicable payment and refund procedures.',
+  },
+
+  {
+    category: 'Exchanges & Returns',
+    question: 'What is Top Threadz’s return and exchange policy?',
+    answer:
+      'Returns and exchanges are subject to the current Top Threadz Return & Exchange Policy. Please review that policy before returning a product, as eligibility may depend on the condition of the fabric, packaging, tags and the time period specified in the policy.',
   },
   {
     category: 'Exchanges & Returns',
-    question: 'What is your Exchange and Return policy?',
+    question: 'Can I return fabric after it has been cut or stitched?',
     answer:
-      'We offer a 7-day hassle-free return and exchange policy. Provided the unstitched fabric remains unwashed, uncut, and in its original packaging with tags intact, you can exchange it or request a return easily.',
+      'Products that have been cut, stitched, altered, washed or otherwise used may not be eligible for return or exchange. Please review our Return & Exchange Policy for the complete eligibility requirements before altering the fabric.',
+  },
+  {
+    category: 'Exchanges & Returns',
+    question: 'What should I do if I receive a damaged or incorrect product?',
+    answer:
+      'Please contact Top Threadz customer support as soon as possible and provide your Order ID along with clear photographs or other relevant information about the issue. Our team will review the matter and guide you through the applicable resolution process.',
+  },
+
+  {
+    category: 'Ordering & Support',
+    question: 'How can I place an order?',
+    answer:
+      'Select your desired products, choose the required quantity or available options, add the products to your shopping bag and proceed to checkout. Enter your delivery information, select an available payment method and confirm your order.',
   },
   {
     category: 'Ordering & Support',
-    question: 'How can I place an order or contact support?',
+    question: 'How do I know if my order was successfully placed?',
     answer:
-      'You can place an order directly through our website or chat with our team on WhatsApp for instant assistance, custom inquiries, and order tracking support.',
+      'After successfully placing your order, you should receive an order confirmation through the available email, SMS, WhatsApp or website notification system. You may also be able to view the order through your account.',
+  },
+  {
+    category: 'Ordering & Support',
+    question: 'Can I cancel my order?',
+    answer:
+      'If you need to cancel an order, contact Top Threadz as soon as possible. Cancellation may only be possible before the order has been processed or dispatched.',
+  },
+  {
+    category: 'Ordering & Support',
+    question: 'Can I change products in my order after checkout?',
+    answer:
+      'Please contact us immediately if you need to change your order. Changes are subject to product availability and order status. Once an order has entered processing or has been dispatched, changes may no longer be possible.',
+  },
+  {
+    category: 'Ordering & Support',
+    question: 'How can I contact Top Threadz customer support?',
+    answer:
+      'You can contact Top Threadz through the support options provided on our website, including WhatsApp, phone or email where available. Our team can assist with orders, products, delivery and other customer questions.',
+  },
+
+  {
+    category: 'Washing & Care',
+    question: 'How should I wash Top Threadz wash & wear fabric?',
+    answer:
+      'For best results, follow the care instructions provided with the specific product. In general, use a suitable mild detergent and avoid excessive heat or harsh chemicals. Always check the product-specific care instructions before washing.',
   },
   {
     category: 'Washing & Care',
-    question: 'How should I care for wash & wear and Boski fabric?',
+    question: 'Can I use bleach on the fabric?',
     answer:
-      'We recommend washing in cold or lukewarm water with mild detergents. Do not bleach or tumble dry on high heat. Iron on medium setting for a crisp, wrinkle-free finish.',
+      'We generally recommend avoiding bleach and harsh chemicals unless the specific product care instructions state otherwise, as they may affect the fabric color, finish or fibers.',
+  },
+  {
+    category: 'Washing & Care',
+    question: 'How should I iron the fabric?',
+    answer:
+      'Use an appropriate iron temperature for the specific fabric and follow the product care instructions. Avoid excessive heat, particularly on delicate or blended fabrics.',
+  },
+  {
+    category: 'Washing & Care',
+    question: 'How can I keep my fabric looking fresh and wrinkle-free?',
+    answer:
+      'Follow the recommended washing and ironing instructions for the product. Avoid excessive heat during washing and drying, and store the fabric clean and properly folded when not in use.',
   },
 ];
 
@@ -152,8 +277,8 @@ export default function FAQPage() {
                     setOpenIndex(0);
                   }}
                   className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all border ${activeCategory === cat
-                      ? 'bg-surface-950 text-white border-surface-950 shadow-sm'
-                      : 'bg-surface-100 text-surface-700 border-surface-200 hover:border-surface-400'
+                    ? 'bg-surface-950 text-white border-surface-950 shadow-sm'
+                    : 'bg-surface-100 text-surface-700 border-surface-200 hover:border-surface-400'
                     }`}
                 >
                   {cat}
