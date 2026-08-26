@@ -81,6 +81,9 @@ app.get('/api/settings/hero-banner', adminController.getHeroBanner.bind(adminCon
 app.post('/api/settings/hero-banner', authenticate, authorize('ADMIN'), upload.single('image'), adminController.uploadHeroBanner.bind(adminController));
 app.delete('/api/settings/hero-banner', authenticate, authorize('ADMIN'), adminController.deleteHeroBanner.bind(adminController));
 
+app.get('/api/settings/store', adminController.getStoreSettings.bind(adminController));
+app.put('/api/settings/store', authenticate, authorize('ADMIN'), adminController.updateStoreSettings.bind(adminController));
+
 app.get('/api/recommendations', authenticate, async (req: AuthRequest, res, next) => {
   try { res.json({ success: true, data: await recommendationService.getRecommendations(req.user!.userId) }); }
   catch (error) { next(error); }

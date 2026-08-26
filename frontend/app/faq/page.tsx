@@ -151,11 +151,10 @@ export default function FAQPage() {
                     setActiveCategory(cat);
                     setOpenIndex(0);
                   }}
-                  className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all border ${
-                    activeCategory === cat
+                  className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all border ${activeCategory === cat
                       ? 'bg-surface-950 text-white border-surface-950 shadow-sm'
                       : 'bg-surface-100 text-surface-700 border-surface-200 hover:border-surface-400'
-                  }`}
+                    }`}
                 >
                   {cat}
                 </button>

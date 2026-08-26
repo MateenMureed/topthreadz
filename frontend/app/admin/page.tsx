@@ -2111,8 +2111,9 @@ function StoreSettingsTab() {
       queryClient.invalidateQueries({ queryKey: ['store-settings'] });
       toast.success('Store contact details and policies saved successfully!');
     },
-    onError: () => {
-      toast.error('Failed to save store settings.');
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to save store settings.';
+      toast.error(msg);
     },
   });
 

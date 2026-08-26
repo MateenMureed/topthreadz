@@ -198,11 +198,11 @@ export class AdminController {
     try {
       const body = req.body || {};
       const payload = {
-        whatsappNumber: body.whatsappNumber?.trim() || DEFAULT_STORE_SETTINGS.whatsappNumber,
-        phoneNumber: body.phoneNumber?.trim() || DEFAULT_STORE_SETTINGS.phoneNumber,
-        email: body.email?.trim() || DEFAULT_STORE_SETTINGS.email,
-        operatingDays: body.operatingDays?.trim() || DEFAULT_STORE_SETTINGS.operatingDays,
-        address: body.address?.trim() || DEFAULT_STORE_SETTINGS.address,
+        whatsappNumber: body.whatsappNumber !== undefined && body.whatsappNumber !== null ? String(body.whatsappNumber).trim() : DEFAULT_STORE_SETTINGS.whatsappNumber,
+        phoneNumber: body.phoneNumber !== undefined && body.phoneNumber !== null ? String(body.phoneNumber).trim() : DEFAULT_STORE_SETTINGS.phoneNumber,
+        email: body.email !== undefined && body.email !== null ? String(body.email).trim() : DEFAULT_STORE_SETTINGS.email,
+        operatingDays: body.operatingDays !== undefined && body.operatingDays !== null ? String(body.operatingDays).trim() : DEFAULT_STORE_SETTINGS.operatingDays,
+        address: body.address !== undefined && body.address !== null ? String(body.address).trim() : DEFAULT_STORE_SETTINGS.address,
         privacyPolicy: body.privacyPolicy || '',
         termsOfService: body.termsOfService || '',
         deliveryPolicy: body.deliveryPolicy || '',
