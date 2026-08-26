@@ -27,6 +27,7 @@ const allowedOrigins = [...env.CORS_ORIGIN.split(','), env.FRONTEND_URL]
   .filter(Boolean);
 const isLocalDevOrigin = (origin: string) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
 const isVercelDomain = (origin: string) => /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
+const isTopThreadzDomain = (origin: string) => /^https:\/\/(.*\.)?topthreadz\.com\.pk$/i.test(origin);
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
@@ -40,7 +41,8 @@ app.use(cors({
       env.NODE_ENV !== 'production' ||
       allowedOrigins.includes(cleanOrigin) ||
       isLocalDevOrigin(cleanOrigin) ||
-      isVercelDomain(cleanOrigin)
+      isVercelDomain(cleanOrigin) ||
+      isTopThreadzDomain(cleanOrigin)
     ) {
       callback(null, true);
       return;
