@@ -20,6 +20,12 @@ export default function HomePage() {
     retry: false,
   });
 
+  const { data: settingsData } = useQuery({
+    queryKey: ['store-settings'],
+    queryFn: () => api.get('/settings/store').then((res) => res.data?.data),
+    retry: false,
+  });
+
   const { data: productsResponse, isLoading } = useQuery({
     queryKey: ['home', 'products'],
     queryFn: () => productService.getAll({ limit: 50, sortBy: 'newest' }),
@@ -27,6 +33,10 @@ export default function HomePage() {
 
   const products = productsResponse?.data?.products || [];
   const heroBanner = heroResponse?.data?.url as string | undefined;
+
+  const homepageHeading = settingsData?.homepageHeading || 'Shop Our Collection';
+  const homepageSubheading = settingsData?.homepageSubheading || 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION';
+  const homepageGridCols = ([2, 3, 4].includes(Number(settingsData?.homepageGridCols)) ? Number(settingsData.homepageGridCols) : 4) as 2 | 3 | 4;
 
   return (
     <div className="bg-white text-black">
@@ -69,16 +79,16 @@ export default function HomePage() {
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-surface-500 shrink-0">
-              PREMIUM WASH & WEAR • SHOP OUR COLLECTION
+              {homepageSubheading}
             </span>
             <div className="h-px flex-1 bg-surface-200" />
           </div>
           <h2 className="text-2xl md:text-4xl font-display font-bold text-surface-950 uppercase tracking-tight">
-            Shop Our Collection
+            {homepageHeading}
           </h2>
         </div>
 
-        <ProductGrid products={products} loading={isLoading} showGridControls={false} />
+        <ProductGrid products={products} loading={isLoading} showGridControls={false} initialGridCols={homepageGridCols} />
       </section>
 
       {/* Post-Catalog Feature Badges Section (Mobile-Optimized Grid) */}

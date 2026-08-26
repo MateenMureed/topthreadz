@@ -173,6 +173,9 @@ export class AdminController {
       termsOfService: '',
       deliveryPolicy: '',
       exchangeReturnPolicy: '',
+      homepageHeading: 'Shop Our Collection',
+      homepageSubheading: 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
+      homepageGridCols: 4,
     };
     try {
       const setting = await prisma.siteSetting.findUnique({ where: { key: 'store_settings' } });
@@ -194,6 +197,9 @@ export class AdminController {
       termsOfService: '',
       deliveryPolicy: '',
       exchangeReturnPolicy: '',
+      homepageHeading: 'Shop Our Collection',
+      homepageSubheading: 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
+      homepageGridCols: 4,
     };
     try {
       const body = req.body || {};
@@ -207,6 +213,9 @@ export class AdminController {
         termsOfService: body.termsOfService || '',
         deliveryPolicy: body.deliveryPolicy || '',
         exchangeReturnPolicy: body.exchangeReturnPolicy || '',
+        homepageHeading: body.homepageHeading !== undefined && body.homepageHeading !== null ? String(body.homepageHeading).trim() : DEFAULT_STORE_SETTINGS.homepageHeading,
+        homepageSubheading: body.homepageSubheading !== undefined && body.homepageSubheading !== null ? String(body.homepageSubheading).trim() : DEFAULT_STORE_SETTINGS.homepageSubheading,
+        homepageGridCols: [2, 3, 4].includes(Number(body.homepageGridCols)) ? Number(body.homepageGridCols) : DEFAULT_STORE_SETTINGS.homepageGridCols,
       };
 
       await prisma.siteSetting.upsert({

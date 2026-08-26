@@ -28,14 +28,16 @@ interface ProductGridProps {
   products: Product[];
   loading?: boolean;
   showGridControls?: boolean;
+  initialGridCols?: 2 | 3 | 4;
 }
 
 export default function ProductGrid({
   products,
   loading,
   showGridControls = true,
+  initialGridCols = 4,
 }: ProductGridProps) {
-  const [gridCols, setGridCols] = useState<2 | 3 | 4>(4);
+  const [gridCols, setGridCols] = useState<2 | 3 | 4>(initialGridCols);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {

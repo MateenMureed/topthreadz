@@ -917,6 +917,7 @@ function ProductsTab() {
 
   const colorList = splitCsv(form.colorsText);
   const subcategoryOptions = ['Summer Collection', 'Winter Collection', 'Wedding', 'Formal', 'Semi-Formal', 'Casual', 'Office Wear', 'Festive Wear', 'Jummah Collection', 'Traditional'];
+  const collectionOptions = ['Summer Collection', 'Winter Collection', 'Eid Collection', 'Azaadi Sale', 'Wedding Collection', 'Festive Collection', 'Jummah Special', 'New Arrivals', 'Clearance Sale'];
 
   const previewPrice = Number(form.price || 0);
   const previewDiscount = Number(form.discount || 0);
@@ -1561,7 +1562,12 @@ function ProductsTab() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                       <label className="text-xs font-semibold text-surface-600">Collection / Season</label>
-                      <input className="input-field" value={form.collection} onChange={(e) => setForm((prev) => ({ ...prev, collection: e.target.value }))} placeholder="Summer, Winter, Eid, Wedding" />
+                      <select className="input-field" value={form.collection} onChange={(e) => setForm((prev) => ({ ...prev, collection: e.target.value }))}>
+                        <option value="">No collection</option>
+                        {collectionOptions.map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="text-xs font-semibold text-surface-600">Colors</label>
@@ -2087,6 +2093,9 @@ function StoreSettingsTab() {
     termsOfService: '',
     deliveryPolicy: '',
     exchangeReturnPolicy: '',
+    homepageHeading: '',
+    homepageSubheading: '',
+    homepageGridCols: '4',
   });
 
   useEffect(() => {
@@ -2101,6 +2110,9 @@ function StoreSettingsTab() {
         termsOfService: settingsData.termsOfService || '',
         deliveryPolicy: settingsData.deliveryPolicy || '',
         exchangeReturnPolicy: settingsData.exchangeReturnPolicy || '',
+        homepageHeading: settingsData.homepageHeading || 'Shop Our Collection',
+        homepageSubheading: settingsData.homepageSubheading || 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
+        homepageGridCols: String(settingsData.homepageGridCols || 4),
       });
     }
   }, [settingsData]);
@@ -2125,6 +2137,67 @@ function StoreSettingsTab() {
     <div className="space-y-8">
       {/* Hero Banner Section */}
       <HeroBannerManager />
+
+      {/* Homepage Appearance */}
+      <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft">
+        <h2 className="text-xl font-bold text-surface-950 mb-1">Homepage Appearance</h2>
+        <p className="text-xs text-surface-500 mb-5">
+          Customize the heading, subtitle, and product grid layout shown on the homepage.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-surface-700 mb-1.5">
+              Section Heading
+            </label>
+            <input
+              type="text"
+              value={form.homepageHeading}
+              onChange={(e) => setForm({ ...form, homepageHeading: e.target.value })}
+              placeholder="e.g. Shop Our Collection, Azaadi Sale, Summer Deals"
+              className="w-full rounded-xl border border-surface-300 px-3.5 py-2.5 text-sm font-medium focus:border-black outline-none"
+            />
+            <p className="text-[11px] text-surface-400 mt-1">Main heading displayed above the product grid on the homepage.</p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-surface-700 mb-1.5">
+              Section Subtitle
+            </label>
+            <input
+              type="text"
+              value={form.homepageSubheading}
+              onChange={(e) => setForm({ ...form, homepageSubheading: e.target.value })}
+              placeholder="e.g. PREMIUM WASH & WEAR • SHOP OUR COLLECTION"
+              className="w-full rounded-xl border border-surface-300 px-3.5 py-2.5 text-sm font-medium focus:border-black outline-none"
+            />
+            <p className="text-[11px] text-surface-400 mt-1">Small-caps subtitle line shown above the heading.</p>
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-surface-700 mb-2">
+              Product Grid Columns (Desktop)
+            </label>
+            <div className="inline-flex items-center gap-2 rounded-full border border-surface-300 bg-surface-50 p-1">
+              {(['2', '3', '4'] as const).map((cols) => (
+                <button
+                  key={cols}
+                  type="button"
+                  onClick={() => setForm({ ...form, homepageGridCols: cols })}
+                  className={`h-9 w-14 rounded-full text-sm font-bold transition-all ${
+                    form.homepageGridCols === cols
+                      ? 'bg-surface-950 text-white shadow-md'
+                      : 'text-surface-600 hover:bg-surface-100 hover:text-surface-900'
+                  }`}
+                >
+                  {cols}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-surface-400 mt-1.5">Number of product columns on the homepage grid (desktop). Mobile always uses 2 columns.</p>
+          </div>
+        </div>
+      </div>
 
       {/* Store Contact & Policy Settings */}
       <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft">
