@@ -689,17 +689,17 @@ export default function ProductDetailPage() {
       {/* ============================================================
           MOBILE STICKY BOTTOM BAR (ADD TO BAG)
           ============================================================ */}
-      <div className="md:hidden fixed bottom-[72px] inset-x-3 z-[45] max-w-md mx-auto">
-        <div className="flex items-center justify-between gap-3 p-2.5 pl-4 pr-2.5 bg-surface-950/95 backdrop-blur-xl border border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.35)] rounded-full text-white">
+      <div className="md:hidden fixed bottom-[76px] inset-x-3 z-[45] max-w-[350px] mx-auto">
+        <div className="flex items-center justify-between gap-2.5 p-2 pl-3.5 pr-2 bg-surface-950/95 backdrop-blur-xl border border-white/15 shadow-[0_14px_36px_rgba(0,0,0,0.38)] rounded-full text-white h-12">
           <div className="min-w-0 flex flex-col justify-center">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-white/50 leading-none mb-1">Total Price</span>
-            <span className="text-base font-black text-white leading-none tracking-tight">PKR {Math.round(effectivePrice).toLocaleString()}</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest text-white/50 leading-none mb-0.5">Total Price</span>
+            <span className="text-sm font-black text-white leading-none tracking-tight">PKR {Math.round(effectivePrice).toLocaleString()}</span>
           </div>
 
           <button
             onClick={handleAddToCart}
             disabled={product.stock === 0}
-            className={`h-11 px-6 rounded-full text-xs font-black uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-lg ${
+            className={`h-9 px-4 rounded-full text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-md ${
               product.stock === 0
                 ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
                 : addedInline
@@ -709,14 +709,14 @@ export default function ProductDetailPage() {
           >
             {addedInline ? (
               <>
-                <FiCheck className="w-4 h-4 text-white" />
+                <FiCheck className="w-3.5 h-3.5 text-white" />
                 <span>Added</span>
               </>
             ) : product.stock === 0 ? (
               <span>Sold Out</span>
             ) : (
               <>
-                <FiShoppingBag className="w-4 h-4" />
+                <FiShoppingBag className="w-3.5 h-3.5" />
                 <span>Add to Bag</span>
               </>
             )}
