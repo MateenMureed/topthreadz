@@ -11,7 +11,7 @@ import ProductImageGallery from '@/components/ProductImageGallery';
 import Image from 'next/image';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
-import { FiMinus, FiPlus, FiHeart } from 'react-icons/fi';
+import { FiMinus, FiPlus, FiHeart, FiShoppingBag, FiCheck } from 'react-icons/fi';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import ScrollReveal from '@/components/ScrollReveal';
@@ -689,18 +689,39 @@ export default function ProductDetailPage() {
       {/* ============================================================
           MOBILE STICKY BOTTOM BAR (ADD TO BAG)
           ============================================================ */}
-      <div className="md:hidden fixed bottom-[96px] sm:bottom-[104px] w-[96%] left-[2%] rounded-2xl p-3 bg-white/95 backdrop-blur-md border border-surface-200 z-[45] flex items-center justify-between shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
-        <div>
-           <p className="text-xs uppercase tracking-wider text-surface-500 font-semibold mb-0.5">Total Price</p>
-           <p className="text-lg font-bold text-surface-900 leading-none">PKR {Math.round(effectivePrice).toLocaleString()}</p>
+      <div className="md:hidden fixed bottom-[72px] inset-x-3 z-[45] max-w-md mx-auto">
+        <div className="flex items-center justify-between gap-3 p-2.5 pl-4 pr-2.5 bg-surface-950/95 backdrop-blur-xl border border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.35)] rounded-full text-white">
+          <div className="min-w-0 flex flex-col justify-center">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-white/50 leading-none mb-1">Total Price</span>
+            <span className="text-base font-black text-white leading-none tracking-tight">PKR {Math.round(effectivePrice).toLocaleString()}</span>
+          </div>
+
+          <button
+            onClick={handleAddToCart}
+            disabled={product.stock === 0}
+            className={`h-11 px-6 rounded-full text-xs font-black uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-lg ${
+              product.stock === 0
+                ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
+                : addedInline
+                ? 'bg-emerald-500 text-white shadow-emerald-500/30'
+                : 'bg-white text-surface-950 hover:bg-neutral-100 shadow-white/20'
+            }`}
+          >
+            {addedInline ? (
+              <>
+                <FiCheck className="w-4 h-4 text-white" />
+                <span>Added</span>
+              </>
+            ) : product.stock === 0 ? (
+              <span>Sold Out</span>
+            ) : (
+              <>
+                <FiShoppingBag className="w-4 h-4" />
+                <span>Add to Bag</span>
+              </>
+            )}
+          </button>
         </div>
-        <button
-          onClick={handleAddToCart}
-          disabled={product.stock === 0}
-          className={`h-11 px-8 rounded-full text-[13px] font-bold uppercase tracking-wide transition-all active:scale-95 ${addToBagTheme}`}
-        >
-          {addedInline ? '✓ Added' : product.stock === 0 ? 'Sold Out' : 'Add to Bag'}
-        </button>
       </div>
     </div>
   );
