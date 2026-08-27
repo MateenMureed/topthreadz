@@ -146,7 +146,7 @@ export function FormattedProductDescription({ content }: { content?: string }) {
   flushList();
 
   return (
-    <div className="space-y-2 text-[13px] sm:text-sm text-surface-800 leading-snug font-sans">
+    <div className="space-y-2 text-[13px] sm:text-sm text-surface-800 leading-snug font-sans text-justify">
       {blocks.map((block, i) => {
         if (block.type === 'heading') {
           return (
@@ -174,7 +174,7 @@ export function FormattedProductDescription({ content }: { content?: string }) {
         }
 
         return (
-          <p key={i} className="leading-snug text-surface-700 tracking-normal">
+          <p key={i} className="leading-snug text-surface-700 tracking-normal text-justify">
             {block.text}
           </p>
         );
