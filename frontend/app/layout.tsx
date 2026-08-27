@@ -15,7 +15,7 @@ const CartDrawer = dynamic(() => import('@/components/CartDrawer'));
 const AuthModal = dynamic(() => import('@/components/AuthModal'));
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://menswear.pk'),
+  metadataBase: new URL('https://www.topthreadz.com.pk'),
   title: {
     default: 'Top Threadz | Unstitched Men\'s Fabric in Pakistan',
     template: '%s | Top Threadz',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   description: 'Shop premium unstitched men\'s fabric in Pakistan. Explore Boski-inspired 4.5 meter blended wash n wear suits with formal plain weave and soft finish for all seasons.',
   keywords: [
     'Top Threadz',
-    'menswear.pk',
+    'topthreadz.com.pk',
     'men unstitched fabric Pakistan',
     'wash n wear suit',
     '4.5 meter men suit',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_PK',
-    url: 'https://menswear.pk',
+    url: 'https://www.topthreadz.com.pk/',
     siteName: 'Top Threadz',
     title: 'Top Threadz | Unstitched Men\'s Fabric in Pakistan',
     description: 'Premium unstitched men\'s clothing and fabric for formal and all-season wear in Pakistan.',
@@ -65,11 +65,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'Top Threadz',
-    alternateName: 'MensWear.pk',
-    url: 'https://menswear.pk',
-    email: 'admin@menswear.pk',
+    alternateName: 'Top Threadz Pakistan',
+    url: 'https://www.topthreadz.com.pk/',
+    email: 'support@topthreadz.com.pk',
     sameAs: [
-      'https://menswear.pk',
+      'https://www.topthreadz.com.pk',
     ],
   };
 
@@ -77,10 +77,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'Top Threadz',
-    url: 'https://menswear.pk',
+    url: 'https://www.topthreadz.com.pk',
     potentialAction: {
       '@type': 'SearchAction',
-      target: 'https://menswear.pk/products?search={search_term_string}',
+      target: 'https://www.topthreadz.com.pk/products?search={search_term_string}',
       'query-input': 'required name=search_term_string',
     },
   };

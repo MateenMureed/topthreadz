@@ -37,6 +37,13 @@ async function main() {
   console.log(`   ID: ${admin.id}`);
   console.log(`   Email: ${admin.email}`);
   console.log(`   Role: ${admin.role}`);
+
+  const defaults = ['Unstitched Fabric', 'Stitched', 'Waist Coats', 'Two Piece', 'Three Piece', 'Kids Section'];
+  for (const [sortOrder, name] of defaults.entries()) {
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    await prisma.category.upsert({ where: { slug }, update: { name, sortOrder, isActive: true }, create: { name, slug, sortOrder, isActive: true } });
+  }
+  console.log('✅ Default clothing categories upserted.');
 }
 
 main()

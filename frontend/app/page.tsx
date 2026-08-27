@@ -30,8 +30,14 @@ export default function HomePage() {
     queryKey: ['home', 'products'],
     queryFn: () => productService.getAll({ limit: 50, sortBy: 'newest' }),
   });
+  const { data: categoriesResponse } = useQuery({
+    queryKey: ['home', 'categories'],
+    queryFn: () => api.get('/categories').then((response) => response.data),
+    retry: false,
+  });
 
   const products = productsResponse?.data?.products || [];
+  const categories = categoriesResponse?.data || [];
   const heroBanner = heroResponse?.data?.url as string | undefined;
 
   const homepageHeading = settingsData?.homepageHeading || 'Shop Our Collection';
@@ -71,6 +77,28 @@ export default function HomePage() {
             </a>
           </div>
         )}
+      </section>
+
+      <section className="w-full max-w-[1536px] mx-auto px-3 sm:px-6 py-10 md:py-14">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-surface-500">Top Threadz</p>
+            <h2 className="mt-2 text-2xl md:text-4xl font-display font-bold text-surface-950">Explore Our Collection</h2>
+            <p className="mt-2 text-sm text-surface-600">Find your perfect Unstitched, Stitched & Kids Wear, all in one place.</p>
+          </div>
+          <Link href="/products" className="hidden sm:block text-sm font-semibold underline underline-offset-4">View all</Link>
+        </div>
+        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3">
+          {categories.map((category: any) => (
+            <Link key={category.id} href={`/products?category=${encodeURIComponent(category.name)}`} className="group relative min-w-[68vw] sm:min-w-[31vw] lg:min-w-0 lg:flex-1 snap-start overflow-hidden rounded-2xl bg-surface-100">
+              <div className="aspect-[3/4]">
+                <img src={category.coverImage || `https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=700&q=80`} alt={category.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              </div>
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-5 pt-16 text-white"><span className="text-lg font-bold uppercase tracking-wide">{category.name}</span><span className="ml-2 text-xl">→</span></div>
+            </Link>
+          ))}
+          {categories.length === 0 && <p className="text-sm text-surface-500">Collections coming soon.</p>}
+        </div>
       </section>
 
       {/* Product Section */}

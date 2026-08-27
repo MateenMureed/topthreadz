@@ -52,7 +52,9 @@ export class ProductService {
     const where: Prisma.ProductWhereInput = { isActive: true };
 
     if (query.category && !query.subcategory && !query.collection) {
-      where.category = { equals: query.category, mode: 'insensitive' };
+      where.category = query.category === 'Unstitched Fabric'
+        ? { in: ['Unstitched Fabric', 'Unstitched'], mode: 'insensitive' }
+        : { equals: query.category, mode: 'insensitive' };
     }
     if (query.subcategory && query.collection) {
       where.subcategory = { equals: query.subcategory, mode: 'insensitive' };

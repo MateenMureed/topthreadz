@@ -238,6 +238,20 @@ model Product {
   @@index([visibility])
 }
 
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  coverImage  String?
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
 model Cart {
   id        String     @id @default(uuid())
   userId    String     @unique
