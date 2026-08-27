@@ -23,7 +23,7 @@ const PAKISTAN_LOCATIONS: Record<string, string[]> = {
   AzadKashmir: ['Muzaffarabad', 'Mirpur', 'Kotli'],
 };
 
-type ShippingMethod = 'FIXED' | 'SAME_DAY';
+type ShippingMethod = 'FIXED';
 type PaymentMethod = 'SAFEPAY' | 'COD';
 type SectionMode = 'edit' | 'summary';
 type AccordionSection = 'email' | 'shipping' | 'payment';
@@ -57,7 +57,7 @@ export default function CheckoutPage() {
 
   const cityOptions = address.province ? (PAKISTAN_LOCATIONS[address.province] || []) : [];
   const subtotal = getSubtotal();
-  const delivery = shippingMethod === 'SAME_DAY' ? 250 : 0;
+  const delivery = 0;
   const total = Math.round(subtotal + delivery);
   const bagItem = items[0];
   const bagItemImage = resolveImageUrl(bagItem?.image);
@@ -356,18 +356,10 @@ export default function CheckoutPage() {
                 <h3 className="font-bold text-black mt-5 mb-2">Shipping Method</h3>
                 <div className="space-y-2">
                   <label className="border border-surface-300 rounded-lg bg-white p-3 flex items-start gap-2 cursor-pointer">
-                    <input type="radio" checked={shippingMethod === 'FIXED'} onChange={() => setShippingMethod('FIXED')} className="mt-1" />
+                    <input type="radio" checked readOnly className="mt-1" />
                     <div>
-                      <p className="font-semibold text-black">Fixed</p>
-                      <p className="font-semibold text-black">PKR 0.00</p>
-                    </div>
-                  </label>
-                  <label className="border border-surface-300 rounded-lg bg-white p-3 flex items-start gap-2 cursor-pointer">
-                    <input type="radio" checked={shippingMethod === 'SAME_DAY'} onChange={() => setShippingMethod('SAME_DAY')} className="mt-1" />
-                    <div>
-                      <p className="font-semibold text-black">Same Day Delivery</p>
-                      <p className="text-sm text-surface-700">Same day delivery for orders received before 12:00 PM. <a className="underline">Learn More.</a></p>
-                      <p className="font-semibold text-black">PKR 250.00</p>
+                      <p className="font-semibold text-black">Standard Shipping</p>
+                      <p className="font-semibold text-black">Free (PKR 0.00)</p>
                     </div>
                   </label>
                 </div>
@@ -378,7 +370,7 @@ export default function CheckoutPage() {
                 <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                   <div>
                     <p className="font-bold text-black">Shipping Type</p>
-                    <p className="text-black">{shippingMethod === 'SAME_DAY' ? 'Same Day Delivery' : 'Fixed'}</p>
+                    <p className="text-black">Standard Shipping</p>
                   </div>
                   <div>
                     <p className="font-bold text-black">Customer Details</p>
@@ -389,23 +381,21 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               )
-            ) : (
-              shippingMode === 'summary' ? (
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <p className="font-bold text-black">Shipping Type</p>
-                    <p className="text-black">{shippingMethod === 'SAME_DAY' ? 'Same Day Delivery' : 'Fixed'}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-black">Customer Details</p>
-                    <p className="text-black">{address.firstName} {address.lastName}</p>
-                    <p className="text-black">{address.streetAddress}</p>
-                    <p className="text-black">{address.city} {address.province}</p>
-                    <p className="text-black">{address.phone}</p>
-                  </div>
+            ) : shippingMode === 'summary' ? (
+              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="font-bold text-black">Shipping Type</p>
+                  <p className="text-black">Standard Shipping</p>
                 </div>
-              ) : null
-            )}
+                <div>
+                  <p className="font-bold text-black">Customer Details</p>
+                  <p className="text-black">{address.firstName} {address.lastName}</p>
+                  <p className="text-black">{address.streetAddress}</p>
+                  <p className="text-black">{address.city} {address.province}</p>
+                  <p className="text-black">{address.phone}</p>
+                </div>
+              </div>
+            ) : null}
           </section>
 
           <section className="border border-surface-300 rounded-2xl bg-surface-100 p-4 sm:p-5">

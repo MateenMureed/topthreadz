@@ -55,8 +55,6 @@ function cleanDescriptionMetadata(text: string): string {
     /available\s+colors?:\s*[^\n<]+/gi,
     /product\s+category:\s*[^\n<]+/gi,
     /fit:\s*[^\n<]+/gi,
-    /fabric:\s*[^\n<]+/gi,
-    /finish:\s*[^\n<]+/gi,
   ];
 
   metadataRegexes.forEach((regex) => {
@@ -66,67 +64,121 @@ function cleanDescriptionMetadata(text: string): string {
   return cleaned.trim();
 }
 
+interface DescriptionBlock {
+  type: 'paragraph' | 'heading' | 'list';
+  text?: string;
+  items?: string[];
+}
+
 export function FormattedProductDescription({ content }: { content?: string }) {
   if (!content) return null;
 
-  const cleaned = cleanDescriptionMetadata(content);
-  if (!cleaned) return null;
+  // 1. Convert block-level HTML tags into line breaks so HTML div/p/li/br content is properly separated
+  let processed = content
+    .replace(/<\/(div|p|h[1-6]|li|tr|section|article)>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<hr\s*\/?>/gi, '\n\n')
+    .replace(/<[^>]+>/g, ' ');
 
-  // Check if content contains <li> tags
-  if (/<li/i.test(cleaned)) {
-    const liMatches = cleaned.match(/<li[^>]*>([\s\S]*?)<\/li>/gi) || [];
-    const listItems = liMatches
-      .map((li) => {
-        const rawText = li.replace(/<[^>]+>/g, '');
-        return decodeHtmlEntities(rawText).trim();
-      })
-      .filter(Boolean);
+  processed = decodeHtmlEntities(processed);
+  processed = cleanDescriptionMetadata(processed);
 
-    const nonLiText = decodeHtmlEntities(
-      cleaned.replace(/<li[^>]*>[\s\S]*?<\/li>/gi, '').replace(/<[^>]+>/g, '').trim()
-    );
+  // Extract non-empty lines
+  const rawLines = processed
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
 
-    return (
-      <div className="space-y-3">
-        {nonLiText && <p className="leading-relaxed text-surface-800 font-normal">{nonLiText}</p>}
-        {listItems.length > 0 && (
-          <ul className="space-y-2">
-            {listItems.map((item, idx) => (
-              <li key={idx} className="flex items-start gap-2.5 text-sm text-surface-800 font-normal">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-surface-900" />
-                <span className="flex-1 leading-relaxed">{item}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    );
+  if (rawLines.length === 0) return null;
+
+  // 2. Parse lines into structured blocks
+  const blocks: DescriptionBlock[] = [];
+  let currentListItems: string[] = [];
+
+  const flushList = () => {
+    if (currentListItems.length > 0) {
+      blocks.push({ type: 'list', items: [...currentListItems] });
+      currentListItems = [];
+    }
+  };
+
+  const isHeading = (line: string, nextLine?: string) => {
+    if (/^(premium\s+features|features|key\s+features|product\s+features|highlights|product\s+details|specifications|fabric\s+details|care\s+instructions|why\s+choose\s+this):?$/i.test(line)) {
+      return true;
+    }
+    if (line.endsWith(':') && line.length <= 40) {
+      return true;
+    }
+    if (line.length <= 35 && !line.endsWith('.') && nextLine && nextLine.length <= 60 && !nextLine.endsWith('.')) {
+      return true;
+    }
+    return false;
+  };
+
+  for (let i = 0; i < rawLines.length; i++) {
+    const line = rawLines[i];
+    const nextLine = rawLines[i + 1];
+
+    const cleanLine = line.replace(/^[-*•✓✔▸▪]\s*/, '').trim();
+
+    if (isHeading(cleanLine, nextLine)) {
+      flushList();
+      blocks.push({ type: 'heading', text: cleanLine.replace(/:$/, '') });
+      continue;
+    }
+
+    const hasBulletPrefix = /^[-*•✓✔▸▪]\s*/.test(line) || /^\d+[\.\)]\s*/.test(line);
+    const lastBlock = blocks[blocks.length - 1];
+    const isFollowingHeading = lastBlock?.type === 'heading';
+
+    const isListItem =
+      hasBulletPrefix ||
+      (isFollowingHeading && cleanLine.length <= 80) ||
+      (currentListItems.length > 0 && cleanLine.length <= 80 && !cleanLine.endsWith('.'));
+
+    if (isListItem) {
+      currentListItems.push(cleanLine);
+    } else {
+      flushList();
+      blocks.push({ type: 'paragraph', text: cleanLine });
+    }
   }
-
-  // Fallback for plain text or newline separated text
-  const decoded = decodeHtmlEntities(cleaned);
-  const lines = decoded.split('\n').map((l) => l.trim()).filter(Boolean);
-
-  const isBulletList = lines.length > 1 && lines.every((line) => /^[-*•]/.test(line));
-
-  if (isBulletList) {
-    return (
-      <ul className="space-y-2">
-        {lines.map((line, idx) => (
-          <li key={idx} className="flex items-start gap-2.5 text-sm text-surface-800 font-normal">
-            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-surface-900" />
-            <span className="flex-1 leading-relaxed">{line.replace(/^[-*•]\s*/, '')}</span>
-          </li>
-        ))}
-      </ul>
-    );
-  }
+  flushList();
 
   return (
-    <div className="space-y-2 text-sm text-surface-800 leading-relaxed font-normal">
-      {lines.map((line, idx) => (
-        <p key={idx}>{line}</p>
-      ))}
+    <div className="space-y-3.5 text-sm text-surface-800 leading-relaxed font-normal">
+      {blocks.map((block, i) => {
+        if (block.type === 'heading') {
+          return (
+            <div key={i} className="pt-3 pb-1">
+              <h4 className="font-bold text-sm sm:text-base text-surface-950 uppercase tracking-wider flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-600 inline-block shrink-0" />
+                {block.text}
+              </h4>
+              <div className="h-0.5 w-10 bg-surface-950/20 mt-1 rounded-full" />
+            </div>
+          );
+        }
+
+        if (block.type === 'list' && block.items) {
+          return (
+            <ul key={i} className="space-y-2 my-2 pl-0.5">
+              {block.items.map((item, idx) => (
+                <li key={idx} className="flex items-start gap-2.5 text-sm text-surface-800">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-surface-900" />
+                  <span className="flex-1 leading-relaxed font-medium text-surface-900">{item}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
+
+        return (
+          <p key={i} className="leading-relaxed text-surface-700">
+            {block.text}
+          </p>
+        );
+      })}
     </div>
   );
 }
