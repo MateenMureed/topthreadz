@@ -128,6 +128,7 @@ function AdminImage({
 }
 
 interface ProductFormState {
+  category: string;
   name: string;
   description: string;
   subcategory: string;
@@ -151,6 +152,7 @@ interface ProductFormState {
 }
 
 const emptyProductForm: ProductFormState = {
+  category: 'Unstitched',
   name: '',
   description: '',
   subcategory: 'Traditional',
@@ -914,6 +916,8 @@ function ProductsTab() {
   const [selectedColorPreset, setSelectedColorPreset] = useState('');
   const descriptionEditorRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState<ProductFormState>(emptyProductForm);
+  const { data: categoryResponse } = useQuery({ queryKey: ['admin-categories'], queryFn: () => api.get('/categories').then(r => r.data) });
+  const categories = categoryResponse?.data || [];
 
   const colorList = splitCsv(form.colorsText);
   const subcategoryOptions = ['Summer Collection', 'Winter Collection', 'Wedding', 'Formal', 'Semi-Formal', 'Casual', 'Office Wear', 'Festive Wear', 'Jummah Collection', 'Traditional'];
@@ -1144,6 +1148,7 @@ function ProductsTab() {
     const fallbackSubcategory = subcategoryOptions[0] || 'Traditional';
     setEditingProduct(product);
     setForm({
+      category: product.category || 'Unstitched',
       name: product.name || '',
       description: product.description || '',
       subcategory: subcategoryOptions.includes(product.subcategory) ? product.subcategory : fallbackSubcategory,
@@ -1212,7 +1217,7 @@ function ProductsTab() {
       name: form.name.trim(),
       slug: form.slug.trim() || undefined,
       description: form.description.trim(),
-      category: 'Unstitched',
+      category: form.category || 'Unstitched',
       subcategory: form.subcategory.trim() || undefined,
       brand: form.brand.trim() || undefined,
       price: regularPrice,
@@ -1465,6 +1470,14 @@ function ProductsTab() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-semibold text-surface-600">Category *</label>
+                      <select className="input-field" value={form.category} onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}>
+                        <option value="">Select category</option>
+                        {categories.map((category: any) => <option key={category.id} value={category.name}>{category.name}</option>)}
+                        {categories.length === 0 && <option value="Unstitched">Unstitched (legacy)</option>}
+                      </select>
+                    </div>
                     <div>
                       <label className="text-xs font-semibold text-surface-600">Subcategory *</label>
                       <select
@@ -2139,6 +2152,7 @@ function StoreSettingsTab() {
 
   return (
     <div className="space-y-8">
+      <CategoriesManager />
       {/* Hero Banner Section */}
       <HeroBannerManager />
 
@@ -2348,3 +2362,12 @@ function StoreSettingsTab() {
   );
 }
 
+function CategoriesManager() {
+  const qc = useQueryClient();
+  const { data } = useQuery({ queryKey: ['admin-categories'], queryFn: () => api.get('/categories').then(r => r.data) });
+  const [name, setName] = useState('');
+  const categories = data?.data || [];
+  const create = useMutation({ mutationFn: () => api.post('/categories', { name, sortOrder: categories.length }), onSuccess: () => { setName(''); qc.invalidateQueries({ queryKey: ['admin-categories'] }); qc.invalidateQueries({ queryKey: ['home', 'categories'] }); toast.success('Category created'); } });
+  const toggle = useMutation({ mutationFn: (c: any) => api.patch(`/categories/${c.id}`, { isActive: !c.isActive }), onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-categories'] }); qc.invalidateQueries({ queryKey: ['home', 'categories'] }); } });
+  return <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft"><h2 className="text-xl font-bold">Homepage Categories</h2><p className="mb-4 text-sm text-surface-500">Create categories here; active categories appear on the homepage and in the product form.</p><div className="flex gap-2"><input className="input-field" placeholder="e.g. Waist Coats" value={name} onChange={e => setName(e.target.value)} /><button className="btn-primary" disabled={!name.trim() || create.isPending} onClick={() => create.mutate()}>Add</button></div><div className="mt-4 space-y-2">{categories.map((c: any) => <div key={c.id} className="flex items-center justify-between rounded-lg border p-3"><span className="font-medium">{c.name}</span><button className="btn-secondary !py-1.5 text-xs" onClick={() => toggle.mutate(c)}>{c.isActive ? 'Active' : 'Inactive'}</button></div>)}</div></div>;
+}
