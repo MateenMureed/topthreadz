@@ -79,25 +79,39 @@ export default function HomePage() {
         )}
       </section>
 
-      <section className="w-full max-w-[1536px] mx-auto px-3 sm:px-6 py-10 md:py-14">
-        <div className="mb-6 flex items-end justify-between gap-4">
+      <section className="w-full max-w-[1536px] mx-auto px-3 sm:px-6 py-6 sm:py-10 md:py-14">
+        <div className="mb-4 sm:mb-6 flex items-end justify-between gap-3">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-surface-500">Top Threadz</p>
-            <h2 className="mt-2 text-2xl md:text-4xl font-display font-bold text-surface-950">Explore Our Collection</h2>
-            <p className="mt-2 text-sm text-surface-600">Find your perfect Unstitched, Stitched & Kids Wear, all in one place.</p>
+            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.25em] text-surface-500">Top Threadz</p>
+            <h2 className="mt-1 text-xl sm:text-2xl md:text-4xl font-display font-bold text-surface-950">Explore Our Collection</h2>
+            <p className="mt-1 text-xs sm:text-sm text-surface-600">Find your perfect Unstitched, Stitched & Kids Wear, all in one place.</p>
           </div>
-          <Link href="/products" className="hidden sm:block text-sm font-semibold underline underline-offset-4">View all</Link>
+          <Link href="/products" className="text-xs sm:text-sm font-semibold underline underline-offset-4 shrink-0">View all</Link>
         </div>
-        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3">
+        <div className="flex snap-x snap-mandatory gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-none">
           {categories.map((category: any) => (
-            <Link key={category.id} href={`/products?category=${encodeURIComponent(category.name)}`} className="group relative min-w-[68vw] sm:min-w-[31vw] lg:min-w-0 lg:flex-1 snap-start overflow-hidden rounded-2xl bg-surface-100">
-              <div className="aspect-[3/4]">
-                <img src={category.coverImage || `https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=700&q=80`} alt={category.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+            <Link
+              key={category.id}
+              href={`/products?category=${encodeURIComponent(category.name)}`}
+              className="group relative min-w-[130px] xs:min-w-[150px] sm:min-w-[200px] md:min-w-[220px] lg:flex-1 snap-start overflow-hidden rounded-xl sm:rounded-2xl bg-surface-100 border border-surface-200/90 shadow-xs hover:shadow-md transition-all"
+            >
+              <div className="aspect-[4/5] sm:aspect-[3/4]">
+                <img
+                  src={category.coverImage || `https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=700&q=80`}
+                  alt={category.name}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
               </div>
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-5 pt-16 text-white"><span className="text-lg font-bold uppercase tracking-wide">{category.name}</span><span className="ml-2 text-xl">→</span></div>
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent p-2.5 pt-10 sm:p-5 sm:pt-16 text-white flex items-center justify-between">
+                <span className="text-xs sm:text-base font-bold uppercase tracking-wide drop-shadow-xs line-clamp-1">
+                  {category.name}
+                </span>
+                <span className="text-xs sm:text-lg transition-transform group-hover:translate-x-1 shrink-0 ml-1">→</span>
+              </div>
             </Link>
           ))}
-          {categories.length === 0 && <p className="text-sm text-surface-500">Collections coming soon.</p>}
+          {categories.length === 0 && <p className="text-xs sm:text-sm text-surface-500">Collections coming soon.</p>}
         </div>
       </section>
 

@@ -40,6 +40,29 @@ input, select, textarea, button {
   color-scheme: light !important;
 }
 
+/* Prevent auto-zoom on mobile iOS Safari when focusing inputs */
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Hide scrollbars cleanly for mobile horizontal carousels */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+}
+
 option {
   background-color: #ffffff !important;
   color: #0f172a !important;

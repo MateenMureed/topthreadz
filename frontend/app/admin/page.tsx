@@ -2364,10 +2364,367 @@ function StoreSettingsTab() {
 
 function CategoriesManager() {
   const qc = useQueryClient();
-  const { data } = useQuery({ queryKey: ['admin-categories'], queryFn: () => api.get('/categories').then(r => r.data) });
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-categories'],
+    queryFn: () => api.get('/categories?all=true').then(r => r.data)
+  });
+
   const [name, setName] = useState('');
+  const [coverImage, setCoverImage] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Edit state
+  const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [editName, setEditName] = useState('');
+  const [editCoverImage, setEditCoverImage] = useState('');
+  const [isEditUploading, setIsEditUploading] = useState(false);
+
   const categories = data?.data || [];
-  const create = useMutation({ mutationFn: () => api.post('/categories', { name: name.trim(), sortOrder: categories.length }), onSuccess: () => { setName(''); qc.invalidateQueries({ queryKey: ['admin-categories'] }); qc.invalidateQueries({ queryKey: ['home', 'categories'] }); toast.success('Category created'); }, onError: (err: any) => { const status = err?.response?.status; const message = err?.response?.data?.message || (status === 401 || status === 403 ? 'Admin session expired. Please log in again.' : 'Could not create category. Ensure the database migration has been applied.'); toast.error(message); } });
-  const toggle = useMutation({ mutationFn: (c: any) => api.patch(`/categories/${c.id}`, { isActive: !c.isActive }), onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-categories'] }); qc.invalidateQueries({ queryKey: ['home', 'categories'] }); } });
-  return <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft"><h2 className="text-xl font-bold">Homepage Categories</h2><p className="mb-4 text-sm text-surface-500">Create categories here; active categories appear on the homepage and in the product form.</p><div className="flex gap-2"><input className="input-field" placeholder="e.g. Waist Coats" value={name} onChange={e => setName(e.target.value)} /><button className="btn-primary" disabled={!name.trim() || create.isPending} onClick={() => create.mutate()}>Add</button></div><div className="mt-4 space-y-2">{categories.map((c: any) => <div key={c.id} className="flex items-center justify-between rounded-lg border p-3"><span className="font-medium">{c.name}</span><button className="btn-secondary !py-1.5 text-xs" onClick={() => toggle.mutate(c)}>{c.isActive ? 'Active' : 'Inactive'}</button></div>)}</div></div>;
+
+  const handleFileUpload = async (file: File, isEdit = false) => {
+    const setter = isEdit ? setEditCoverImage : setCoverImage;
+    const loader = isEdit ? setIsEditUploading : setIsUploading;
+
+    try {
+      loader(true);
+      const formData = new FormData();
+      formData.append('images', file);
+      const res = await api.post('/products/upload-images', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const url = res.data?.data?.urls?.[0] || res.data?.data?.images?.[0]?.url;
+      if (url) {
+        setter(url);
+        toast.success('Category image uploaded');
+      } else {
+        toast.error('Failed to upload image');
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Error uploading image');
+    } finally {
+      loader(false);
+    }
+  };
+
+  const create = useMutation({
+    mutationFn: () =>
+      api.post('/categories', {
+        name: name.trim(),
+        coverImage: coverImage.trim() || undefined,
+        sortOrder: categories.length,
+      }),
+    onSuccess: () => {
+      setName('');
+      setCoverImage('');
+      qc.invalidateQueries({ queryKey: ['admin-categories'] });
+      qc.invalidateQueries({ queryKey: ['home', 'categories'] });
+      toast.success('Category created successfully');
+    },
+    onError: (err: any) => {
+      const status = err?.response?.status;
+      const message =
+        err?.response?.data?.message ||
+        (status === 401 || status === 403
+          ? 'Admin session expired. Please log in again.'
+          : 'Could not create category. Ensure database migrations have been applied.');
+      toast.error(message);
+    },
+  });
+
+  const update = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => api.patch(`/categories/${id}`, data),
+    onSuccess: () => {
+      setEditingCategory(null);
+      qc.invalidateQueries({ queryKey: ['admin-categories'] });
+      qc.invalidateQueries({ queryKey: ['home', 'categories'] });
+      toast.success('Category updated successfully');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Failed to update category');
+    },
+  });
+
+  const toggle = useMutation({
+    mutationFn: (c: any) => api.patch(`/categories/${c.id}`, { isActive: !c.isActive }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-categories'] });
+      qc.invalidateQueries({ queryKey: ['home', 'categories'] });
+    },
+  });
+
+  const deleteCat = useMutation({
+    mutationFn: (id: string) => api.delete(`/categories/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-categories'] });
+      qc.invalidateQueries({ queryKey: ['home', 'categories'] });
+      toast.success('Category deleted');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Failed to delete category');
+    },
+  });
+
+  const startEdit = (c: any) => {
+    setEditingCategory(c);
+    setEditName(c.name);
+    setEditCoverImage(c.rawCoverImage || '');
+  };
+
+  return (
+    <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-surface-950">Homepage & Store Categories</h2>
+          <p className="mt-1 text-sm text-surface-500">
+            Create and manage clothing categories. If no category picture is uploaded, it automatically displays the latest product image of that category on the homepage.
+          </p>
+        </div>
+      </div>
+
+      {/* Create Form */}
+      <div className="mb-8 rounded-xl border border-surface-200 bg-surface-50 p-4">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-surface-700">Add New Category</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-surface-700">Category Name *</label>
+            <input
+              className="input-field w-full"
+              placeholder="e.g. Waist Coats, Unstitched, Shawls..."
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-surface-700">
+              Category Picture (Optional)
+            </label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input
+                className="input-field flex-1 text-xs"
+                placeholder="Paste Image URL or upload below..."
+                value={coverImage}
+                onChange={(e) => setCoverImage(e.target.value)}
+              />
+              <label className="btn-secondary flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap !py-2 text-xs">
+                <FiUpload className="h-4 w-4" />
+                <span>{isUploading ? 'Uploading...' : 'Upload Image'}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={isUploading}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileUpload(file, false);
+                  }}
+                />
+              </label>
+              {coverImage && (
+                <button
+                  type="button"
+                  onClick={() => setCoverImage('')}
+                  className="btn-secondary !py-2 text-xs text-red-600 hover:bg-red-50"
+                >
+                  Clear Image
+                </button>
+              )}
+            </div>
+
+            {/* Preview */}
+            {coverImage ? (
+              <div className="mt-2 flex items-center gap-3">
+                <div className="relative h-16 w-16 overflow-hidden rounded-lg border border-surface-300">
+                  <img src={coverImage} alt="Preview" className="h-full w-full object-cover" />
+                </div>
+                <span className="text-xs text-emerald-600 font-medium">✓ Custom category picture ready</span>
+              </div>
+            ) : (
+              <p className="mt-1 text-[11px] text-surface-500 italic">
+                ℹ️ No picture uploaded: Will automatically use the latest product photo from this category.
+              </p>
+            )}
+          </div>
+
+          <button
+            className="btn-primary !py-2.5 text-xs font-bold uppercase tracking-wider"
+            disabled={!name.trim() || create.isPending || isUploading}
+            onClick={() => create.mutate()}
+          >
+            {create.isPending ? 'Adding Category...' : 'Add Category'}
+          </button>
+        </div>
+      </div>
+
+      {/* Edit Modal */}
+      {editingCategory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-surface-200">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-surface-950">Edit Category</h3>
+              <button onClick={() => setEditingCategory(null)} className="text-surface-400 hover:text-surface-600">
+                <FiX className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-surface-700">Category Name</label>
+                <input
+                  className="input-field w-full"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-surface-700">
+                  Category Picture (Cover Image)
+                </label>
+                <div className="flex flex-col gap-2">
+                  <input
+                    className="input-field w-full text-xs"
+                    placeholder="Image URL..."
+                    value={editCoverImage}
+                    onChange={(e) => setEditCoverImage(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <label className="btn-secondary flex-1 flex cursor-pointer items-center justify-center gap-1.5 !py-2 text-xs">
+                      <FiUpload className="h-4 w-4" />
+                      <span>{isEditUploading ? 'Uploading...' : 'Upload New Image'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={isEditUploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, true);
+                        }}
+                      />
+                    </label>
+                    {editCoverImage && (
+                      <button
+                        type="button"
+                        onClick={() => setEditCoverImage('')}
+                        className="btn-secondary !py-2 text-xs text-red-600 hover:bg-red-50"
+                      >
+                        Remove Picture
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {editCoverImage ? (
+                  <div className="mt-2 flex items-center gap-3">
+                    <div className="relative h-16 w-16 overflow-hidden rounded-lg border border-surface-300">
+                      <img src={editCoverImage} alt="Preview" className="h-full w-full object-cover" />
+                    </div>
+                    <span className="text-xs text-emerald-600 font-medium">Custom picture set</span>
+                  </div>
+                ) : (
+                  <p className="mt-1 text-[11px] text-surface-500 italic">
+                    ℹ️ Picture removed: Will automatically show latest product image.
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-6 flex justify-end gap-2">
+                <button
+                  onClick={() => setEditingCategory(null)}
+                  className="btn-secondary !py-2 text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={!editName.trim() || update.isPending || isEditUploading}
+                  onClick={() =>
+                    update.mutate({
+                      id: editingCategory.id,
+                      data: { name: editName.trim(), coverImage: editCoverImage },
+                    })
+                  }
+                  className="btn-primary !py-2 text-xs font-bold uppercase tracking-wider"
+                >
+                  {update.isPending ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Categories List */}
+      <div>
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-surface-700">Existing Categories</h3>
+        {isLoading ? (
+          <p className="text-sm text-surface-500">Loading categories...</p>
+        ) : categories.length === 0 ? (
+          <p className="text-sm text-surface-500">No categories created yet.</p>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {categories.map((c: any) => (
+              <div
+                key={c.id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-surface-200 bg-white p-3 shadow-xs hover:border-surface-300 transition-colors"
+              >
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-surface-200 bg-surface-100">
+                    {c.coverImage ? (
+                      <img src={c.coverImage} alt={c.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-surface-400">
+                        <FiPackage className="h-5 w-5" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="truncate font-bold text-surface-900 text-sm">{c.name}</h4>
+                    <p className="text-[11px] text-surface-500">
+                      {c.hasCustomImage ? (
+                        <span className="text-emerald-700 font-medium">📷 Custom Picture</span>
+                      ) : c.isFallbackImage ? (
+                        <span className="text-amber-700 font-medium">✨ Auto (Latest Product Image)</span>
+                      ) : (
+                        <span className="text-surface-400">No image available</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    className={`btn-secondary !py-1 !px-2.5 text-[11px] font-semibold ${
+                      c.isActive ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-surface-500'
+                    }`}
+                    onClick={() => toggle.mutate(c)}
+                  >
+                    {c.isActive ? 'Active' : 'Inactive'}
+                  </button>
+                  <button
+                    onClick={() => startEdit(c)}
+                    className="p-1.5 text-surface-500 hover:text-surface-900 hover:bg-surface-100 rounded-lg transition-colors"
+                    title="Edit Category"
+                  >
+                    <FiEdit2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm(`Delete category "${c.name}"?`)) {
+                        deleteCat.mutate(c.id);
+                      }
+                    }}
+                    className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete Category"
+                  >
+                    <FiTrash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
