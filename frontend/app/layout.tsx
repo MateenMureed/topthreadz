@@ -16,6 +16,9 @@ const AuthModal = dynamic(() => import('@/components/AuthModal'));
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.topthreadz.com.pk'),
+  verification: {
+    google: 'h2s93E-7aU8K0vVK_RxrpR-ps_P7ylL0oop_o3qCSJw',
+  },
   title: {
     default: 'Top Threadz | Unstitched Men\'s Fabric in Pakistan',
     template: '%s | Top Threadz',
