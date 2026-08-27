@@ -146,27 +146,27 @@ export function FormattedProductDescription({ content }: { content?: string }) {
   flushList();
 
   return (
-    <div className="space-y-3.5 text-sm text-surface-800 leading-relaxed font-normal">
+    <div className="space-y-2 text-[13px] sm:text-sm text-surface-800 leading-snug font-sans">
       {blocks.map((block, i) => {
         if (block.type === 'heading') {
           return (
-            <div key={i} className="pt-3 pb-1">
-              <h4 className="font-bold text-sm sm:text-base text-surface-950 uppercase tracking-wider flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-emerald-600 inline-block shrink-0" />
+            <div key={i} className="pt-2 pb-0.5">
+              <h4 className="font-display font-bold text-xs sm:text-sm text-surface-950 uppercase tracking-widest flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 inline-block shrink-0" />
                 {block.text}
               </h4>
-              <div className="h-0.5 w-10 bg-surface-950/20 mt-1 rounded-full" />
+              <div className="h-0.5 w-8 bg-surface-950/20 mt-0.5 rounded-full" />
             </div>
           );
         }
 
         if (block.type === 'list' && block.items) {
           return (
-            <ul key={i} className="space-y-2 my-2 pl-0.5">
+            <ul key={i} className="space-y-1 my-1 pl-0.5">
               {block.items.map((item, idx) => (
-                <li key={idx} className="flex items-start gap-2.5 text-sm text-surface-800">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-surface-900" />
-                  <span className="flex-1 leading-relaxed font-medium text-surface-900">{item}</span>
+                <li key={idx} className="flex items-center gap-2 text-[13px] sm:text-sm text-surface-900 leading-snug">
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-600/80" />
+                  <span className="font-medium tracking-tight text-surface-900">{item}</span>
                 </li>
               ))}
             </ul>
@@ -174,7 +174,7 @@ export function FormattedProductDescription({ content }: { content?: string }) {
         }
 
         return (
-          <p key={i} className="leading-relaxed text-surface-700">
+          <p key={i} className="leading-snug text-surface-700 tracking-normal">
             {block.text}
           </p>
         );
