@@ -1,4 +1,4 @@
 import app from '../src/index';
 
-// Vercel invokes this request handler for every rewritten /api request.
+// Handles /api. Nested endpoints are served by api/[...path].ts.
 export default app;

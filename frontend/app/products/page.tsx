@@ -157,6 +157,8 @@ function ProductsPageContent() {
           <div className="h-11 rounded-xl border border-slate-300 bg-white flex items-center px-4 gap-2 shadow-sm">
             <FiSearch className="w-4.5 h-4.5 text-slate-700 shrink-0" />
             <input
+              id="product-search"
+              name="product-search"
               type="text"
               placeholder="Search by product or fabric..."
               value={search}

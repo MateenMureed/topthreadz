@@ -306,6 +306,8 @@ export default function CheckoutPage() {
               <div className="mt-4">
                 <p className="text-surface-700 text-sm mb-2">Already have an account? <Link href="/login" className="font-semibold underline">SIGN IN</Link></p>
                 <input
+                  id="checkout-email"
+                  name="email"
                   type="email"
                   value={checkoutEmail}
                   onChange={(e) => setCheckoutEmail(e.target.value)}
@@ -353,27 +355,27 @@ export default function CheckoutPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <label className="text-sm font-semibold text-black">First Name</label>
-                    <input value={address.firstName} onChange={(e) => setAddress({ ...address, firstName: e.target.value })} className="input-field mt-1" placeholder="First Name" />
+                    <input id="checkout-first-name" name="given-name" autoComplete="given-name" value={address.firstName} onChange={(e) => setAddress({ ...address, firstName: e.target.value })} className="input-field mt-1" placeholder="First Name" />
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-black">Last Name</label>
-                    <input value={address.lastName} onChange={(e) => setAddress({ ...address, lastName: e.target.value })} className="input-field mt-1" placeholder="Last Name" />
+                    <input id="checkout-last-name" name="family-name" autoComplete="family-name" value={address.lastName} onChange={(e) => setAddress({ ...address, lastName: e.target.value })} className="input-field mt-1" placeholder="Last Name" />
                   </div>
                   <div className="md:col-span-2">
                     <label className="text-sm font-semibold text-black">Mobile Number</label>
-                    <input value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} className="input-field mt-1" placeholder="Ex: +923451234567" />
+                    <input id="checkout-phone" name="tel" autoComplete="tel" value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} className="input-field mt-1" placeholder="Ex: +923451234567" />
                   </div>
                   <div className="md:col-span-2">
                     <label className="text-sm font-semibold text-black">Street Address</label>
-                    <input value={address.streetAddress} onChange={(e) => setAddress({ ...address, streetAddress: e.target.value })} className="input-field mt-1" placeholder="Street Address" />
+                    <input id="checkout-address" name="street-address" autoComplete="street-address" value={address.streetAddress} onChange={(e) => setAddress({ ...address, streetAddress: e.target.value })} className="input-field mt-1" placeholder="Street Address" />
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-black">Country</label>
-                    <input value={address.country} readOnly className="input-field mt-1 bg-surface-200" />
+                    <input id="checkout-country" name="country" autoComplete="country-name" value={address.country} readOnly className="input-field mt-1 bg-surface-200" />
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-black">State/Province</label>
-                    <select value={address.province} onChange={(e) => setAddress({ ...address, province: e.target.value, city: '' })} className="input-field mt-1">
+                    <select id="checkout-province" name="address-level1" autoComplete="address-level1" value={address.province} onChange={(e) => setAddress({ ...address, province: e.target.value, city: '' })} className="input-field mt-1">
                       <option value="">Select Your Region</option>
                       {Object.keys(PAKISTAN_LOCATIONS).map((province) => (
                         <option key={province} value={province}>{province}</option>
@@ -382,7 +384,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="md:col-span-2">
                     <label className="text-sm font-semibold text-black">City</label>
-                    <select value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} className="input-field mt-1" disabled={!address.province}>
+                    <select id="checkout-city" name="address-level2" autoComplete="address-level2" value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} className="input-field mt-1" disabled={!address.province}>
                       <option value="">Select Your City</option>
                       {cityOptions.map((city) => (
                         <option key={city} value={city}>{city}</option>

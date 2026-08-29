@@ -50,9 +50,14 @@ export class RecommendationService {
     return popular;
   }
 
-  async getSimilarProducts(productId: string, limit = 4) {
-    const product = await prisma.product.findUnique({ where: { id: productId } });
+  async getSimilarProducts(productIdentifier: string, limit = 4) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(productIdentifier);
+    const product = isUuid
+      ? await prisma.product.findFirst({ where: { OR: [{ id: productIdentifier }, { slug: productIdentifier }] } })
+      : await prisma.product.findUnique({ where: { slug: productIdentifier } });
     if (!product) return [];
+
+    const productId = product.id;
 
     return prisma.product.findMany({
       where: {

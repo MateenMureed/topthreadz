@@ -214,10 +214,13 @@ export default function ProductDetailPage() {
     queryKey: ['product', id],
     queryFn: async () => {
       try {
-        return await productService.getById(id);
+        // Storefront URLs use human-readable slugs. Looking them up as UUIDs
+        // first produced an expected-but-noisy 404 on every direct product visit.
+        return await productService.getBySlug(id);
       } catch {
         try {
-          return await productService.getBySlug(id);
+          // Preserve support for legacy links that contain a database UUID.
+          return await productService.getById(id);
         } catch {
           const normalized = normalizeSlug(id);
           if (normalized && normalized !== id) {
@@ -336,7 +339,7 @@ export default function ProductDetailPage() {
       <div className="max-w-7xl mx-auto px-4 md:px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div className="space-y-4">
-            <div className="aspect-[4/5] md:aspect-square rounded-2xl bg-surface-100 relative overflow-hidden">
+            <div className="aspect-[3/4] rounded-2xl bg-surface-100 relative overflow-hidden">
               <div className="absolute inset-0 shimmer" />
             </div>
             <div className="hidden md:flex gap-3">

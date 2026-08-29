@@ -354,9 +354,15 @@ export class ProductService {
     };
   }
 
-  async getUpsellSuggestions(productId: string, limit = 4) {
-    const product = await prisma.product.findUnique({ where: { id: productId } });
+  async getUpsellSuggestions(productIdentifier: string, limit = 4) {
+    // Public product URLs use slugs, while internal callers use UUIDs.
+    // Resolve either form before selecting related products.
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(productIdentifier);
+    const product = isUuid
+      ? await prisma.product.findFirst({ where: { OR: [{ id: productIdentifier }, { slug: productIdentifier }] } })
+      : await prisma.product.findUnique({ where: { slug: productIdentifier } });
     if (!product) throw new NotFoundError('Product not found');
+    const productId = product.id;
 
     const selected: any[] = [];
 

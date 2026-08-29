@@ -275,6 +275,9 @@ export default function Navbar() {
                 <div className="mt-3 flex items-center gap-3 border-b border-surface-400 pb-3">
                   <FiSearch className="w-5 h-5 text-black" />
                   <input
+                    id="site-search"
+                    name="site-search"
+                    type="search"
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                     onKeyDown={(e) => {

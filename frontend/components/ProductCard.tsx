@@ -28,6 +28,7 @@ interface ProductCardProps {
   colors?: string[];
   slug?: string;
   imageMeta?: ProductImageMeta[];
+  priority?: boolean;
 }
 
 function normalizeImageMetaInput(input: unknown): ProductImageMeta[] {
@@ -55,11 +56,13 @@ export default function ProductCard({
   colors = [],
   slug,
   imageMeta = [],
+  priority = false,
 }: ProductCardProps) {
   const { addItem, openCart } = useCartStore();
   const { isAuthenticated } = useAuthStore();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
 
   useEffect(() => {
     try {
@@ -112,6 +115,10 @@ export default function ProductCard({
 
   const frontSrc = resolveImageUrl(orderedImages[0] || '');
   const frontAlt = imageAltMap.get(frontSrc) || name;
+
+  useEffect(() => {
+    setImageState('loading');
+  }, [frontSrc]);
 
   // ============================================================
   // INLINE ZOOM — cursor-tracked transform-origin
@@ -238,17 +245,27 @@ export default function ProductCard({
 
           <div className="absolute inset-0">
             {frontSrc ? (
-              <Image
-                ref={imgRef}
-                src={frontSrc}
-                alt={frontAlt}
-                fill
-                unoptimized={isBackendUploadUrl(frontSrc)}
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className="h-full w-full object-cover object-center transition-transform duration-[600ms] ease-out will-change-transform group-hover:scale-[1.35]"
-                style={{ transformOrigin: '50% 50%' }}
-                draggable={false}
-              />
+              <>
+                {/* The neutral overlay stays inside the already-reserved 3:4 frame. */}
+                {imageState === 'loading' ? <div className="absolute inset-0 bg-stone-100 shimmer" aria-hidden="true" /> : null}
+                <Image
+                  ref={imgRef}
+                  src={frontSrc}
+                  alt={frontAlt}
+                  fill
+                  priority={priority}
+                  loading={priority ? 'eager' : 'lazy'}
+                  decoding="async"
+                  unoptimized={isBackendUploadUrl(frontSrc)}
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className={`h-full w-full object-cover object-center transition-[opacity,transform] duration-[200ms] ease-out will-change-transform group-hover:scale-[1.35] ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
+                  style={{ transformOrigin: '50% 50%' }}
+                  onLoad={() => setImageState('loaded')}
+                  onError={() => setImageState('error')}
+                  draggable={false}
+                />
+                {imageState === 'error' ? <div className="absolute inset-0 bg-stone-200" aria-hidden="true" /> : null}
+              </>
             ) : (
               <div
                 ref={placeholderRef}

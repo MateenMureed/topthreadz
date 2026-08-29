@@ -52,7 +52,6 @@ function normalizeImageSrc(src: string): string {
 export default function ProductImageGallery({ images, name, category }: ProductImageGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
   const gradient = getGradient(name);
   const hasRealImages = images && images.length > 0;
 
@@ -64,13 +63,6 @@ export default function ProductImageGallery({ images, name, category }: ProductI
   const touchStartX = useRef(0);
   const [touchDelta, setTouchDelta] = useState(0);
   const totalViews = hasRealImages ? images.length : 4;
-
-  // Trigger blur-up on image change
-  useEffect(() => {
-    setImageLoaded(false);
-    const timer = setTimeout(() => setImageLoaded(true), 60);
-    return () => clearTimeout(timer);
-  }, [activeIndex]);
 
   // Keyboard navigation for lightbox
   useEffect(() => {
@@ -155,11 +147,8 @@ export default function ProductImageGallery({ images, name, category }: ProductI
             unoptimized={isBackendUploadUrl(currentImageUrl)}
             sizes="(max-width: 768px) 100vw, 50vw"
             className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-[600ms] ease-out will-change-transform group-hover:scale-[1.75]"
-            style={{
-              transformOrigin: '50% 50%',
-              filter: imageLoaded ? 'blur(0px)' : 'blur(12px)',
-            }}
-            onLoad={() => setImageLoaded(true)}
+            quality={80}
+            style={{ transformOrigin: '50% 50%' }}
             draggable={false}
           />
         ) : (
@@ -167,10 +156,7 @@ export default function ProductImageGallery({ images, name, category }: ProductI
           <div
             ref={placeholderRef}
             className={`absolute inset-0 bg-gradient-to-br ${gradient} flex items-center justify-center transition-transform duration-[600ms] ease-out will-change-transform group-hover:scale-[1.75]`}
-            style={{
-              transformOrigin: '50% 50%',
-              filter: imageLoaded ? 'blur(0px)' : 'blur(12px)',
-            }}
+            style={{ transformOrigin: '50% 50%' }}
           >
             <div className="text-center pointer-events-none px-6">
               <p className="text-surface-500/60 text-xs font-medium tracking-[0.15em] uppercase">{category || 'Unstitched'}</p>

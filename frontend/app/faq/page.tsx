@@ -248,6 +248,8 @@ export default function FAQPage() {
             <div className="h-11 rounded-2xl border border-surface-300 bg-surface-50 flex items-center px-3.5 gap-2 shadow-inner focus-within:bg-white focus-within:border-surface-800 transition-all">
               <FiSearch className="w-4 h-4 text-surface-400 shrink-0" />
               <input
+                id="faq-search"
+                name="faq-search"
                 type="text"
                 placeholder="Search questions (e.g. delivery, returns, wash)..."
                 value={searchQuery}

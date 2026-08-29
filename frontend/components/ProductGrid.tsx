@@ -168,7 +168,7 @@ export default function ProductGrid({
             delay={(i % gridCols) * 100}
             animation="slide-up"
           >
-            <ProductCard {...product} />
+            <ProductCard {...product} priority={i === 0} />
           </ScrollReveal>
         ))}
 
