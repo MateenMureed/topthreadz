@@ -183,19 +183,15 @@ export default function DeliveryPolicyPage() {
                 </div>
 
                 <p>
-                  Delivery charges may depend on your delivery location,
-                  parcel size, order value and current shipping promotions.
+                  We offer <strong>FREE Nationwide Delivery</strong> across Pakistan on all orders exceeding <strong>PKR 10,000</strong>.
                 </p>
 
                 <p className="mt-3">
-                  Any applicable shipping fee will normally be displayed during
-                  checkout before you confirm your order.
+                  For orders below PKR 10,000, a flat standard delivery fee (e.g. PKR 250) is applied at checkout.
                 </p>
 
                 <p className="mt-3">
-                  From time to time, Top Threadz may offer free-shipping
-                  promotions subject to the terms and conditions of the
-                  promotion.
+                  All applicable shipping charges are clearly calculated and displayed before you confirm your order.
                 </p>
               </section>
 

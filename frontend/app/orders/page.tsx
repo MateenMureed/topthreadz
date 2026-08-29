@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
 import { useAuthModalStore } from '@/store/authModalStore';
@@ -24,7 +25,7 @@ function formatPkr(value?: number) {
   return `PKR ${Math.round(value || 0).toLocaleString()}`;
 }
 
-export default function OrdersPage() {
+function OrdersContent() {
   const hydrated = useHydration();
   const { isAuthenticated } = useAuthStore();
   const { openModal } = useAuthModalStore();
@@ -57,11 +58,21 @@ export default function OrdersPage() {
     refetchInterval: 15000,
   });
 
+  const searchParams = useSearchParams();
+  const trackingParam = searchParams.get('tracking') || searchParams.get('orderNumber') || '';
+
   const { data: searchedTrackingData, isFetching: isTrackingSearchFetching, refetch: refetchTrackingByOrderNumber } = useQuery({
     queryKey: ['orders', 'tracking-by-number', trackingOrderNumber],
     queryFn: () => orderService.getTrackingByOrderNumber(trackingOrderNumber),
-    enabled: false,
+    enabled: Boolean(trackingOrderNumber),
   });
+
+  useEffect(() => {
+    if (trackingParam && trackingParam.trim()) {
+      const clean = trackingParam.trim();
+      setTrackingOrderNumber(clean);
+    }
+  }, [trackingParam]);
 
   const activeTracking = liveTrackingData?.data || searchedTrackingData?.data || selectedOrder;
 
@@ -295,5 +306,18 @@ export default function OrdersPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-md mx-auto px-4 py-24 text-center">
+        <div className="h-8 w-48 mx-auto bg-surface-200 rounded-full animate-pulse" />
+        <div className="h-4 w-64 mx-auto bg-surface-100 rounded-full animate-pulse mt-4" />
+      </div>
+    }>
+      <OrdersContent />
+    </Suspense>
   );
 }

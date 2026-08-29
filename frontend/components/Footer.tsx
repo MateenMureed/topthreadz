@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/services/api';
 import {
@@ -9,6 +10,7 @@ import {
   FiFileText,
   FiHelpCircle,
   FiMail,
+  FiMapPin,
   FiPhone,
   FiRefreshCw,
   FiShield,
@@ -22,10 +24,10 @@ export default function Footer() {
     retry: false,
   });
 
-  const phoneNumber = settings?.phoneNumber || '+92 300 1234567';
+  const phoneNumber = settings?.phoneNumber || '+92 300 9070520';
   const email = settings?.email || 'support@topthreadz.pk';
   const operatingDays =
-    settings?.operatingDays || 'Mon – Fri: 9:00 AM – 6:00 PM';
+    settings?.operatingDays || 'Mon – Sat: 11:00 AM – 10:30 PM | Sun: 2:00 PM – 10:00 PM';
 
   return (
     <footer className="relative bg-surface-950 text-white overflow-hidden border-t border-white/10">
@@ -37,20 +39,39 @@ export default function Footer() {
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Main Compact Footer Grid */}
-        <div className="py-8 sm:py-10 grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8 border-b border-white/10">
-          {/* Brand Info */}
-          <div className="col-span-2 md:col-span-1 space-y-2.5">
+        <div className="py-8 sm:py-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 border-b border-white/10">
+          {/* Brand Info & Outlets */}
+          <div className="space-y-3">
             <Link href="/" className="inline-flex items-center gap-2.5 group">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-surface-950 font-black text-xs tracking-tight shadow-md transition-transform duration-300 group-hover:scale-105">
-                TT
-              </span>
-              <span className="text-sm font-black tracking-[0.16em] text-white">
-                TOP THREADZ
-              </span>
+              <div className="relative h-8 w-24 flex items-center">
+                <Image
+                  src="/images/topthreadz-logo-light.png"
+                  alt="Top Threadz"
+                  width={120}
+                  height={40}
+                  className="h-full w-auto object-contain brightness-125"
+                />
+              </div>
             </Link>
-            <p className="text-xs text-white/60 leading-relaxed max-w-xs">
-              Premium unstitched men&apos;s fabric in Pakistan. Exceptional quality, comfort, and timeless menswear.
+            <p className="text-xs text-white/60 leading-relaxed">
+              Official store for premium unstitched men&apos;s fabric in Pakistan. Exceptional quality, soft finish, and timeless luxury menswear.
             </p>
+            <div className="pt-2 border-t border-white/10 text-xs text-white/80">
+              <p className="font-bold text-white flex items-center gap-1.5 mb-1 text-[11px] uppercase tracking-wider">
+                <FiMapPin className="text-white/60 shrink-0" /> Karachi Flagship Outlet:
+              </p>
+              <p className="text-white/60 text-[11px] leading-relaxed">
+                topthreadz, R28V+R3W, Street 2, DHA Phase 5 Zamzama Commercial Area Defence V Karachi, 75600
+              </p>
+              <a
+                href="https://maps.google.com/?q=R28V%2BR3W,+Street+2,+DHA+Phase+5+Zamzama+Commercial+Area+Defence+V+Karachi,+75600,+Pakistan"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-white/80 hover:text-white underline mt-1 inline-block"
+              >
+                View on Google Maps →
+              </a>
+            </div>
           </div>
 
           {/* Quick Links / Shop */}
@@ -105,7 +126,7 @@ export default function Footer() {
                   href="/delivery"
                   className="text-white/70 hover:text-white transition-colors inline-flex items-center gap-1.5"
                 >
-                  <FiTruck className="h-3.5 w-3.5 text-white/40" /> Delivery Policy
+                  <FiTruck className="h-3.5 w-3.5 text-white/40" /> Delivery Policy (Free over 10k)
                 </Link>
               </li>
               <li>
@@ -135,12 +156,12 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
-          <div className="col-span-2 md:col-span-1">
+          {/* Contact & Outlets */}
+          <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-3">
-              Contact Us
+              Contact & Outlets
             </h4>
-            <ul className="space-y-2 text-xs text-white/70">
+            <ul className="space-y-2.5 text-xs text-white/70">
               {phoneNumber && (
                 <li>
                   <a
@@ -164,6 +185,9 @@ export default function Footer() {
               <li className="inline-flex items-center gap-2 text-white/60">
                 <FiClock className="h-3.5 w-3.5 text-white/40 shrink-0" />
                 <span>{operatingDays}</span>
+              </li>
+              <li className="pt-2 border-t border-white/10 text-[11px] text-white/50">
+                <strong className="text-white/70">Branches:</strong> Zamzama DHA Phase 5 Karachi &amp; F-8 Markaz Islamabad.
               </li>
             </ul>
           </div>

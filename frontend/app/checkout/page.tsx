@@ -3,7 +3,9 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FiCheckCircle, FiChevronDown, FiEdit2 } from 'react-icons/fi';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/services/api';
+import { FiCheckCircle, FiChevronDown, FiEdit2, FiTruck, FiPackage } from 'react-icons/fi';
 import { useCartStore } from '@/store/cartStore';
 import { useHydration } from '@/hooks/useHydration';
 import { orderService, paymentService } from '@/services/order.service';
@@ -55,9 +57,19 @@ export default function CheckoutPage() {
     province: '',
   });
 
+  const { data: storeSettings } = useQuery({
+    queryKey: ['store-settings'],
+    queryFn: () => api.get('/settings/store').then((res) => res.data?.data),
+    retry: false,
+  });
+
+  const freeDeliveryThreshold = Number(storeSettings?.freeDeliveryThreshold ?? 10000);
+  const standardDeliveryFee = Number(storeSettings?.standardDeliveryFee ?? 250);
+
   const cityOptions = address.province ? (PAKISTAN_LOCATIONS[address.province] || []) : [];
   const subtotal = getSubtotal();
-  const delivery = 0;
+  const isFreeDelivery = subtotal >= freeDeliveryThreshold;
+  const delivery = isFreeDelivery ? 0 : standardDeliveryFee;
   const total = Math.round(subtotal + delivery);
   const bagItem = items[0];
   const bagItemImage = resolveImageUrl(bagItem?.image);
@@ -220,12 +232,38 @@ export default function CheckoutPage() {
 
   if (orderId) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-20 text-center">
-        <h1 className="text-3xl font-bold">Order Confirmed</h1>
-        <p className="text-surface-600 mt-3">Your order has been placed successfully.</p>
-        <p className="mt-2 text-sm text-surface-500">Tracking number: {trackingNumber || orderId}</p>
-        <div className="mt-8">
-          <Link href="/orders" className="btn-primary">Track Order</Link>
+      <div className="max-w-xl mx-auto px-4 py-16 sm:py-24 text-center">
+        <div className="mx-auto w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6 shadow-soft">
+          <FiCheckCircle className="w-10 h-10" />
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-surface-950 font-display">Order Confirmed!</h1>
+        <p className="text-surface-600 mt-3 text-sm sm:text-base">
+          Thank you for choosing Top Threadz. We have received your order and sent a confirmation receipt with full tracking details.
+        </p>
+
+        {/* Unique Tracking Card */}
+        <div className="mt-6 p-6 rounded-2xl bg-white border-2 border-surface-900 shadow-soft text-left">
+          <div className="flex items-center justify-between border-b border-surface-200 pb-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-surface-500">Unique Tracking Number</span>
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Order Placed</span>
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            <span className="font-mono text-2xl sm:text-3xl font-black text-surface-950 tracking-wider">
+              {trackingNumber || orderId}
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-surface-500">
+            Keep this unique order number handy to track the live progress of your shipment.
+          </p>
+        </div>
+
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link href="/orders" className="btn-primary w-full sm:w-auto px-8 py-3 text-sm uppercase font-bold tracking-wider">
+            Track Order
+          </Link>
+          <Link href="/products" className="btn-secondary w-full sm:w-auto px-8 py-3 text-sm uppercase font-bold tracking-wider">
+            Continue Shopping
+          </Link>
         </div>
       </div>
     );
@@ -355,11 +393,22 @@ export default function CheckoutPage() {
 
                 <h3 className="font-bold text-black mt-5 mb-2">Shipping Method</h3>
                 <div className="space-y-2">
-                  <label className="border border-surface-300 rounded-lg bg-white p-3 flex items-start gap-2 cursor-pointer">
-                    <input type="radio" checked readOnly className="mt-1" />
-                    <div>
-                      <p className="font-semibold text-black">Standard Shipping</p>
-                      <p className="font-semibold text-black">Free (PKR 0.00)</p>
+                  <label className="border-2 border-surface-900 rounded-xl bg-white p-3.5 flex items-start gap-3 cursor-pointer shadow-xs">
+                    <input type="radio" checked readOnly className="mt-1 accent-surface-950" />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="font-bold text-black text-sm">
+                          {isFreeDelivery ? 'Free Nationwide Shipping' : 'Standard Shipping'}
+                        </p>
+                        <span className={`font-bold text-sm ${isFreeDelivery ? 'text-emerald-600' : 'text-black'}`}>
+                          {isFreeDelivery ? 'FREE (PKR 0.00)' : `PKR ${delivery.toLocaleString()}`}
+                        </span>
+                      </div>
+                      <p className="text-xs text-surface-500 mt-0.5">
+                        {isFreeDelivery
+                          ? 'Your order qualifies for FREE Delivery on orders over PKR 10,000!'
+                          : `Orders over PKR ${freeDeliveryThreshold.toLocaleString()} qualify for FREE delivery (Shop PKR ${(freeDeliveryThreshold - subtotal).toLocaleString()} more for free shipping).`}
+                      </p>
                     </div>
                   </label>
                 </div>
@@ -370,7 +419,7 @@ export default function CheckoutPage() {
                 <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                   <div>
                     <p className="font-bold text-black">Shipping Type</p>
-                    <p className="text-black">Standard Shipping</p>
+                    <p className="text-black">{isFreeDelivery ? 'Free Delivery (Orders > 10k)' : `Standard Shipping (PKR ${delivery.toLocaleString()})`}</p>
                   </div>
                   <div>
                     <p className="font-bold text-black">Customer Details</p>
@@ -385,7 +434,7 @@ export default function CheckoutPage() {
               <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="font-bold text-black">Shipping Type</p>
-                  <p className="text-black">Standard Shipping</p>
+                  <p className="text-black">{isFreeDelivery ? 'Free Delivery (Orders > 10k)' : `Standard Shipping (PKR ${delivery.toLocaleString()})`}</p>
                 </div>
                 <div>
                   <p className="font-bold text-black">Customer Details</p>

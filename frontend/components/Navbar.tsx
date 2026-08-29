@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   FiHeart,
@@ -161,10 +162,18 @@ export default function Navbar() {
           <div className="h-16 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
             <div />
 
-            <Link href="/" className="inline-flex items-center justify-center">
-              <h1 className="brand-wordmark text-2xl md:text-[2rem] text-black leading-none">
-                Top Threadz
-              </h1>
+            <Link href="/" className="inline-flex items-center justify-center group py-1" aria-label="Top Threadz Home">
+              <h1 className="sr-only">Top Threadz</h1>
+              <div className="relative h-10 md:h-12 w-32 md:w-44 flex items-center justify-center">
+                <Image
+                  src="/images/topthreadz-logo.png"
+                  alt="Top Threadz"
+                  width={200}
+                  height={80}
+                  priority
+                  className="h-full w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
             </Link>
 
             <div className="hidden lg:flex items-center justify-end gap-2">

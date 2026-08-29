@@ -2102,6 +2102,8 @@ function StoreSettingsTab() {
     email: '',
     operatingDays: '',
     address: '',
+    standardDeliveryFee: '250',
+    freeDeliveryThreshold: '10000',
     privacyPolicy: '',
     termsOfService: '',
     deliveryPolicy: '',
@@ -2118,7 +2120,9 @@ function StoreSettingsTab() {
         phoneNumber: settingsData.phoneNumber || '+92 300 1234567',
         email: settingsData.email || 'support@topthreadz.pk',
         operatingDays: settingsData.operatingDays || 'Mon to Fri: 9:00 AM - 6:00 PM',
-        address: settingsData.address || 'F-8 Markaz, Islamabad, Pakistan',
+        address: settingsData.address || 'topthreadz, R28V+R3W, Street 2, DHA Phase 5 Zamzama Commercial Area Defence V Karachi, 75600, Pakistan',
+        standardDeliveryFee: String(settingsData.standardDeliveryFee ?? 250),
+        freeDeliveryThreshold: String(settingsData.freeDeliveryThreshold ?? 10000),
         privacyPolicy: settingsData.privacyPolicy || '',
         termsOfService: settingsData.termsOfService || '',
         deliveryPolicy: settingsData.deliveryPolicy || '',
@@ -2281,6 +2285,49 @@ function StoreSettingsTab() {
                 value={form.operatingDays}
                 onChange={(e) => setForm({ ...form, operatingDays: e.target.value })}
                 placeholder="e.g. Mon to Fri: 9:00 AM - 6:00 PM"
+                className="w-full rounded-xl border border-surface-300 px-3.5 py-2.5 text-sm font-medium focus:border-black outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-surface-700 mb-1.5">
+                Standard Delivery Fee (PKR)
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={form.standardDeliveryFee}
+                onChange={(e) => setForm({ ...form, standardDeliveryFee: e.target.value })}
+                placeholder="e.g. 250"
+                className="w-full rounded-xl border border-surface-300 px-3.5 py-2.5 text-sm font-medium focus:border-black outline-none"
+              />
+              <p className="text-[11px] text-surface-400 mt-1">Standard shipping charge applied when cart total is below 10k.</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-surface-700 mb-1.5">
+                Free Delivery Threshold (PKR)
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={form.freeDeliveryThreshold}
+                onChange={(e) => setForm({ ...form, freeDeliveryThreshold: e.target.value })}
+                placeholder="e.g. 10000"
+                className="w-full rounded-xl border border-surface-300 px-3.5 py-2.5 text-sm font-medium focus:border-black outline-none"
+              />
+              <p className="text-[11px] text-surface-400 mt-1">Orders at or above this amount automatically receive FREE delivery (Default: 10,000 PKR).</p>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-surface-700 mb-1.5">
+                Primary Store & Outlet Address
+              </label>
+              <input
+                type="text"
+                value={form.address}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+                placeholder="topthreadz, R28V+R3W, Street 2, DHA Phase 5 Zamzama Commercial Area Defence V Karachi, 75600, Pakistan"
                 className="w-full rounded-xl border border-surface-300 px-3.5 py-2.5 text-sm font-medium focus:border-black outline-none"
               />
             </div>

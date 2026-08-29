@@ -4,6 +4,7 @@ import { OrderStatus, Prisma, ReturnType } from '@prisma/client';
 import { NotFoundError, BadRequestError } from '../../utils/errors';
 import { env } from '../../config/env';
 import logger from '../../utils/logger';
+import { sendOrderConfirmationNotification } from '../../utils/notifications';
 
 interface AdminOrderFilters {
   status?: string;
@@ -12,6 +13,30 @@ interface AdminOrderFilters {
 }
 
 export class OrderService {
+  async getDeliveryConfig(): Promise<{ freeDeliveryThreshold: number; standardDeliveryFee: number }> {
+    try {
+      const setting = await prisma.siteSetting.findUnique({ where: { key: 'store_settings' } });
+      if (setting) {
+        const parsed = JSON.parse(setting.value);
+        const freeDeliveryThreshold = Number(parsed.freeDeliveryThreshold);
+        const standardDeliveryFee = Number(parsed.standardDeliveryFee);
+        return {
+          freeDeliveryThreshold: Number.isFinite(freeDeliveryThreshold) && freeDeliveryThreshold >= 0 ? freeDeliveryThreshold : 10000,
+          standardDeliveryFee: Number.isFinite(standardDeliveryFee) && standardDeliveryFee >= 0 ? standardDeliveryFee : 250,
+        };
+      }
+    } catch { /* fallback to defaults */ }
+    return {
+      freeDeliveryThreshold: 10000,
+      standardDeliveryFee: 250,
+    };
+  }
+
+  generateOrderNumber(prefix = 'TT'): string {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const rand = Math.floor(100 + Math.random() * 900);
+    return `${prefix}-${timestamp}${rand}`;
+  }
   async createOrder(userId: string, data: { addressId: string; notes?: string; couponCode?: string; deliverySlotId?: string; deliveryDate?: string }) {
     const addressId = String(data.addressId || '').trim();
     const notes = typeof data.notes === 'string' ? data.notes.trim() : undefined;
@@ -44,13 +69,14 @@ export class OrderService {
     }
 
     // Calculate totals
+    const { freeDeliveryThreshold, standardDeliveryFee } = await this.getDeliveryConfig();
     const subtotal = cart.items.reduce((sum: number, item: (typeof cart.items)[number]) => {
       const effectivePrice = item.product.price * (1 - item.product.discount / 100);
       return sum + effectivePrice * item.quantity;
     }, 0);
 
     const tax = Math.round(subtotal * env.TAX_RATE);
-    const deliveryCharges = subtotal >= env.FREE_DELIVERY_THRESHOLD ? 0 : env.DELIVERY_CHARGE;
+    const deliveryCharges = subtotal >= freeDeliveryThreshold ? 0 : standardDeliveryFee;
     const couponMeta = await this.resolveCoupon(couponCode, subtotal, cart.items.map((item) => item.product.category));
     const autoDiscount = this.getAutoDiscount(subtotal);
     const total = Math.max(0, Math.round(subtotal + tax + deliveryCharges - couponMeta.discount - autoDiscount));
@@ -58,7 +84,7 @@ export class OrderService {
     // Create order in a transaction
     const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const orderId = randomUUID();
-      const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
+      const orderNumber = this.generateOrderNumber('TT');
       const createdAt = new Date();
       const roundedSubtotal = Math.round(subtotal);
 
@@ -96,14 +122,8 @@ export class OrderService {
         })
       );
 
-      // Stock is NOT deducted here — it is deducted when payment is verified
-      // (non-COD) or when the order is marked DELIVERED (COD).
-
       // Clear cart
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
-
-      // Optional advanced features (delivery slots, timeline, coupons, loyalty)
-      // are disabled here to maintain compatibility with older database schemas.
 
       return {
         id: orderId,
@@ -122,6 +142,38 @@ export class OrderService {
         items,
       };
     });
+
+    // Send order confirmation notification asynchronously
+    prisma.user.findUnique({ where: { id: userId }, select: { name: true, email: true, phone: true } })
+      .then((userRecord) => {
+        sendOrderConfirmationNotification({
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          customerName: order.address.fullName || userRecord?.name || 'Customer',
+          customerEmail: userRecord?.email || '',
+          customerPhone: order.address.phone || userRecord?.phone || '',
+          subtotal: order.subtotal,
+          deliveryCharges: order.deliveryCharges,
+          total: order.total,
+          paymentMethod: 'COD',
+          shippingAddress: {
+            fullName: order.address.fullName,
+            phone: order.address.phone,
+            address: order.address.address,
+            city: order.address.city,
+            province: order.address.province,
+          },
+          items: order.items.map((it) => ({
+            name: it.product.name,
+            quantity: it.quantity,
+            price: it.price,
+            size: it.size || undefined,
+            color: it.color || undefined,
+          })),
+          userId,
+        }).catch((err) => logger.error('Order notification dispatch error', err));
+      })
+      .catch((err) => logger.error('Failed to lookup user for order notification', err));
 
     logger.info(`Order created: ${order.orderNumber} by user ${userId} - Total: PKR ${total}`);
     return order;
@@ -179,8 +231,9 @@ export class OrderService {
       return sum + effectivePrice * item.quantity;
     }, 0);
 
+    const { freeDeliveryThreshold, standardDeliveryFee } = await this.getDeliveryConfig();
     const tax = Math.round(subtotal * env.TAX_RATE);
-    const deliveryCharges = subtotal >= env.FREE_DELIVERY_THRESHOLD ? 0 : env.DELIVERY_CHARGE;
+    const deliveryCharges = subtotal >= freeDeliveryThreshold ? 0 : standardDeliveryFee;
     const couponCode = typeof data.couponCode === 'string' ? data.couponCode.trim() : undefined;
     const couponMeta = await this.resolveCoupon(couponCode, subtotal, products.map((p) => p.category));
     const autoDiscount = this.getAutoDiscount(subtotal);
@@ -213,7 +266,7 @@ export class OrderService {
       });
 
       const orderId = randomUUID();
-      const orderNumber = `GST-${Date.now().toString(36).toUpperCase()}`;
+      const orderNumber = this.generateOrderNumber('TT');
       const createdAt = new Date();
       const roundedSubtotal = Math.round(subtotal);
       const guestNotes = typeof data.notes === 'string' ? data.notes.trim() : undefined;
@@ -251,11 +304,6 @@ export class OrderService {
         })
       );
 
-      // Stock is NOT deducted here — it is deducted when payment is verified
-      // (non-COD) or when the order is marked DELIVERED (COD).
-
-      // Optional advanced guest-order extras are disabled for schema compatibility.
-
       return {
         id: orderId,
         orderNumber,
@@ -274,6 +322,35 @@ export class OrderService {
       };
     });
 
+    // Send order confirmation notification asynchronously
+    sendOrderConfirmationNotification({
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      customerName: data.guestName,
+      customerEmail: data.guestEmail,
+      customerPhone: data.guestPhone,
+      subtotal: order.subtotal,
+      deliveryCharges: order.deliveryCharges,
+      total: order.total,
+      paymentMethod: 'COD',
+      shippingAddress: {
+        fullName: data.address.fullName,
+        phone: data.address.phone,
+        address: data.address.address,
+        city: data.address.city,
+        province: data.address.province,
+      },
+      items: order.items.map((it) => ({
+        name: it.product.name,
+        quantity: it.quantity,
+        price: it.price,
+        size: it.size || undefined,
+        color: it.color || undefined,
+      })),
+      userId: order.userId,
+    }).catch((err) => logger.error('Guest order notification error', err));
+
+    logger.info(`Guest order created: ${order.orderNumber} for ${data.guestName} (${data.guestEmail}) - Total: PKR ${total}`);
     return order;
   }
 

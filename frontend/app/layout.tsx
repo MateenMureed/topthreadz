@@ -20,16 +20,25 @@ export const metadata: Metadata = {
     google: 'h2s93E-7aU8K0vVK_RxrpR-ps_P7ylL0oop_o3qCSJw',
   },
   title: {
-    default: 'Top Threadz | Unstitched Men\'s Fabric in Pakistan',
+    default: 'Top Threadz | Official Store | Unstitched & Stitched Men\'s Fabric Pakistan',
     template: '%s | Top Threadz',
   },
-  description: 'Shop premium unstitched men\'s fabric in Pakistan. Explore Boski-inspired 4.5 meter blended wash n wear suits with formal plain weave and soft finish for all seasons.',
+  description: 'Official Top Threadz Store. Shop premium unstitched men\'s fabric in Pakistan. Visit our flagship stores at Zamzama Commercial Area DHA Phase 5 Karachi and Islamabad. Free delivery nationwide on orders over PKR 10,000.',
   keywords: [
     'Top Threadz',
+    'Top Threadz Zamzama',
+    'Top Threadz Karachi',
+    'Top Threadz DHA Phase 5',
+    'Top Threadz Zamzama Commercial Area',
+    'Top Threadz Karachi Outlet',
+    'Top Threadz Islamabad',
     'topthreadz.com.pk',
+    'topthreadz',
     'men unstitched fabric Pakistan',
     'wash n wear suit',
     '4.5 meter men suit',
+    'boski fabric karachi',
+    'R28V+R3W Karachi',
     ...STANDARD_SEO_TAGS,
   ],
   alternates: {
@@ -40,13 +49,22 @@ export const metadata: Metadata = {
     locale: 'en_PK',
     url: 'https://www.topthreadz.com.pk/',
     siteName: 'Top Threadz',
-    title: 'Top Threadz | Unstitched Men\'s Fabric in Pakistan',
-    description: 'Premium unstitched men\'s clothing and fabric for formal and all-season wear in Pakistan.',
+    title: 'Top Threadz | Official Store | Premium Men\'s Fabric Pakistan',
+    description: 'Official Top Threadz online store and flagship retail outlets at Zamzama DHA Phase 5 Karachi & Islamabad. Premium wash n wear, Boski, and formal fabrics with nationwide free delivery over 10k.',
+    images: [
+      {
+        url: '/images/topthreadz-logo.jpg',
+        width: 1024,
+        height: 512,
+        alt: 'Top Threadz Official Store',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Top Threadz | Unstitched Men\'s Fabric in Pakistan',
-    description: 'Formal blended wash n wear, plain weave, soft-finish unstitched menswear for all seasons.',
+    title: 'Top Threadz | Official Store | Men\'s Fabric Pakistan',
+    description: 'Official Top Threadz online store. Outlets at Zamzama DHA Phase 5 Karachi & Islamabad. Free shipping over PKR 10,000.',
+    images: ['/images/topthreadz-logo.jpg'],
   },
   robots: {
     index: true,
@@ -64,22 +82,103 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // LocalBusiness schema for Top Threadz Zamzama Karachi Flagship Outlet
+  const zamzamaStoreJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ClothingStore',
+    '@id': 'https://www.topthreadz.com.pk/#zamzama-store',
+    name: 'Top Threadz - Zamzama Karachi Outlet',
+    alternateName: ['Top Threadz Zamzama', 'Top Threadz Karachi', 'Top Threadz DHA Phase 5'],
+    url: 'https://www.topthreadz.com.pk/',
+    logo: 'https://www.topthreadz.com.pk/images/topthreadz-logo.png',
+    image: 'https://www.topthreadz.com.pk/images/topthreadz-logo.jpg',
+    description: 'Top Threadz Flagship Store at Zamzama Commercial Area Karachi. Offering premium unstitched menswear fabrics, Boski, and blended wash n wear suits.',
+    telephone: '+92-300-9070520',
+    email: 'support@topthreadz.pk',
+    priceRange: 'PKR 2,500 - PKR 15,000',
+    currenciesAccepted: 'PKR',
+    paymentAccepted: 'Cash, Credit Card, Debit Card, Online Transfer',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'topthreadz, R28V+R3W, Street 2, DHA Phase 5 Zamzama Commercial Area Defence V',
+      addressLocality: 'Karachi',
+      addressRegion: 'Sindh',
+      postalCode: '75600',
+      addressCountry: 'PK',
+    },
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: 24.8197,
+      longitude: 67.0396,
+    },
+    hasMap: 'https://maps.google.com/?q=R28V%2BR3W,+Street+2,+DHA+Phase+5+Zamzama+Commercial+Area+Defence+V+Karachi,+75600,+Pakistan',
+    openingHoursSpecification: [
+      {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        opens: '11:00',
+        closes: '22:30',
+      },
+      {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: 'Sunday',
+        opens: '14:00',
+        closes: '22:00',
+      },
+    ],
+    department: [
+      {
+        '@type': 'ClothingStore',
+        name: 'Top Threadz - Islamabad Branch',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: 'F-8 Markaz',
+          addressLocality: 'Islamabad',
+          addressRegion: 'Islamabad Capital Territory',
+          postalCode: '44000',
+          addressCountry: 'PK',
+        },
+        telephone: '+92-300-1234567',
+      },
+    ],
+    sameAs: [
+      'https://www.topthreadz.com.pk',
+      'https://www.facebook.com/topthreadz',
+      'https://www.instagram.com/topthreadz',
+    ],
+  };
+
   const orgJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': 'https://www.topthreadz.com.pk/#organization',
     name: 'Top Threadz',
-    alternateName: 'Top Threadz Pakistan',
+    alternateName: ['Top Threadz Pakistan', 'Top Threadz Official Store'],
     url: 'https://www.topthreadz.com.pk/',
-    email: 'support@topthreadz.com.pk',
+    logo: 'https://www.topthreadz.com.pk/images/topthreadz-logo.png',
+    email: 'support@topthreadz.pk',
+    telephone: '+92-300-9070520',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'topthreadz, R28V+R3W, Street 2, DHA Phase 5 Zamzama Commercial Area Defence V',
+      addressLocality: 'Karachi',
+      addressRegion: 'Sindh',
+      postalCode: '75600',
+      addressCountry: 'PK',
+    },
     sameAs: [
       'https://www.topthreadz.com.pk',
+      'https://www.facebook.com/topthreadz',
+      'https://www.instagram.com/topthreadz',
     ],
   };
 
   const websiteJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
+    '@id': 'https://www.topthreadz.com.pk/#website',
     name: 'Top Threadz',
+    alternateName: 'Top Threadz Official Store',
     url: 'https://www.topthreadz.com.pk',
     potentialAction: {
       '@type': 'SearchAction',
@@ -91,6 +190,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="scroll-smooth light" style={{ colorScheme: 'light' }}>
       <body className="min-h-screen flex flex-col bg-[#fafafa] text-surface-900">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(zamzamaStoreJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
         <Providers>
