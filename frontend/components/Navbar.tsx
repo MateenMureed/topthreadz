@@ -164,12 +164,12 @@ export default function Navbar() {
 
             <Link href="/" className="inline-flex items-center justify-center group py-1" aria-label="Top Threadz Home">
               <h1 className="sr-only">Top Threadz</h1>
-              <div className="relative h-10 md:h-12 w-32 md:w-44 flex items-center justify-center">
+              <div className="relative h-11 sm:h-12 md:h-14 w-36 sm:w-44 md:w-52 flex items-center justify-center">
                 <Image
                   src="/images/topthreadz-logo.png"
                   alt="Top Threadz"
-                  width={200}
-                  height={80}
+                  width={320}
+                  height={140}
                   priority
                   className="h-full w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                 />
