@@ -41,7 +41,9 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const method = (config.method || 'get').toLowerCase();
-  if (['get', 'head', 'options'].includes(method)) return config;
+  const publicAuthRoute = ['/auth/login', '/auth/signup', '/auth/forgot-password', '/auth/reset-password']
+    .some((route) => String(config.url || '').startsWith(route));
+  if (['get', 'head', 'options'].includes(method) || publicAuthRoute) return config;
   return getCsrfToken().then((token) => {
     // On a cross-site deployment the CSRF cookie is correctly scoped to the
     // backend host and cannot be read by the storefront JavaScript.

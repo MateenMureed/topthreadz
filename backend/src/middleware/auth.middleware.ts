@@ -14,7 +14,11 @@ async function authenticateWithSession(req: AuthRequest, next: NextFunction, adm
   try {
     const adminToken = req.cookies?.[sessionCookies.ADMIN_COOKIE];
     const userToken = req.cookies?.[sessionCookies.USER_COOKIE];
-    const session = await sessionService.findValid(adminOnly ? adminToken : (adminToken || userToken), adminOnly || Boolean(adminToken));
+    const token = adminOnly ? adminToken : (adminToken || userToken);
+    // An unauthenticated request is normal for /auth/csrf before login.
+    // Reject it cleanly instead of passing undefined into the token hash.
+    if (!token) throw new UnauthorizedError('Authentication required');
+    const session = await sessionService.findValid(token, adminOnly || Boolean(adminToken));
     if (!session) throw new UnauthorizedError('Authentication required');
     req.user = { userId: session.user.id, role: session.user.role };
     (req as AuthRequest & { session: typeof session }).session = session;

@@ -184,9 +184,12 @@ export class ProductService {
     };
   }
 
-  async findById(id: string) {
-    const product = await prisma.product.findUnique({
-      where: { id },
+  async findById(idOrSlug: string) {
+    // Preserve legacy UUID links while allowing the public /products/:slug
+    // contract used by product cards and direct API consumers.
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idOrSlug);
+    const product = await prisma.product.findFirst({
+      where: isUuid ? { OR: [{ id: idOrSlug }, { slug: idOrSlug }] } : { slug: idOrSlug },
       include: { reviews: { include: { user: { select: { name: true } } }, take: 10 } },
     });
     if (!product) throw new NotFoundError('Product not found');
