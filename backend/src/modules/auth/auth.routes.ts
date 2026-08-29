@@ -8,6 +8,7 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
 } from './auth.schema';
+import { authenticate } from '../../middleware/auth.middleware';
 
 const router = Router();
 
@@ -19,6 +20,7 @@ router.get('/google/callback', authController.googleCallback.bind(authController
 router.get('/facebook', authController.facebookAuth.bind(authController));
 router.get('/facebook/callback', authController.facebookCallback.bind(authController));
 router.post('/logout', authController.logout.bind(authController));
+router.get('/session', authenticate, (req: any, res) => res.json({ success: true, data: { user: req.session.user } }));
 router.post('/forgot-password', validate(forgotPasswordSchema), authController.forgotPassword.bind(authController));
 router.post('/reset-password', validate(resetPasswordSchema), authController.resetPassword.bind(authController));
 

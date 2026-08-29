@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     default: 'Top Threadz | Official Store | Unstitched & Stitched Men\'s Fabric Pakistan',
     template: '%s | Top Threadz',
   },
-  description: 'Official Top Threadz Store. Shop premium unstitched men\'s fabric in Pakistan. Visit our flagship stores at Zamzama Commercial Area DHA Phase 5 Karachi and Islamabad. Free delivery nationwide on orders over PKR 10,000.',
+  description: 'Official Top Threadz Store. Shop premium unstitched men\'s fabric in Pakistan. Visit our flagship store at Zamzama Commercial Area DHA Phase 5 Karachi. Free delivery nationwide on orders over PKR 10,000.',
   keywords: [
     'Top Threadz',
     'Top Threadz Zamzama',
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     'Top Threadz DHA Phase 5',
     'Top Threadz Zamzama Commercial Area',
     'Top Threadz Karachi Outlet',
-    'Top Threadz Islamabad',
+
     'topthreadz.com.pk',
     'topthreadz',
     'men unstitched fabric Pakistan',
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     url: 'https://www.topthreadz.com.pk/',
     siteName: 'Top Threadz',
     title: 'Top Threadz | Official Store | Premium Men\'s Fabric Pakistan',
-    description: 'Official Top Threadz online store and flagship retail outlets at Zamzama DHA Phase 5 Karachi & Islamabad. Premium wash n wear, Boski, and formal fabrics with nationwide free delivery over 10k.',
+    description: 'Official Top Threadz online store and flagship retail outlet at Zamzama DHA Phase 5 Karachi. Premium wash n wear, Boski, and formal fabrics with nationwide free delivery over 10k.',
     images: [
       {
         url: '/images/topthreadz-logo.jpg',
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Top Threadz | Official Store | Men\'s Fabric Pakistan',
-    description: 'Official Top Threadz online store. Outlets at Zamzama DHA Phase 5 Karachi & Islamabad. Free shipping over PKR 10,000.',
+    description: 'Official Top Threadz online store. Flagship outlet at Zamzama DHA Phase 5 Karachi. Free shipping over PKR 10,000.',
     images: ['/images/topthreadz-logo.jpg'],
   },
   robots: {
@@ -126,21 +126,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         closes: '22:00',
       },
     ],
-    department: [
-      {
-        '@type': 'ClothingStore',
-        name: 'Top Threadz - Islamabad Branch',
-        address: {
-          '@type': 'PostalAddress',
-          streetAddress: 'F-8 Markaz',
-          addressLocality: 'Islamabad',
-          addressRegion: 'Islamabad Capital Territory',
-          postalCode: '44000',
-          addressCountry: 'PK',
-        },
-        telephone: '+92-300-1234567',
-      },
-    ],
+
     sameAs: [
       'https://www.topthreadz.com.pk',
       'https://www.facebook.com/topthreadz',

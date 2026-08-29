@@ -29,6 +29,7 @@ interface ProductGridProps {
   loading?: boolean;
   showGridControls?: boolean;
   initialGridCols?: 2 | 3 | 4;
+  gridControlsLabel?: string;
 }
 
 export default function ProductGrid({
@@ -36,6 +37,7 @@ export default function ProductGrid({
   loading,
   showGridControls = true,
   initialGridCols = 4,
+  gridControlsLabel,
 }: ProductGridProps) {
   const [gridCols, setGridCols] = useState<2 | 3 | 4>(initialGridCols);
   const [isMounted, setIsMounted] = useState(false);
@@ -88,10 +90,8 @@ export default function ProductGrid({
   );
 
   const renderGridControls = () => (
-    <div className="mb-5 hidden md:flex items-center justify-between border-b border-surface-200 pb-3">
-      <span className="text-xs font-bold uppercase tracking-wider text-surface-500">
-        Grid Layout Controls
-      </span>
+    <div className="mb-5 flex flex-col gap-3 border-b border-surface-200 pb-3 sm:flex-row sm:items-center sm:justify-between">
+      {gridControlsLabel ? <h2 className="text-xl font-bold text-surface-950">{gridControlsLabel}</h2> : <span className="text-sm font-semibold text-surface-600">Choose a layout</span>}
       <div className="inline-flex items-center gap-1.5 rounded-full border border-surface-300 bg-white p-1 shadow-sm">
         <span className="px-2 text-xs font-semibold text-surface-600">Columns:</span>
         {([2, 3, 4] as const).map((cols) => (
@@ -105,6 +105,7 @@ export default function ProductGrid({
                 : 'text-surface-600 hover:bg-surface-100 hover:text-surface-900'
             }`}
             aria-label={`Show ${cols} column grid`}
+            aria-pressed={gridCols === cols}
             title={`${cols} Columns`}
           >
             {cols}
@@ -119,7 +120,7 @@ export default function ProductGrid({
       <div className="w-14 h-14 rounded-full bg-surface-200/80 flex items-center justify-center text-surface-700 mb-4 shadow-inner">
         <FiPackage className="w-6 h-6" />
       </div>
-      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-surface-500 mb-1">
+      <span className="text-xs font-bold tracking-[0.16em] text-surface-500 mb-1">
         TOP THREADZ COLLECTION
       </span>
       <h3 className="font-display text-lg font-bold text-surface-900 mb-2">

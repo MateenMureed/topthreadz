@@ -17,6 +17,8 @@ export default function MobileNav() {
   const count = hydrated ? getItemCount() : 0;
   const isAuthed = hydrated && isAuthenticated;
 
+  if (pathname?.startsWith('/admin')) return null;
+
   return (
     <nav className="lg:hidden fixed bottom-3 inset-x-4 max-w-md mx-auto z-[90] bg-white/95 backdrop-blur-xl border border-surface-300/80 shadow-[0_10px_35px_rgba(0,0,0,0.15)] rounded-full px-2 py-1 pb-[calc(4px+env(safe-area-inset-bottom))]">
       <div className="flex items-center justify-between h-12">

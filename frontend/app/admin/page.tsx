@@ -35,6 +35,7 @@ import {
   FiTag,
   FiDownload,
   FiLogOut,
+  FiCreditCard,
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
@@ -194,7 +195,8 @@ const COLOR_PRESET_OPTIONS = [
   'Cream',
 ];
 
-const FIXED_SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL', '4.5m', '7 meter'];
+const STITCHED_SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL'];
+const UNSTITCHED_LENGTH_OPTIONS = ['4.5m', '7m'];
 
 interface ImageMeta {
   url: string;
@@ -313,17 +315,17 @@ export default function AdminPage() {
     { key: 'orders', label: 'Orders', icon: FiShoppingCart },
     { key: 'products', label: 'Products', icon: FiPackage },
     { key: 'users', label: 'Customers', icon: FiUsers },
-    { key: 'payments', label: 'Payments', icon: FiClock },
+    { key: 'payments', label: 'Payments', icon: FiCreditCard },
     { key: 'settings', label: 'Settings', icon: FiSettings },
   ] as const;
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-[#f6f6f4]">
+    <div className="-mt-16 min-h-screen bg-[#f6f6f4]">
       <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-5 px-3 py-4 lg:grid-cols-[240px_1fr] lg:px-5 lg:py-5">
         <aside className="hidden h-fit rounded-2xl border border-surface-300 bg-white p-3 shadow-soft lg:sticky lg:top-24 lg:block">
           <div className="px-3 py-3">
             <p className="text-xs font-bold uppercase tracking-wide text-surface-500">Top Threadz</p>
-            <h1 className="mt-1 text-xl font-bold text-surface-950">Commerce Admin</h1>
+            <p className="mt-1 text-xl font-bold text-surface-950">Commerce Admin</p>
           </div>
           <nav className="mt-2 space-y-1">
             {tabs.map(tab => (
@@ -339,12 +341,10 @@ export default function AdminPage() {
               </button>
             ))}
           </nav>
-          <div className="mt-4 rounded-xl border border-surface-200 bg-surface-50 p-3 text-xs text-surface-600">
-            <p className="font-semibold text-surface-900">Store setup</p>
-            <p className="mt-1 mb-3">Catalog, orders, payments, customers, and settings are managed here.</p>
+          <div className="mt-4 border-t border-surface-200 pt-3">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 rounded-lg bg-red-50 text-red-700 border border-red-200 px-3 py-2 text-xs font-bold hover:bg-red-100 transition-colors"
+              className="w-full flex min-h-11 items-center justify-center gap-2 rounded-lg bg-red-50 text-red-700 border border-red-200 px-3 py-2 text-sm font-semibold hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
             >
               <FiLogOut className="w-4 h-4" /> Logout
             </button>
@@ -355,7 +355,7 @@ export default function AdminPage() {
           <div className="mb-4 rounded-2xl border border-surface-300 bg-white p-3 shadow-soft lg:p-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-surface-500">Admin workspace</p>
+                <p className="text-xs font-semibold tracking-wide text-surface-500">Admin workspace</p>
                 <h1 className="text-2xl font-bold text-surface-950">Operations Command Center</h1>
               </div>
               <div className="flex flex-wrap gap-2 items-center">
@@ -368,22 +368,14 @@ export default function AdminPage() {
                 >
                   <FiSettings className="mr-1 inline" /> Settings
                 </button>
-                <button
-                  onClick={handleLogout}
-                  className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100 transition-colors flex items-center gap-1"
-                  aria-label="Logout"
-                >
-                  <FiLogOut className="w-3.5 h-3.5" />
-                  <span>Logout</span>
-                </button>
               </div>
             </div>
-            <div className="mt-3 flex gap-1 overflow-x-auto rounded-xl bg-surface-50 p-1 lg:hidden">
+            <div className="mt-3 grid grid-cols-2 gap-1 rounded-xl bg-surface-50 p-1 sm:grid-cols-3 lg:hidden">
               {tabs.map(tab => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition-all ${
+                  className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-all ${
                     activeTab === tab.key ? 'bg-white text-surface-950 shadow-sm' : 'text-surface-500 hover:text-surface-800'
                   }`}
                 >
@@ -483,7 +475,7 @@ function HeroBannerManager() {
   };
 
   return (
-    <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft space-y-4">
+      <div className="rounded-2xl border border-surface-300 bg-white p-3 sm:p-4 lg:p-5 shadow-soft space-y-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
           <h3 className="font-display text-lg font-bold text-surface-950">Homepage Hero Banner</h3>
@@ -498,16 +490,16 @@ function HeroBannerManager() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <label className="text-xs font-semibold text-surface-700 block mb-1">Option 1: Upload Image File (Cloudinary)</label>
+          <label className="text-xs font-semibold text-surface-700 block mb-1">Upload image file</label>
           <input
             ref={fileRef}
             type="file"
             accept="image/*"
-            className="input-field w-full file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-900 file:text-white"
+            className="input-field w-full file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-100 file:text-surface-700"
           />
         </div>
         <div>
-          <label className="text-xs font-semibold text-surface-700 block mb-1">Option 2: Direct Image URL</label>
+          <label className="text-xs font-semibold text-surface-700 block mb-1">Or use an image URL</label>
           <input
             type="url"
             placeholder="Paste image URL (e.g. https://...)"
@@ -518,16 +510,16 @@ function HeroBannerManager() {
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <button onClick={handleUpload} disabled={uploading} className="btn-primary !py-2.5 !px-6 text-xs disabled:opacity-60">
+      <div className="flex justify-stretch sm:justify-end">
+        <button onClick={handleUpload} disabled={uploading} className="btn-primary min-h-11 w-full sm:w-auto !py-2.5 !px-6 text-sm disabled:opacity-60">
           {uploading ? 'Updating Banner…' : 'Save Hero Banner'}
         </button>
       </div>
 
       {currentBanner && (
         <div className="rounded-xl border border-surface-200 bg-surface-50 p-3">
-          <p className="text-xs font-semibold text-surface-600 mb-2">Active Hero Preview:</p>
-          <div className="relative h-44 w-full overflow-hidden rounded-lg border border-surface-300 bg-black">
+          <p className="text-xs font-semibold text-surface-600 mb-3">Active hero preview</p>
+          <div className="relative aspect-[16/7] w-full overflow-hidden rounded-lg border border-surface-300 bg-black">
             <img src={currentBanner} alt="Hero Banner Preview" className="h-full w-full object-cover" />
           </div>
         </div>
@@ -555,7 +547,7 @@ function DashboardTab({ onNavigate }: { onNavigate: (tab: AdminTab) => void }) {
     { label: 'Total Users', value: stats?.totalUsers || 0, icon: FiUsers, color: 'bg-purple-50 text-purple-600' },
     { label: 'Products', value: stats?.totalProducts || 0, icon: FiPackage, color: 'bg-brand-50 text-brand-600' },
     { label: 'Pending Orders', value: stats?.pendingOrders || 0, icon: FiClock, color: 'bg-yellow-50 text-yellow-600' },
-    { label: 'Pending Payments', value: stats?.pendingPayments || 0, icon: FiClock, color: 'bg-red-50 text-red-600' },
+    { label: 'Pending Payments', value: stats?.pendingPayments || 0, icon: FiCreditCard, color: 'bg-red-50 text-red-600' },
   ];
 
   return (
@@ -577,17 +569,17 @@ function DashboardTab({ onNavigate }: { onNavigate: (tab: AdminTab) => void }) {
               <FiTag className="mx-auto mb-1 h-4 w-4" /> Catalog
             </button>
             <button className="rounded-xl border border-surface-200 bg-surface-50 px-3 py-3 text-xs font-semibold hover:bg-white" onClick={() => onNavigate('payments')}>
-              <FiClock className="mx-auto mb-1 h-4 w-4" /> Payments
+              <FiCreditCard className="mx-auto mb-1 h-4 w-4" /> Payments
             </button>
           </div>
         </div>
       </div>
 
       <HeroBannerManager />
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-3">
         {cards.map((card, i) => (
           <div key={i} className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft">
-            <div className={`w-10 h-10 rounded-xl ${card.color} flex items-center justify-center mb-3`}>
+            <div className={`h-10 w-10 rounded-xl ${card.color} flex items-center justify-center mb-3`}>
               <card.icon className="w-5 h-5" />
             </div>
             <p className="text-2xl font-bold">{card.value}</p>
@@ -930,7 +922,8 @@ function ProductsTab() {
     : previewPrice;
 
   const previewTitle = form.name.trim() || 'Product Name Preview';
-  const previewCategory = ['Unstitched', form.subcategory].filter(Boolean).join(' / ');
+  const isStitched = form.category.toLowerCase().trim() === 'stitched';
+  const previewCategory = [form.category, form.subcategory].filter(Boolean).join(' / ');
 
   const makeSlug = (value: string) =>
     value
@@ -1209,7 +1202,7 @@ function ProductsTab() {
 
     const generatedTags = splitCsv(form.tagsText);
     if (form.collection.trim()) generatedTags.push(`collection:${form.collection.trim()}`);
-    generatedTags.push('gender:male', 'unstitched');
+    generatedTags.push('gender:male', isStitched ? 'stitched' : 'unstitched');
     if (form.featured) generatedTags.push('featured');
     if (form.trending) generatedTags.push('trending');
 
@@ -1226,7 +1219,7 @@ function ProductsTab() {
       stockStatus: form.stockStatus,
       lowStockThreshold: Number(form.lowStockThreshold || 0),
       sku: form.sku.trim() || undefined,
-      sizes: splitCsv(form.sizesText).length ? splitCsv(form.sizesText) : ['S', 'M', 'L', 'XL', 'XXL', '4.5m', '7 meter'],
+      sizes: splitCsv(form.sizesText).length ? splitCsv(form.sizesText) : (isStitched ? STITCHED_SIZE_OPTIONS : UNSTITCHED_LENGTH_OPTIONS),
       colors: splitCsv(form.colorsText),
       tags: Array.from(new Set(generatedTags)),
       images: orderedImages,
@@ -1425,15 +1418,15 @@ function ProductsTab() {
             </button>
           </div>
 
-          <div className="mb-4 rounded-xl border border-surface-200 bg-surface-50 px-3 py-2 text-xs text-surface-600">
-            Product type is fixed to men's unstitched clothing. Category, gender, and sizes are saved automatically to match the database fields.
+          <div className="mb-4 rounded-xl border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-600">
+            Choose a product type first. The editor shows garment sizes for stitched items and fabric lengths for unstitched items.
           </div>
 
           <form onSubmit={handleSubmit} className="admin-compact-form grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-4">
             <div className="xl:col-span-1 space-y-4">
                 <section className="space-y-3 rounded-xl border border-surface-300 bg-white p-4 shadow-soft">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide">Product details</p>
+                    <h3 className="text-base font-semibold text-surface-900">Basic information</h3>
                     <button type="button" onClick={autofillBasicWithAi} className="admin-ai-btn">Generate Copy</button>
                   </div>
                   <div>
@@ -1522,7 +1515,7 @@ function ProductsTab() {
 
                 <section className="rounded-xl border border-surface-300 bg-white p-4 shadow-soft">
                   <div className="mb-3 flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide">Pricing</p>
+                    <h3 className="text-base font-semibold text-surface-900">Pricing & inventory</h3>
                   </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
@@ -1570,7 +1563,7 @@ function ProductsTab() {
 
                 <section className="space-y-3 rounded-xl border border-surface-300 bg-white p-4 shadow-soft">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide">Organization</p>
+                    <h3 className="text-base font-semibold text-surface-900">Variants</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
@@ -1594,20 +1587,20 @@ function ProductsTab() {
                         <button type="button" onClick={addColorFromPreset} className="btn-secondary !px-3 !py-2 text-xs">Add</button>
                       </div>
                     </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-xs font-semibold text-surface-600">Sizes</label>
-                        <div className="flex gap-1.5 text-[10px]">
-                          <button type="button" onClick={() => setForm(p => ({ ...p, sizesText: 'S, M, L, XL, XXL' }))} className="text-brand-600 font-semibold hover:underline">S-XXL</button>
+                      <div>
+                        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                          <label className="text-sm font-semibold text-surface-600">{isStitched ? 'Garment sizes' : 'Fabric lengths'}</label>
+                          <div className="flex gap-1.5 text-xs">
+                            {isStitched && <button type="button" onClick={() => setForm(p => ({ ...p, sizesText: STITCHED_SIZE_OPTIONS.join(', ') }))} className="text-brand-600 font-semibold hover:underline">S–XXL</button>}
                           <span className="text-surface-300">•</span>
-                          <button type="button" onClick={() => setForm(p => ({ ...p, sizesText: '4.5m, 7 meter' }))} className="text-brand-600 font-semibold hover:underline">4.5m/7m</button>
+                            {!isStitched && <button type="button" onClick={() => setForm(p => ({ ...p, sizesText: UNSTITCHED_LENGTH_OPTIONS.join(', ') }))} className="text-brand-600 font-semibold hover:underline">4.5m / 7m</button>}
                         </div>
                       </div>
                       <input
                         className="input-field"
                         value={form.sizesText}
                         onChange={(e) => setForm((prev) => ({ ...prev, sizesText: e.target.value }))}
-                        placeholder="S, M, L, XL, XXL or 4.5m, 7 meter"
+                        placeholder={isStitched ? 'S, M, L, XL' : '4.5m, 7m'}
                       />
                     </div>
                   </div>
@@ -1624,7 +1617,7 @@ function ProductsTab() {
                 </section>
 
                 <section className="space-y-3 rounded-xl border border-surface-300 bg-white p-4 shadow-soft">
-                  <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide">Media</p>
+                  <h3 className="text-base font-semibold text-surface-900">Product images</h3>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-200 pb-3">
                     <p className="text-sm font-semibold">Product Images</p>
                     <label className="btn-secondary !py-1.5 !px-3 text-xs cursor-pointer inline-flex items-center gap-1 shrink-0">
@@ -1703,13 +1696,13 @@ function ProductsTab() {
 
                 <section className="rounded-xl border border-surface-300 bg-white p-4 shadow-soft">
                   <div className="mb-3 flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide">Care Instructions</p>
+                    <h3 className="text-base font-semibold text-surface-900">Care instructions</h3>
                   </div>
                   <textarea className="input-field min-h-24" placeholder="Care Instructions" value={form.careInstructions} onChange={(e) => setForm((prev) => ({ ...prev, careInstructions: e.target.value }))} />
                 </section>
 
                 <section className="rounded-xl border border-surface-300 bg-white p-4 shadow-soft">
-                  <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide mb-3">Publishing</p>
+                  <h3 className="text-base font-semibold text-surface-900 mb-3">Status & visibility</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.featured} onChange={(e) => setForm((prev) => ({ ...prev, featured: e.target.checked }))} /> Featured Product</label>
                   <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.trending} onChange={(e) => setForm((prev) => ({ ...prev, trending: e.target.checked }))} /> Trending / New Arrival</label>
@@ -1724,19 +1717,19 @@ function ProductsTab() {
                 </div>
                 </section>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="pt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={() => {
                     setShowInlineForm(false);
                     setEditingProduct(null);
                   }}
-                  className="btn-secondary !py-2 !px-4 text-sm"
+                  className="btn-secondary min-h-11 !py-2 !px-4 text-sm"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary !py-2 !px-4 text-sm" disabled={createProduct.isPending || updateProduct.isPending}>
-                  {editingProduct ? (updateProduct.isPending ? 'Saving...' : 'Save Product') : (createProduct.isPending ? 'Creating...' : 'Create Product')}
+                <button type="submit" className="btn-primary min-h-11 !py-2 !px-4 text-sm" disabled={createProduct.isPending || updateProduct.isPending}>
+                  {editingProduct ? (updateProduct.isPending ? 'Saving...' : 'Update product') : (createProduct.isPending ? 'Creating...' : 'Save product')}
                 </button>
               </div>
             </div>
@@ -2047,7 +2040,7 @@ function ShopifyPaymentsTab() {
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <div className="rounded-2xl border border-surface-300 bg-white p-4 shadow-soft">
-          <FiClock className="mb-3 h-4 w-4 text-surface-500" />
+          <FiCreditCard className="mb-3 h-4 w-4 text-surface-500" />
           <p className="text-2xl font-bold text-surface-950">{payments.length}</p>
           <p className="text-xs font-semibold uppercase tracking-wide text-surface-500">Pending reviews</p>
         </div>

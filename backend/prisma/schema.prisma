@@ -153,9 +153,29 @@ model User {
   referralsJoined ReferralEvent[] @relation("Referred")
   loyaltyLedger   LoyaltyPointLedger[]
   preference      NotificationPreference?
+  sessions        Session[]
 
   @@index([email])
   @@index([phone])
+}
+
+model Session {
+  // Store only a SHA-256 digest: a database leak cannot be used to replay a session.
+  id          String   @id @default(uuid())
+  tokenHash   String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  csrfSecret  String
+  isAdmin     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  ipHash      String?
+  userAgent   String?
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Address {
@@ -672,4 +692,134 @@ model SiteSetting {
   key       String   @id
   value     String
   updatedAt DateTime @default(now()) @updatedAt
+}
+
+// ═══════════════════════════════════════════════════════════
+// MARKETING AUTOMATION MODULE
+// ═══════════════════════════════════════════════════════════
+
+enum MarketingPlatform {
+  FACEBOOK
+  INSTAGRAM
+  TIKTOK
+  WHATSAPP
+}
+
+enum MarketingContentType {
+  POST
+  CAPTION
+  REEL_HOOK_SCRIPT
+  STATUS_UPDATE
+  CAROUSEL
+}
+
+enum MarketingStatus {
+  DRAFT
+  APPROVED
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum MarketingObjective {
+  SALES
+  AWARENESS
+  LAUNCH
+  ENGAGEMENT
+}
+
+enum MarketingTone {
+  PREMIUM
+  MODERN
+  TRADITIONAL
+  LUXURY
+}
+
+enum MarketingLanguage {
+  ENGLISH
+  URDU
+  ROMAN_URDU
+  MIXED
+}
+
+model MarketingCampaign {
+  id          String              @id @default(uuid())
+  name        String
+  productId   String
+  platforms   MarketingPlatform[]
+  objective   MarketingObjective
+  tone        MarketingTone
+  language    MarketingLanguage
+  durationDays Int
+  startDate   DateTime            @default(now())
+  endDate     DateTime?
+  status      MarketingStatus     @default(DRAFT)
+  metadata    Json?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  contents    MarketingContent[]
+  logs        MarketingGenerationLog[]
+
+  @@index([productId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model MarketingContent {
+  id              String              @id @default(uuid())
+  campaignId      String
+  campaign        MarketingCampaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  platform        MarketingPlatform
+  contentType     MarketingContentType
+  primaryText     String
+  hashtags        String[]            @default([])
+  callToAction    String?
+  imageSuggestion String?
+  selectedImageUrl String?
+  recommendedTime String?
+  status          MarketingStatus     @default(DRAFT)
+  scheduledFor    DateTime?
+  publishedAt     DateTime?
+  metadata        Json?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  assets          MarketingContentAsset[]
+
+  @@index([campaignId])
+  @@index([platform])
+  @@index([status])
+  @@index([scheduledFor])
+}
+
+model MarketingContentAsset {
+  id          String            @id @default(uuid())
+  contentId   String
+  content     MarketingContent  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  imageUrl    String
+  publicId    String?
+  alt         String?
+  isPrimary   Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+
+  @@index([contentId])
+}
+
+model MarketingGenerationLog {
+  id           String             @id @default(uuid())
+  campaignId   String
+  campaign     MarketingCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  provider     String
+  model        String
+  promptTokens Int?
+  outputTokens Int?
+  durationMs   Int?
+  success      Boolean            @default(true)
+  errorMessage String?
+  metadata     Json?
+  createdAt    DateTime           @default(now())
+
+  @@index([campaignId])
+  @@index([createdAt])
 }

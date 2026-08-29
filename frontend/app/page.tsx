@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   FiChevronDown,
   FiChevronLeft,
@@ -74,12 +75,16 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative border-b border-surface-300 overflow-hidden bg-surface-950 text-white">
         {heroBanner ? (
-          <div className="relative w-full group">
+          <div className="relative w-full aspect-video group">
             <Link href="/products" className="block" aria-label="Shop all products">
-              <img
+              <Image
                 src={heroBanner}
                 alt="Top Threadz collection"
-                className="block h-auto w-full object-cover"
+                fill
+                priority
+                fetchPriority="high"
+                sizes="100vw"
+                className="object-cover"
               />
             </Link>
             {/* Scroll Down Indicator */}
@@ -149,11 +154,12 @@ export default function HomePage() {
               className="group relative w-[88vw] min-w-[88vw] xs:w-[82vw] xs:min-w-[82vw] sm:min-w-[210px] sm:w-auto lg:flex-1 snap-center sm:snap-start overflow-hidden rounded-2xl sm:rounded-2xl bg-surface-100 border border-surface-200/90 shadow-soft hover:shadow-lg transition-all"
             >
               <div className="aspect-[16/11] xs:aspect-[4/3] sm:aspect-[3/4]">
-                <img
+                <Image
                   src={category.coverImage || `https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=700&q=80`}
                   alt={category.name}
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  loading="lazy"
+                  fill
+                  sizes="(max-width: 640px) 88vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 pt-12 sm:p-5 sm:pt-16 text-white flex items-end justify-between">

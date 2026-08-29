@@ -3,6 +3,7 @@ import { authService } from './auth.service';
 import { env } from '../../config/env';
 import { oauthService } from './oauth.service';
 import { BadRequestError } from '../../utils/errors';
+import { sessionCookies, sessionService } from './session.service';
 
 export class AuthController {
   private setOauthStateCookie(res: Response, provider: 'google' | 'facebook', state: string) {
@@ -36,8 +37,8 @@ export class AuthController {
     return errorDescription || errorReason || `${provider} sign-in was cancelled`;
   }
 
-  private redirectOauthSuccess(res: Response, accessToken: string, user: { id: string; name: string; email: string; role: string }) {
-    const redirectUrl = `${env.FRONTEND_URL}/auth/callback?token=${encodeURIComponent(accessToken)}&user=${encodeURIComponent(JSON.stringify(user))}`;
+  private redirectOauthSuccess(res: Response) {
+    const redirectUrl = `${env.FRONTEND_URL}/auth/callback`;
     res.redirect(redirectUrl);
   }
 
@@ -59,13 +60,17 @@ export class AuthController {
 
   async login(req: Request, res: Response, next: NextFunction) {
     try {
+      await sessionService.revoke(req.cookies?.[sessionCookies.ADMIN_COOKIE] || req.cookies?.[sessionCookies.USER_COOKIE]);
+      sessionService.clearCookies(res);
       const result = await authService.login(req.body);
+      const isAdmin = result.user.role === 'ADMIN';
+      const session = await sessionService.create(result.user.id, isAdmin, req);
+      sessionService.setCookies(res, session.token, session.csrfSecret, isAdmin);
 
       res.json({
         success: true,
         data: {
           user: result.user,
-          accessToken: result.accessToken,
         },
       });
     } catch (error) {
@@ -73,7 +78,9 @@ export class AuthController {
     }
   }
 
-  async logout(_req: Request, res: Response) {
+  async logout(req: Request, res: Response) {
+    await sessionService.revoke(req.cookies?.[sessionCookies.ADMIN_COOKIE] || req.cookies?.[sessionCookies.USER_COOKIE]);
+    sessionService.clearCookies(res);
     res.json({ success: true, data: { message: 'Logged out successfully' } });
   }
 
@@ -121,7 +128,9 @@ export class AuthController {
 
       this.clearOauthStateCookie(res, 'google');
       const result = await oauthService.handleGoogleCallback(code);
-      this.redirectOauthSuccess(res, result.accessToken, result.user);
+      const session = await sessionService.create(result.user.id, result.user.role === 'ADMIN', req);
+      sessionService.setCookies(res, session.token, session.csrfSecret, result.user.role === 'ADMIN');
+      this.redirectOauthSuccess(res);
     } catch (error: any) {
       this.clearOauthStateCookie(res, 'google');
       if (error instanceof BadRequestError) {
@@ -158,7 +167,9 @@ export class AuthController {
 
       this.clearOauthStateCookie(res, 'facebook');
       const result = await oauthService.handleFacebookCallback(code);
-      this.redirectOauthSuccess(res, result.accessToken, result.user);
+      const session = await sessionService.create(result.user.id, result.user.role === 'ADMIN', req);
+      sessionService.setCookies(res, session.token, session.csrfSecret, result.user.role === 'ADMIN');
+      this.redirectOauthSuccess(res);
     } catch (error: any) {
       this.clearOauthStateCookie(res, 'facebook');
       if (error instanceof BadRequestError) {

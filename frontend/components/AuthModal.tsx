@@ -65,7 +65,7 @@ export default function AuthModal() {
 
     try {
       const res = await authService.login({ email: loginEmail, password: loginPassword });
-      setUser(res.data.user, res.data.accessToken);
+      setUser(res.data.user);
       toast.success('Welcome back!');
       closeModal();
       if (res.data.user.role === 'ADMIN') {

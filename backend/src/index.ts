@@ -19,7 +19,8 @@ import experienceRoutes from './modules/experience/experience.routes';
 import { adminController } from './modules/admin/admin.controller';
 import { upload } from './middleware/upload.middleware';
 import { recommendationService } from './modules/product/recommendation.service';
-import { authenticate, authorize, AuthRequest } from './middleware/auth.middleware';
+import { authenticate, authenticateAdmin, authorize, AuthRequest } from './middleware/auth.middleware';
+import { csrfProtection } from './middleware/csrf.middleware';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -30,7 +31,18 @@ const isLocalDevOrigin = (origin: string) => /^https?:\/\/(localhost|127\.0\.0\.
 const isVercelDomain = (origin: string) => /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
 const isTopThreadzDomain = (origin: string) => /^https:\/\/(.*\.)?topthreadz\.com\.pk$/i.test(origin);
 
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  hsts: env.NODE_ENV === 'production' ? { maxAge: 31536000, includeSubDomains: true, preload: true } : false,
+  contentSecurityPolicy: { directives: {
+    defaultSrc: ["'self'"], baseUri: ["'self'"], objectSrc: ["'none'"], frameAncestors: ["'none'"],
+    imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
+    connectSrc: ["'self'", ...allowedOrigins, 'https://*.cloudinary.com'],
+    scriptSrc: ["'self'"], styleSrc: ["'self'", "'unsafe-inline'"],
+    upgradeInsecureRequests: env.NODE_ENV === 'production' ? [] : null,
+  } },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+}));
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) {
@@ -53,7 +65,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'X-Requested-With', 'X-CSRF-Token'],
 }));
 
 app.get('/favicon.ico', (_req, res) => res.status(204).end());
@@ -70,6 +82,12 @@ app.use(generalLimiter);
 app.use(express.json({ limit: '10mb', verify: (req, _res, buffer) => { (req as typeof req & { rawBody?: Buffer }).rawBody = buffer; } }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(csrfProtection);
+app.use((req, res, next) => {
+  res.set('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(self)');
+  if (req.path.startsWith('/api/admin') || req.path.startsWith('/api/users') || req.path.startsWith('/api/orders') || req.path.startsWith('/api/payments')) res.set('Cache-Control', 'private, no-store');
+  next();
+});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -82,11 +100,11 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/experience', experienceRoutes);
 
 app.get('/api/settings/hero-banner', adminController.getHeroBanner.bind(adminController));
-app.post('/api/settings/hero-banner', authenticate, authorize('ADMIN'), upload.single('image'), adminController.uploadHeroBanner.bind(adminController));
-app.delete('/api/settings/hero-banner', authenticate, authorize('ADMIN'), adminController.deleteHeroBanner.bind(adminController));
+app.post('/api/settings/hero-banner', authenticateAdmin, authorize('ADMIN'), upload.single('image'), adminController.uploadHeroBanner.bind(adminController));
+app.delete('/api/settings/hero-banner', authenticateAdmin, authorize('ADMIN'), adminController.deleteHeroBanner.bind(adminController));
 
 app.get('/api/settings/store', adminController.getStoreSettings.bind(adminController));
-app.put('/api/settings/store', authenticate, authorize('ADMIN'), adminController.updateStoreSettings.bind(adminController));
+app.put('/api/settings/store', authenticateAdmin, authorize('ADMIN'), adminController.updateStoreSettings.bind(adminController));
 
 app.get('/api/recommendations', authenticate, async (req: AuthRequest, res, next) => {
   try { res.json({ success: true, data: await recommendationService.getRecommendations(req.user!.userId) }); }

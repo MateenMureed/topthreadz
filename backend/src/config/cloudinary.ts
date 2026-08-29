@@ -31,7 +31,19 @@ export async function uploadToCloudinary(buffer: Buffer, folder = 'ecommerce-pro
 
   try {
     const result = await new Promise<any>((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream({ folder, resource_type: 'image' }, (error, upload) => {
+      const isHero = folder === 'topthreadz-hero';
+      // Normalize incoming originals once. Product imagery uses the site-wide 3:4
+      // frame and hero banners use 16:9; `limit` never upscales smaller originals.
+      const transformation = isHero
+        ? [{ width: 1920, height: 1080, crop: 'limit' }]
+        : [{ width: 1600, height: 2133, crop: 'limit' }];
+      const stream = cloudinary.uploader.upload_stream({
+        folder,
+        resource_type: 'image',
+        transformation,
+        quality: 'auto:good',
+        fetch_format: 'auto',
+      }, (error, upload) => {
         if (error) reject(error);
         else resolve(upload);
       });

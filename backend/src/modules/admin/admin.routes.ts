@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { adminController } from './admin.controller';
-import { authenticate, authorize } from '../../middleware/auth.middleware';
+import { authenticateAdmin, authorize } from '../../middleware/auth.middleware';
 import { upload } from '../../middleware/upload.middleware';
 
 const router = Router();
@@ -10,7 +10,7 @@ router.get('/settings/hero-banner', adminController.getHeroBanner.bind(adminCont
 router.get('/settings/store', adminController.getStoreSettings.bind(adminController));
 
 // ── Admin-only routes ────────────────────────────────────────────────
-router.use(authenticate, authorize('ADMIN'));
+router.use(authenticateAdmin, authorize('ADMIN'));
 
 // Dashboard
 router.get('/dashboard', adminController.getDashboard.bind(adminController));
@@ -40,4 +40,3 @@ router.delete('/settings/hero-banner', adminController.deleteHeroBanner.bind(adm
 router.put('/settings/store', adminController.updateStoreSettings.bind(adminController));
 
 export default router;
-

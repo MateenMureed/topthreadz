@@ -1,7 +1,6 @@
 import bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 import prisma from '../../utils/prisma';
-import { signAccessToken } from '../../utils/jwt';
 import { BadRequestError, UnauthorizedError, ConflictError, NotFoundError } from '../../utils/errors';
 import logger from '../../utils/logger';
 import { env } from '../../config/env';
@@ -87,14 +86,10 @@ export class AuthService {
       data: { failedAttempts: 0, isLocked: false, lastFailedAt: null },
     });
 
-    const tokenPayload = { userId: user.id, role: user.role };
-    const accessToken = signAccessToken(tokenPayload);
-
     logger.info(`User logged in: ${user.email}`);
 
     return {
       user: { id: user.id, name: user.name, email: user.email, role: user.role },
-      accessToken,
     };
   }
 

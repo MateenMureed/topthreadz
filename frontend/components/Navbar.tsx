@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   FiHeart,
   FiLogOut,
@@ -51,6 +51,7 @@ const dedupe = (items: SearchProduct[]) => {
 };
 
 export default function Navbar() {
+  const pathname = usePathname();
   const router = useRouter();
   const hydrated = useHydration();
   const { isAuthenticated, user, logout } = useAuthStore();
@@ -149,6 +150,8 @@ export default function Navbar() {
 
   const itemCount = hydrated ? getItemCount() : 0;
 
+  if (pathname?.startsWith('/admin')) return null;
+
   return (
     <>
       <nav
@@ -163,7 +166,7 @@ export default function Navbar() {
             <div />
 
             <Link href="/" className="inline-flex items-center justify-center group py-1" aria-label="Top Threadz Home">
-              <h1 className="sr-only">Top Threadz</h1>
+              <span className="sr-only">Top Threadz</span>
               <div className="relative h-11 sm:h-12 md:h-14 w-36 sm:w-44 md:w-52 flex items-center justify-center">
                 <Image
                   src="/images/topthreadz-logo.png"

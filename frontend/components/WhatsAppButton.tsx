@@ -1,9 +1,11 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { usePathname } from 'next/navigation';
 import api from '@/services/api';
 
 export default function WhatsAppButton() {
+  const pathname = usePathname();
   const { data: settings } = useQuery({
     queryKey: ['store-settings'],
     queryFn: () => api.get('/settings/store').then((res) => res.data?.data),
@@ -13,6 +15,8 @@ export default function WhatsAppButton() {
   const rawNumber = settings?.whatsappNumber || '923009070520';
   const phoneNumber = rawNumber.replace(/\D/g, '');
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=Hi%20TopThreadz%2C%20I%20have%20an%20inquiry%20about%20your%20products.`;
+
+  if (pathname?.startsWith('/admin') || pathname?.startsWith('/products/')) return null;
 
   return (
     <a

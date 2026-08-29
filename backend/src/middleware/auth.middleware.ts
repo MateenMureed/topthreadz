@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyAccessToken } from '../utils/jwt';
 import { UnauthorizedError, ForbiddenError } from '../utils/errors';
 import logger from '../utils/logger';
+import { sessionCookies, sessionService } from '../modules/auth/session.service';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -10,35 +10,25 @@ export interface AuthRequest extends Request {
   };
 }
 
-export function authenticate(req: AuthRequest, _res: Response, next: NextFunction): void {
+async function authenticateWithSession(req: AuthRequest, next: NextFunction, adminOnly: boolean): Promise<void> {
   try {
-    let token: string | undefined;
-    const authHeader = req.headers.authorization;
-
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.split(' ')[1];
-    } else if (req.cookies?.accessToken) {
-      token = req.cookies.accessToken;
-    } else if (req.cookies?.token) {
-      token = req.cookies.token;
-    }
-
-    if (!token) {
-      throw new UnauthorizedError('Access token required. Please log in.');
-    }
-
-    const payload = verifyAccessToken(token);
-    req.user = payload;
+    const adminToken = req.cookies?.[sessionCookies.ADMIN_COOKIE];
+    const userToken = req.cookies?.[sessionCookies.USER_COOKIE];
+    const session = await sessionService.findValid(adminOnly ? adminToken : (adminToken || userToken), adminOnly || Boolean(adminToken));
+    if (!session) throw new UnauthorizedError('Authentication required');
+    req.user = { userId: session.user.id, role: session.user.role };
+    (req as AuthRequest & { session: typeof session }).session = session;
     next();
-  } catch (error: any) {
-    if (error.name === 'TokenExpiredError') {
-      next(new UnauthorizedError('Session expired. Please log out and log in again.'));
-    } else if (error.name === 'JsonWebTokenError') {
-      next(new UnauthorizedError('Invalid access token. Please log in again.'));
-    } else {
-      next(error);
-    }
-  }
+  } catch (error) { next(error); }
+}
+
+export function authenticate(req: AuthRequest, _res: Response, next: NextFunction): Promise<void> {
+  return authenticateWithSession(req, next, false);
+}
+
+// Admin endpoints accept only the dedicated __Host-admin_session cookie.
+export function authenticateAdmin(req: AuthRequest, _res: Response, next: NextFunction): Promise<void> {
+  return authenticateWithSession(req, next, true);
 }
 
 export function authorize(...roles: string[]) {

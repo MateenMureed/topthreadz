@@ -16,7 +16,7 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
   }
 
   if (err instanceof Prisma.PrismaClientValidationError) {
-    logger.warn(`Prisma validation error on ${req.method} ${req.originalUrl}: ${err.message}`);
+    logger.warn(`Prisma validation error on ${req.method} ${req.originalUrl}`);
     res.status(400).json({
       success: false,
       error: 'Invalid request data',
@@ -25,7 +25,7 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
   }
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    logger.error(`Prisma known error ${err.code} on ${req.method} ${req.originalUrl}: ${err.message}`);
+    logger.error(`Prisma known error ${err.code} on ${req.method} ${req.originalUrl}`);
     if (err.code === 'P2002') {
       res.status(409).json({ success: false, error: 'Duplicate value conflict' });
       return;
@@ -36,10 +36,9 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
     }
   }
 
-  logger.error(`Unexpected error on ${req.method} ${req.originalUrl}:`, err);
-  const errorMessage = err instanceof Error ? err.message : String(err);
+  logger.error(`Unexpected error on ${req.method} ${req.originalUrl}`);
   res.status(500).json({
     success: false,
-    error: errorMessage || 'Internal Server Error',
+    error: 'Internal Server Error',
   });
 }

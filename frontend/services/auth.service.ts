@@ -15,6 +15,8 @@ export const authService = {
   logout: () =>
     api.post('/auth/logout').then(r => r.data),
 
+  session: () => api.get('/auth/session').then(r => r.data),
+
   getOAuthProviders: (): Promise<{ success: boolean; data: SocialAuthProviders }> =>
     api.get('/auth/providers').then(r => r.data),
 

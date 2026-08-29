@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/services/api';
 import {
@@ -18,6 +19,7 @@ import {
 } from 'react-icons/fi';
 
 export default function Footer() {
+  const pathname = usePathname();
   const { data: settings } = useQuery({
     queryKey: ['store-settings'],
     queryFn: () => api.get('/settings/store').then((res) => res.data?.data),
@@ -28,6 +30,8 @@ export default function Footer() {
   const email = settings?.email || 'support@topthreadz.pk';
   const operatingDays =
     settings?.operatingDays || 'Mon – Sat: 11:00 AM – 10:30 PM | Sun: 2:00 PM – 10:00 PM';
+
+  if (pathname?.startsWith('/admin')) return null;
 
   return (
     <footer className="relative bg-surface-950 text-white overflow-hidden border-t border-white/10">
@@ -57,17 +61,17 @@ export default function Footer() {
               Official store for premium unstitched men&apos;s fabric in Pakistan. Exceptional quality, soft finish, and timeless luxury menswear.
             </p>
             <div className="pt-2 border-t border-white/10 text-xs text-white/80">
-              <p className="font-bold text-white flex items-center gap-1.5 mb-1 text-[11px] uppercase tracking-wider">
+              <p className="font-bold text-white flex items-center gap-1.5 mb-1 text-xs tracking-wide">
                 <FiMapPin className="text-white/60 shrink-0" /> Karachi Flagship Outlet:
               </p>
-              <p className="text-white/60 text-[11px] leading-relaxed">
+              <p className="text-white/60 text-xs leading-relaxed">
                 topthreadz, R28V+R3W, Street 2, DHA Phase 5 Zamzama Commercial Area Defence V Karachi, 75600
               </p>
               <a
                 href="https://maps.google.com/?q=R28V%2BR3W,+Street+2,+DHA+Phase+5+Zamzama+Commercial+Area+Defence+V+Karachi,+75600,+Pakistan"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] text-white/80 hover:text-white underline mt-1 inline-block"
+                className="text-xs text-white/80 hover:text-white underline mt-1 inline-block"
               >
                 View on Google Maps →
               </a>
@@ -76,9 +80,9 @@ export default function Footer() {
 
           {/* Quick Links / Shop */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-3">
+            <h2 className="text-sm font-semibold tracking-wide text-white/60 mb-3">
               Shop
-            </h4>
+            </h2>
             <ul className="space-y-2 text-xs">
               <li>
                 <Link
@@ -117,9 +121,9 @@ export default function Footer() {
 
           {/* Policies */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-3">
+            <h2 className="text-sm font-semibold tracking-wide text-white/60 mb-3">
               Policies
-            </h4>
+            </h2>
             <ul className="space-y-2 text-xs">
               <li>
                 <Link
@@ -158,9 +162,9 @@ export default function Footer() {
 
           {/* Contact & Outlets */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-3">
+            <h2 className="text-sm font-semibold tracking-wide text-white/60 mb-3">
               Contact & Outlets
-            </h4>
+            </h2>
             <ul className="space-y-2.5 text-xs text-white/70">
               {phoneNumber && (
                 <li>
@@ -186,8 +190,8 @@ export default function Footer() {
                 <FiClock className="h-3.5 w-3.5 text-white/40 shrink-0" />
                 <span>{operatingDays}</span>
               </li>
-              <li className="pt-2 border-t border-white/10 text-[11px] text-white/50">
-                <strong className="text-white/70">Branches:</strong> Zamzama DHA Phase 5 Karachi &amp; F-8 Markaz Islamabad.
+              <li className="pt-2 border-t border-white/10 text-xs text-white/50">
+                <strong className="text-white/70">Flagship Store:</strong> Zamzama DHA Phase 5 Karachi.
               </li>
             </ul>
           </div>
@@ -196,23 +200,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
           <p>© {new Date().getFullYear()} Top Threadz. All rights reserved.</p>
-          <div className="flex flex-wrap items-center justify-center gap-3 text-[11px]">
-            <Link href="/privacy" className="hover:text-white transition-colors">
-              Privacy
-            </Link>
-            <span>•</span>
-            <Link href="/terms" className="hover:text-white transition-colors">
-              Terms
-            </Link>
-            <span>•</span>
-            <Link href="/delivery" className="hover:text-white transition-colors">
-              Delivery
-            </Link>
-            <span>•</span>
-            <Link href="/returns" className="hover:text-white transition-colors">
-              Returns
-            </Link>
-            <span>•</span>
+          <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
             <Link href="/faq" className="hover:text-white transition-colors">
               FAQ
             </Link>

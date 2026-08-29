@@ -135,7 +135,7 @@ export default function ProductImageGallery({ images, name, category }: ProductI
           MAIN IMAGE — Simple Inline Zoom Container
           ============================================================ */}
       <div
-        className="relative aspect-[4/5] md:aspect-square md:rounded-2xl overflow-hidden group bg-white md:border border-surface-200/60 select-none cursor-zoom-in"
+        className="relative aspect-[3/4] md:rounded-2xl overflow-hidden group bg-white md:border border-surface-200/60 select-none cursor-zoom-in"
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onTouchStart={handleSwipeTouchStart}
@@ -150,6 +150,8 @@ export default function ProductImageGallery({ images, name, category }: ProductI
             src={currentImageUrl}
             alt={`${name} - View ${activeIndex + 1}`}
             fill
+            priority={activeIndex === 0}
+            fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
             unoptimized={isBackendUploadUrl(currentImageUrl)}
             sizes="(max-width: 768px) 100vw, 50vw"
             className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-[600ms] ease-out will-change-transform group-hover:scale-[1.75]"
@@ -287,6 +289,7 @@ export default function ProductImageGallery({ images, name, category }: ProductI
             <img
               src={currentImageUrl}
               alt={`${name} - Fullscreen view ${activeIndex + 1}`}
+              decoding="async"
               className="w-[85vw] h-[75vh] max-w-4xl rounded-2xl object-contain"
               style={{ animation: 'snapIn 0.4s ease-out' }}
             />

@@ -32,7 +32,7 @@ export default function LoginPageClient() {
     setLoading(true);
     try {
       const res = await authService.login({ email, password });
-      setUser(res.data.user, res.data.accessToken);
+      setUser(res.data.user);
       toast.success('Welcome back!');
       if (res.data.user.role === 'ADMIN') {
         router.push('/admin');

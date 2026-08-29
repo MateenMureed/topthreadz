@@ -8,8 +8,8 @@ export const env = {
   
   // JWT_SECRET is the Vercel-friendly single-secret name. Keep the existing
   // names as aliases so current deployments and tokens remain compatible.
-  JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'access-secret-change-me',
-  JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'refresh-secret-change-me',
+  JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || '',
+  JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || '',
   JWT_ACCESS_EXPIRY: process.env.JWT_ACCESS_EXPIRY || '7d',
   JWT_REFRESH_EXPIRY: process.env.JWT_REFRESH_EXPIRY || '7d',
 
@@ -48,4 +48,10 @@ export const env = {
 
   MAX_FAILED_ATTEMPTS: parseInt(process.env.MAX_FAILED_ATTEMPTS || '5', 10),
   LOCK_DURATION: parseInt(process.env.LOCK_DURATION || '1800000', 10), // 30 min
+
+  // AI Marketing Automation
+  AI_PROVIDER: process.env.AI_PROVIDER || 'gemini',
+  AI_API_KEY: process.env.AI_API_KEY || '',
+  AI_MODEL: process.env.AI_MODEL || '',
+  MARKETING_TIMEZONE: process.env.MARKETING_TIMEZONE || 'Asia/Karachi',
 };

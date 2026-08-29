@@ -8,14 +8,13 @@ import { experienceService } from '@/services/experience.service';
 import { STANDARD_PRODUCT_DETAILS, STANDARD_SEO_TAGS } from '@/lib/standardProductDetails';
 import ProductGrid from '@/components/ProductGrid';
 import ProductImageGallery from '@/components/ProductImageGallery';
-import Image from 'next/image';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
-import { FiMinus, FiPlus, FiHeart, FiShoppingBag, FiCheck } from 'react-icons/fi';
+import { FiMinus, FiPlus, FiHeart } from 'react-icons/fi';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import ScrollReveal from '@/components/ScrollReveal';
-import { isBackendUploadUrl, resolveImageUrl } from '@/lib/images';
+import { resolveImageUrl } from '@/lib/images';
 
 function stripHtml(html: string) {
   if (typeof window === 'undefined') return html;
@@ -151,10 +150,10 @@ export function FormattedProductDescription({ content }: { content?: string }) {
         if (block.type === 'heading') {
           return (
             <div key={i} className="pt-2 pb-0.5">
-              <h4 className="font-display font-bold text-xs sm:text-sm text-surface-950 uppercase tracking-widest flex items-center gap-2">
+              <h3 className="font-display font-bold text-sm text-surface-950 flex items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 inline-block shrink-0" />
                 {block.text}
-              </h4>
+              </h3>
               <div className="h-0.5 w-8 bg-surface-950/20 mt-0.5 rounded-full" />
             </div>
           );
@@ -388,6 +387,8 @@ export default function ProductDetailPage() {
     ? similar
     : recommendedPool.filter((item: any) => item.id !== product.id);
   const pageRecommendations = recommendationCandidates.slice(0, 8);
+  const isStitchedProduct = product.category?.toLowerCase().trim() === 'stitched';
+  const optionLabel = isStitchedProduct ? 'Size' : 'Fabric length';
   const lowStockThreshold = Number(product.lowStockThreshold ?? 5);
   const isOutOfStock = product.stock <= 0;
   const isLowStock = !isOutOfStock && product.stock <= lowStockThreshold;
@@ -420,7 +421,7 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (product.sizes.length > 0 && !selectedSize) {
-      toast.error('Please select a size');
+      toast.error(`Please select a ${optionLabel.toLowerCase()}`);
       return;
     }
     addItem({
@@ -495,12 +496,12 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto pb-24 md:pb-8 md:px-4 md:py-8">
+    <div className="max-w-7xl mx-auto px-4 py-5 sm:py-6 md:py-8">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
       />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-12">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-12">
         {/* ============================================================
             PREMIUM IMAGE GALLERY — With advanced zoom system
             ============================================================ */}
@@ -514,25 +515,25 @@ export default function ProductDetailPage() {
             PRODUCT INFO
             ============================================================ */}
         <ScrollReveal animation="slide-up" delay={200} className="animate-fade-in px-4 md:px-0 pt-6 md:pt-0">
-          <p className="text-xs text-surface-400 font-semibold uppercase tracking-[0.15em]">{product.category}</p>
+          <p className="text-sm text-surface-500 font-semibold">{product.category}</p>
           <h1 className="font-display text-2xl md:text-3xl font-bold mt-2 leading-tight">{product.name}</h1>
 
           {/* Price */}
-          <div className="mt-4 flex items-center gap-3">
-            <span className="text-4xl font-bold text-surface-900">
+          <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="text-3xl font-bold text-surface-900">
               PKR {Math.round(effectivePrice).toLocaleString()}
             </span>
             {product.discount > 0 && (
               <>
-                <span className="text-2xl text-surface-400 line-through">PKR {product.price.toLocaleString()}</span>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-600 text-xs font-bold uppercase">
-                  SAVE {product.discount}%
+                <span className="text-base text-surface-500 line-through">PKR {product.price.toLocaleString()}</span>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-700 text-xs font-semibold">
+                  Save {product.discount}%
                 </span>
               </>
             )}
           </div>
 
-          <p className="mt-2 text-xs font-medium uppercase tracking-wide text-surface-500">SKU: {product.sku || product.id.slice(0, 12)}</p>
+          <p className="mt-2 text-sm text-surface-500">SKU: {product.sku || product.id.slice(0, 12)}</p>
 
           {/* Stock */}
           <div className="mt-3 flex items-center gap-2">
@@ -542,21 +543,12 @@ export default function ProductDetailPage() {
             </p>
           </div>
 
-          {/* Quantity & Actions */}
+          {/* Purchase controls */}
           <div className="mt-6 border-t border-surface-200 pt-4 space-y-3">
-            <button
-              onClick={handleAddToCart}
-              disabled={product.stock === 0}
-              className={`w-full rounded-full px-6 py-3.5 text-sm font-bold uppercase tracking-wide transition-colors hover:brightness-90 disabled:opacity-60 ${addToBagTheme}`}
-              id="add-to-cart"
-            >
-              {addedInline ? '✓ Added to Bag' : 'ADD TO BAG'}
-            </button>
-
             {addedInline && (
               <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-xs text-emerald-900 transition-all animate-fade-in flex items-center justify-between gap-2 shadow-sm">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-[10px]">✓</span>
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-xs">✓</span>
                   <span className="font-semibold">Added to Bag!</span>
                 </div>
                 <Link
@@ -570,9 +562,9 @@ export default function ProductDetailPage() {
 
             {Array.isArray(product.sizes) && product.sizes.length > 0 && (
               <div className="space-y-2 pt-1">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-surface-500">Size</p>
-                  {selectedSize && <span className="text-xs text-surface-500 font-medium">Selected: {selectedSize}</span>}
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-semibold text-surface-700">{optionLabel}</p>
+                  {selectedSize && <span className="rounded-full bg-surface-100 px-2 py-0.5 text-xs text-surface-700 font-medium">Selected: {selectedSize}</span>}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {product.sizes.map((size: string) => (
@@ -580,7 +572,7 @@ export default function ProductDetailPage() {
                       key={size}
                       type="button"
                       onClick={() => setSelectedSize(size)}
-                      className={`rounded-xl border px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                      className={`min-h-11 rounded-xl border px-3.5 py-1.5 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-900 focus-visible:ring-offset-2 ${
                         selectedSize === size
                           ? 'border-surface-900 bg-surface-900 text-white shadow-sm'
                           : 'border-surface-300 bg-white text-surface-700 hover:border-surface-400 hover:bg-surface-50'
@@ -595,19 +587,58 @@ export default function ProductDetailPage() {
 
             {Array.isArray(product.colors) && product.colors.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-surface-500">Color</p>
+                <p className="text-sm font-semibold text-surface-700">Color</p>
                 <div className="flex flex-wrap gap-2">
                   {product.colors.map((color: string) => (
                     <button
                       key={color}
                       type="button"
                       onClick={() => setSelectedColor(color)}
-                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${selectedColor === color ? 'border-surface-900 bg-surface-900 text-white' : 'border-surface-300 bg-white text-surface-700 hover:bg-surface-100'}`}
+                      className={`min-h-11 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-900 focus-visible:ring-offset-2 ${selectedColor === color ? 'border-surface-900 bg-surface-900 text-white' : 'border-surface-300 bg-white text-surface-700 hover:bg-surface-100'}`}
                     >
                       {color}
                     </button>
                   ))}
                 </div>
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-end gap-3 border-t border-surface-200 pt-4">
+              <div>
+                <p className="mb-1 text-sm font-semibold text-surface-700">Quantity</p>
+                <div className="qty-chip min-h-11">
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="Decrease quantity">
+                    <FiMinus className="w-4 h-4" />
+                  </button>
+                  <span>{quantity}</span>
+                  <button onClick={() => setQuantity(quantity + 1)} aria-label="Increase quantity">
+                    <FiPlus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleToggleWishlist}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-900 focus-visible:ring-offset-2 ${isWishlisted ? 'border-pink-400 text-pink-600' : 'border-surface-300 text-surface-700 hover:border-pink-400 hover:text-pink-600'}`}
+                disabled={wishlistLoading}
+                aria-pressed={isWishlisted}
+              >
+                <FiHeart className="w-4 h-4" /> {isWishlisted ? 'Saved' : 'Wishlist'}
+              </button>
+              <button
+                onClick={handleAddToCart}
+                disabled={product.stock === 0}
+                className={`min-h-11 flex-1 rounded-xl px-5 py-3 text-sm font-semibold transition-colors hover:brightness-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-900 focus-visible:ring-offset-2 disabled:opacity-60 ${addToBagTheme}`}
+                id="add-to-cart"
+              >
+                {addedInline ? '✓ Added to Bag' : product.stock === 0 ? 'Sold out' : 'Add to Bag'}
+              </button>
+            </div>
+
+            {addedInline && (
+              <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900 transition-all animate-fade-in flex items-center justify-between gap-2 shadow-sm">
+                <span className="font-semibold">Added to Bag</span>
+                <Link href="/checkout" className="rounded-lg bg-emerald-800 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-emerald-900">Checkout</Link>
               </div>
             )}
 
@@ -617,7 +648,7 @@ export default function ProductDetailPage() {
                 onClick={() => setDetailsExpanded((prev) => !prev)}
                 className="flex w-full items-center justify-between py-3 text-left"
               >
-                <span className="text-xl font-semibold text-surface-800">Details</span>
+                <h2 className="text-xl font-semibold text-surface-800">Details</h2>
                 <span className="text-2xl text-surface-600">{detailsExpanded ? '−' : '+'}</span>
               </button>
               {detailsExpanded && (
@@ -638,7 +669,7 @@ export default function ProductDetailPage() {
                 onClick={() => setCareExpanded((prev) => !prev)}
                 className="flex w-full items-center justify-between py-3 text-left"
               >
-                <span className="text-xl font-semibold text-surface-800">Care Instructions</span>
+                <h2 className="text-xl font-semibold text-surface-800">Care instructions</h2>
                 <span className="text-2xl text-surface-600">{careExpanded ? '−' : '+'}</span>
               </button>
               {careExpanded && (
@@ -648,55 +679,6 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-[72px_1fr_auto] gap-3 items-start pt-2">
-              <div className="h-[96px] w-[72px] overflow-hidden rounded-lg border border-surface-200 bg-surface-100">
-                {primaryImage ? (
-                  <Image src={primaryImage} alt={product.name} width={72} height={96} unoptimized={isBackendUploadUrl(primaryImage)} sizes="72px" className="h-full w-full object-cover" />
-                ) : null}
-              </div>
-              <div>
-                <p className="font-semibold text-surface-900 line-clamp-1">{product.name}</p>
-                <p className="mt-1 text-sm text-surface-600">SKU: {product.sku || product.id.slice(0, 12)}</p>
-
-                <div className="mt-2">
-                  <p className="text-sm text-surface-700 mb-1">Quantity</p>
-                  <div className="qty-chip">
-                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="Decrease quantity">
-                      <FiMinus className="w-4 h-4" />
-                    </button>
-                    <span>{quantity}</span>
-                    <button onClick={() => setQuantity(quantity + 1)} aria-label="Increase quantity">
-                      <FiPlus className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="text-sm text-surface-700">Size</span>
-                  <span className="inline-flex rounded-md border border-surface-300 bg-white px-2 py-0.5 text-xs font-semibold text-surface-800">
-                    {selectedSize || product.sizes?.[0] || 'N/A'}
-                  </span>
-                </div>
-
-                <div className="mt-2 flex items-center gap-2">
-                  <button
-                    onClick={handleToggleWishlist}
-                    className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${isWishlisted ? 'border-pink-400 text-pink-500' : 'border-surface-300 text-surface-700 hover:border-pink-400 hover:text-pink-500'}`}
-                    disabled={wishlistLoading}
-                    aria-label="Toggle wishlist"
-                  >
-                    <FiHeart className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="text-right">
-                <p className="text-xl font-bold text-surface-900">PKR {Math.round(effectivePrice).toLocaleString()}</p>
-                {product.discount > 0 ? (
-                  <p className="text-sm text-surface-400 line-through">PKR {product.price.toLocaleString()}</p>
-                ) : null}
-              </div>
-            </div>
           </div>
         </ScrollReveal>
       </div>
@@ -710,9 +692,9 @@ export default function ProductDetailPage() {
         <ScrollReveal animation="slide-up">
           <section className="mt-20">
             <h2 className="font-display text-xl font-bold mb-8 flex items-center gap-2">
-              <span className="text-brand-500">✦</span> Smart Upsell Suggestions
+              <span className="text-brand-500">✦</span> Complete the look
             </h2>
-            <ProductGrid products={upsell} />
+            <ProductGrid products={upsell} gridControlsLabel="Complete the look" />
           </section>
         </ScrollReveal>
       )}
@@ -722,59 +704,20 @@ export default function ProductDetailPage() {
           ============================================================ */}
       {pageRecommendations.length > 0 && (
         <ScrollReveal animation="slide-up">
-          <section className="mt-16 px-4 md:px-0">
-            <h2 className="font-display text-xl font-bold mb-8">You may also like</h2>
-            <ProductGrid products={pageRecommendations} />
+          <section className="mt-12">
+            <ProductGrid products={pageRecommendations} gridControlsLabel="You may also like" />
           </section>
         </ScrollReveal>
       )}
 
       {recentlyViewed.length > 0 && (
         <ScrollReveal animation="slide-up">
-          <section className="mt-16 px-4 md:px-0">
-            <h2 className="font-display text-xl font-bold mb-8">Recently Viewed</h2>
-            <ProductGrid products={recentlyViewed} />
+          <section className="mt-12">
+            <ProductGrid products={recentlyViewed} gridControlsLabel="Recently viewed" />
           </section>
         </ScrollReveal>
       )}
 
-      {/* ============================================================
-          MOBILE STICKY BOTTOM BAR (ADD TO BAG)
-          ============================================================ */}
-      <div className="md:hidden fixed bottom-[76px] inset-x-3 z-[45] max-w-[350px] mx-auto">
-        <div className="flex items-center justify-between gap-2.5 p-2 pl-3.5 pr-2 bg-surface-950/95 backdrop-blur-xl border border-white/15 shadow-[0_14px_36px_rgba(0,0,0,0.38)] rounded-full text-white h-12">
-          <div className="min-w-0 flex flex-col justify-center">
-            <span className="text-[9px] font-bold uppercase tracking-widest text-white/50 leading-none mb-0.5">Total Price</span>
-            <span className="text-sm font-black text-white leading-none tracking-tight">PKR {Math.round(effectivePrice).toLocaleString()}</span>
-          </div>
-
-          <button
-            onClick={handleAddToCart}
-            disabled={product.stock === 0}
-            className={`h-9 px-4 rounded-full text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-md ${
-              product.stock === 0
-                ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
-                : addedInline
-                ? 'bg-emerald-500 text-white shadow-emerald-500/30'
-                : 'bg-white text-surface-950 hover:bg-neutral-100 shadow-white/20'
-            }`}
-          >
-            {addedInline ? (
-              <>
-                <FiCheck className="w-3.5 h-3.5 text-white" />
-                <span>Added</span>
-              </>
-            ) : product.stock === 0 ? (
-              <span>Sold Out</span>
-            ) : (
-              <>
-                <FiShoppingBag className="w-3.5 h-3.5" />
-                <span>Add to Bag</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

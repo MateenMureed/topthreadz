@@ -3,7 +3,6 @@ import crypto from 'crypto';
 import prisma from '../../utils/prisma';
 import { env } from '../../config/env';
 import { BadRequestError } from '../../utils/errors';
-import { signAccessToken, signRefreshToken } from '../../utils/jwt';
 
 interface OAuthProfile {
   id: string;
@@ -179,10 +178,6 @@ export class OAuthService {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new BadRequestError('User not found after OAuth login');
 
-    const tokenPayload = { userId: user.id, role: user.role };
-    const accessToken = signAccessToken(tokenPayload);
-    const refreshToken = signRefreshToken(tokenPayload);
-
     return {
       user: {
         id: user.id,
@@ -190,8 +185,6 @@ export class OAuthService {
         email: user.email,
         role: user.role,
       },
-      accessToken,
-      refreshToken,
     };
   }
 }
