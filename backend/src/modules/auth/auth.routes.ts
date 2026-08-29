@@ -20,7 +20,8 @@ router.get('/google/callback', authController.googleCallback.bind(authController
 router.get('/facebook', authController.facebookAuth.bind(authController));
 router.get('/facebook/callback', authController.facebookCallback.bind(authController));
 router.post('/logout', authController.logout.bind(authController));
-router.get('/session', authenticate, (req: any, res) => res.json({ success: true, data: { user: req.session.user } }));
+router.get('/session', authenticate, (req: any, res) => res.json({ success: true, data: { user: req.session.user, csrfToken: req.session.csrfSecret } }));
+router.get('/csrf', authenticate, (req: any, res) => res.json({ success: true, data: { csrfToken: req.session.csrfSecret } }));
 router.post('/forgot-password', validate(forgotPasswordSchema), authController.forgotPassword.bind(authController));
 router.post('/reset-password', validate(resetPasswordSchema), authController.resetPassword.bind(authController));
 

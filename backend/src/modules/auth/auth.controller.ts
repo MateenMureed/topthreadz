@@ -71,6 +71,7 @@ export class AuthController {
         success: true,
         data: {
           user: result.user,
+          csrfToken: session.csrfSecret,
         },
       });
     } catch (error) {

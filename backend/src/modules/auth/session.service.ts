@@ -10,7 +10,11 @@ const IDLE_MS = 30 * 60 * 1000;
 const ABSOLUTE_MS = 8 * 60 * 60 * 1000;
 
 const digest = (value: string) => createHash('sha256').update(value).digest('hex');
-const cookieOptions = { httpOnly: true, secure: env.NODE_ENV === 'production', sameSite: 'strict' as const, path: '/' };
+// The storefront and API intentionally use different sites (topthreadz.com.pk
+// and vercel.app), so cross-site XHR requires SameSite=None in production.
+// __Host- cookies remain host-only, Secure, HttpOnly and path-scoped to '/'.
+const sameSite = env.NODE_ENV === 'production' ? 'none' as const : 'strict' as const;
+const cookieOptions = { httpOnly: true, secure: env.NODE_ENV === 'production', sameSite, path: '/' };
 
 export class SessionService {
   async create(userId: string, isAdmin: boolean, req: { ip?: string; headers: { [key: string]: string | string[] | undefined } }) {
@@ -32,13 +36,13 @@ export class SessionService {
   setCookies(res: Response, token: string, csrfSecret: string, isAdmin: boolean) {
     // No maxAge/expires: sessions end when the browser session ends.
     res.cookie(isAdmin ? ADMIN_COOKIE : USER_COOKIE, token, cookieOptions);
-    res.cookie(CSRF_COOKIE, csrfSecret, { httpOnly: false, secure: env.NODE_ENV === 'production', sameSite: 'strict', path: '/' });
+    res.cookie(CSRF_COOKIE, csrfSecret, { httpOnly: false, secure: env.NODE_ENV === 'production', sameSite, path: '/' });
   }
 
   clearCookies(res: Response) {
     res.clearCookie(ADMIN_COOKIE, cookieOptions);
     res.clearCookie(USER_COOKIE, cookieOptions);
-    res.clearCookie(CSRF_COOKIE, { secure: env.NODE_ENV === 'production', sameSite: 'strict', path: '/' });
+    res.clearCookie(CSRF_COOKIE, { secure: env.NODE_ENV === 'production', sameSite, path: '/' });
   }
 
   async findValid(token: string, adminOnly = false) {

@@ -24,12 +24,13 @@ import { csrfProtection } from './middleware/csrf.middleware';
 
 const app = express();
 app.set('trust proxy', 1);
-const allowedOrigins = [...env.CORS_ORIGIN.split(','), env.FRONTEND_URL]
+const productionOrigins = new Set([
+  'https://www.topthreadz.com.pk',
+  'https://topthreadz.com.pk',
+]);
+const developmentOrigins = [...env.CORS_ORIGIN.split(','), env.FRONTEND_URL]
   .map((origin) => origin.trim().replace(/\/+$/, ''))
   .filter(Boolean);
-const isLocalDevOrigin = (origin: string) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
-const isVercelDomain = (origin: string) => /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
-const isTopThreadzDomain = (origin: string) => /^https:\/\/(.*\.)?topthreadz\.com\.pk$/i.test(origin);
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
@@ -37,7 +38,7 @@ app.use(helmet({
   contentSecurityPolicy: { directives: {
     defaultSrc: ["'self'"], baseUri: ["'self'"], objectSrc: ["'none'"], frameAncestors: ["'none'"],
     imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
-    connectSrc: ["'self'", ...allowedOrigins, 'https://*.cloudinary.com'],
+    connectSrc: ["'self'", ...productionOrigins, ...developmentOrigins, 'https://*.cloudinary.com'],
     scriptSrc: ["'self'"], styleSrc: ["'self'", "'unsafe-inline'"],
     upgradeInsecureRequests: env.NODE_ENV === 'production' ? [] : null,
   } },
@@ -50,13 +51,10 @@ app.use(cors({
       return;
     }
     const cleanOrigin = origin.trim().replace(/\/+$/, '');
-    if (
-      env.NODE_ENV !== 'production' ||
-      allowedOrigins.includes(cleanOrigin) ||
-      isLocalDevOrigin(cleanOrigin) ||
-      isVercelDomain(cleanOrigin) ||
-      isTopThreadzDomain(cleanOrigin)
-    ) {
+    const permitted = env.NODE_ENV === 'production'
+      ? productionOrigins.has(cleanOrigin)
+      : developmentOrigins.includes(cleanOrigin) || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(cleanOrigin);
+    if (permitted) {
       callback(null, true);
       return;
     }

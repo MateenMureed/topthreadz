@@ -12,6 +12,26 @@ const getNormalizedApiUrl = () => {
 };
 
 const API_URL = getNormalizedApiUrl();
+let csrfToken: string | undefined;
+let csrfTokenRequest: Promise<string | undefined> | undefined;
+
+const cacheCsrfToken = (value: unknown) => {
+  if (typeof value === 'string' && value.length > 0) csrfToken = value;
+};
+
+async function getCsrfToken(): Promise<string | undefined> {
+  if (csrfToken || typeof window === 'undefined') return csrfToken;
+  if (!csrfTokenRequest) {
+    csrfTokenRequest = axios.get(`${API_URL}/auth/csrf`, { withCredentials: true })
+      .then((response) => {
+        cacheCsrfToken(response.data?.data?.csrfToken);
+        return csrfToken;
+      })
+      .catch(() => undefined)
+      .finally(() => { csrfTokenRequest = undefined; });
+  }
+  return csrfTokenRequest;
+}
 
 const api = axios.create({
   baseURL: API_URL,
@@ -20,9 +40,20 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const csrf = readCookie('csrf_token');
-  if (csrf && !['get', 'head', 'options'].includes((config.method || 'get').toLowerCase())) config.headers['X-CSRF-Token'] = csrf;
-  return config;
+  const method = (config.method || 'get').toLowerCase();
+  if (['get', 'head', 'options'].includes(method)) return config;
+  return getCsrfToken().then((token) => {
+    // On a cross-site deployment the CSRF cookie is correctly scoped to the
+    // backend host and cannot be read by the storefront JavaScript.
+    const csrf = token || readCookie('csrf_token');
+    if (csrf) config.headers['X-CSRF-Token'] = csrf;
+    return config;
+  });
+});
+
+api.interceptors.response.use((response) => {
+  cacheCsrfToken(response.data?.data?.csrfToken);
+  return response;
 });
 
 export default api;
