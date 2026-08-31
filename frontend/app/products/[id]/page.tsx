@@ -288,14 +288,27 @@ export default function ProductDetailPage() {
     });
   }, [id, isAuthenticated]);
 
+  const [showStickyAdd, setShowStickyAdd] = useState(false);
+
   useEffect(() => {
-    if (selectedSize || !product?.sizes?.length) return;
-    setSelectedSize(product.sizes[0]);
+    const handleScroll = () => {
+      setShowStickyAdd(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedSize && product?.sizes?.length) {
+      setSelectedSize(product.sizes[0]);
+    }
   }, [product?.id, product?.sizes, selectedSize]);
 
   useEffect(() => {
-    if (selectedColor || !product?.colors?.length) return;
-    setSelectedColor(product.colors[0]);
+    if (!selectedColor && product?.colors?.length) {
+      setSelectedColor(product.colors[0]);
+    }
   }, [product?.id, product?.colors, selectedColor]);
 
   // Category-based placeholder gradients
@@ -722,10 +735,12 @@ export default function ProductDetailPage() {
         </ScrollReveal>
       )}
 
-      {/* Mobile Sticky Add to Bag Bar */}
+      {/* Mobile Sticky Add to Bag Bar (Shows on Scroll) */}
       <aside
         aria-label="Quick Add to Bag"
-        className="lg:hidden fixed bottom-3 inset-x-3 z-[85] max-w-lg mx-auto bg-slate-950/95 backdrop-blur-xl text-white rounded-full px-3 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.35)] border border-white/15 flex items-center justify-between gap-3 animate-fade-in"
+        className={`lg:hidden fixed bottom-3 inset-x-3 z-[85] max-w-lg mx-auto bg-slate-950/95 backdrop-blur-xl text-white rounded-full px-3 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.35)] border border-white/15 flex items-center justify-between gap-3 transition-all duration-300 ease-out ${
+          showStickyAdd ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-20 opacity-0 pointer-events-none'
+        }`}
       >
         <div className="flex items-center gap-2.5 min-w-0 pl-1">
           {product.images?.[0] ? (

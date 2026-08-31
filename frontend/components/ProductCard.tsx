@@ -245,9 +245,9 @@ export default function ProductCard({
             <FiHeart className={`h-4 w-4 ${isWishlisted ? 'fill-current text-pink-600' : 'text-slate-900 stroke-[2.2]'}`} />
           </button>
 
-          {/* Add to Cart — 44px touch target, slides up from bottom */}
+          {/* Add to Cart — Desktop hover only, completely hidden on mobile so cards are clean */}
           <div
-            className="absolute inset-x-0 bottom-0 z-20 flex items-center justify-center pb-3 pt-10 translate-y-0 sm:translate-y-full sm:group-hover:translate-y-0 transition-transform duration-300 ease-out pointer-events-auto"
+            className="absolute inset-x-0 bottom-0 z-20 hidden sm:flex items-center justify-center pb-3 pt-10 sm:translate-y-full sm:group-hover:translate-y-0 transition-transform duration-300 ease-out pointer-events-none group-hover:pointer-events-auto"
             style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)' }}
           >
             <button
