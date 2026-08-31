@@ -28,7 +28,6 @@ interface ProductCardProps {
   colors?: string[];
   slug?: string;
   imageMeta?: ProductImageMeta[];
-  priority?: boolean;
 }
 
 function normalizeImageMetaInput(input: unknown): ProductImageMeta[] {
@@ -56,7 +55,6 @@ export default function ProductCard({
   colors = [],
   slug,
   imageMeta = [],
-  priority = false,
 }: ProductCardProps) {
   const { addItem, openCart } = useCartStore();
   const { isAuthenticated } = useAuthStore();
@@ -73,9 +71,7 @@ export default function ProductCard({
     } catch {}
   }, [id, slug]);
 
-  // Inline zoom refs — direct DOM manipulation for 60fps performance
   const imgRef = useRef<HTMLImageElement>(null);
-  const placeholderRef = useRef<HTMLDivElement>(null);
 
   const safeImageMeta = useMemo(() => normalizeImageMetaInput(imageMeta), [imageMeta]);
   const safeImages = useMemo(() => normalizeImageListInput(images), [images]);
@@ -119,35 +115,6 @@ export default function ProductCard({
   useEffect(() => {
     setImageState('loading');
   }, [frontSrc]);
-
-  // ============================================================
-  // INLINE ZOOM — cursor-tracked transform-origin
-  // The image scales up on hover (via CSS group-hover:scale),
-  // and the transform-origin follows the mouse for a natural
-  // "zoom into whatever you're looking at" effect.
-  // ============================================================
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-    if (imgRef.current) {
-      imgRef.current.style.transformOrigin = `${x}% ${y}%`;
-    }
-    if (placeholderRef.current) {
-      placeholderRef.current.style.transformOrigin = `${x}% ${y}%`;
-    }
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    // Reset to center so the scale-down looks natural
-    if (imgRef.current) {
-      imgRef.current.style.transformOrigin = '50% 50%';
-    }
-    if (placeholderRef.current) {
-      placeholderRef.current.style.transformOrigin = '50% 50%';
-    }
-  }, []);
 
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -230,35 +197,24 @@ export default function ProductCard({
     <>
     <Link href={productHref} className="block">
       <article className="group">
-        {/* Image container — overflow:hidden clips the zoomed image */}
-        <div
-          className="relative aspect-[3/4] overflow-hidden bg-[#efede7] cursor-zoom-in"
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-        >
-          {/* Top-left category badge */}
-          {(subcategory || category) ? (
-            <span className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10 rounded-full bg-slate-950 px-3 py-1 text-[10px] sm:text-[11px] font-bold text-white shadow-md border border-black/10 tracking-wider uppercase">
-              {subcategory || category}
-            </span>
-          ) : null}
+        {/* Image container */}
+        <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f3ef] cursor-pointer">
 
+          {/* Full product image — object-contain so nothing is cropped */}
           <div className="absolute inset-0">
             {frontSrc ? (
               <>
-                {/* The neutral overlay stays inside the already-reserved 3:4 frame. */}
                 {imageState === 'loading' ? <div className="absolute inset-0 bg-stone-100 shimmer" aria-hidden="true" /> : null}
                 <Image
                   ref={imgRef}
                   src={frontSrc}
                   alt={frontAlt}
                   fill
-                  priority={priority}
-                  loading={priority ? 'eager' : 'lazy'}
+                  loading="lazy"
                   decoding="async"
                   unoptimized={isBackendUploadUrl(frontSrc)}
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className={`h-full w-full object-cover object-center transition-[opacity,transform] duration-[200ms] ease-out will-change-transform group-hover:scale-[1.35] ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
+                  className={`h-full w-full object-contain object-center transition-[opacity,transform] duration-500 ease-out will-change-transform group-hover:scale-[1.06] ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
                   style={{ transformOrigin: '50% 50%' }}
                   onLoad={() => setImageState('loaded')}
                   onError={() => setImageState('error')}
@@ -267,41 +223,42 @@ export default function ProductCard({
                 {imageState === 'error' ? <div className="absolute inset-0 bg-stone-200" aria-hidden="true" /> : null}
               </>
             ) : (
-              <div
-                ref={placeholderRef}
-                className="h-full w-full bg-gradient-to-br from-stone-100 to-stone-200 transition-transform duration-[600ms] ease-out will-change-transform group-hover:scale-[1.35]"
-                style={{ transformOrigin: '50% 50%' }}
-              />
+              <div className="h-full w-full bg-gradient-to-br from-stone-100 to-stone-200 transition-transform duration-500 ease-out group-hover:scale-[1.06]" />
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 z-10 flex h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 flex-col items-center justify-center rounded-full bg-slate-950 text-white shadow-md transition-all duration-200 hover:bg-black hover:scale-105 active:scale-95"
-            aria-label="Add to bag"
-            title="Add to bag"
-          >
-            <span className="relative">
-              <FiShoppingBag className="h-4 w-4 stroke-[2.5]" />
-              <span className="absolute -right-1 -top-1 text-[9px] font-bold leading-none">+</span>
-            </span>
-          </button>
+          {/* Subtle dark tint on hover */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 pointer-events-none" />
 
+          {/* Wishlist button — top-right, appears on hover */}
           <button
             type="button"
             onClick={handleToggleWishlist}
             disabled={wishlistLoading}
-            className={`absolute right-2 top-2 sm:right-3 sm:top-3 z-10 inline-flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-105 ${isWishlisted ? 'bg-pink-50 text-pink-600 border border-pink-200' : 'bg-white text-slate-950 border border-slate-200'}`}
+            className={`absolute right-2 top-2 sm:right-3 sm:top-3 z-20 inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-all duration-300
+              opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0
+              pointer-events-none group-hover:pointer-events-auto
+              ${isWishlisted ? 'bg-pink-50 text-pink-600 border border-pink-200' : 'bg-white text-slate-950 border border-slate-200'}`}
             aria-label="Add to wishlist"
             title="Love"
           >
             <FiHeart className={`h-4 w-4 ${isWishlisted ? 'fill-current text-pink-600' : 'text-slate-950 stroke-[2.5]'}`} />
           </button>
 
-          {/* Quick View Hover Overlay */}
-          <div className="absolute inset-x-0 bottom-0 z-10 hidden md:flex items-center justify-center bg-slate-950/80 backdrop-blur-md py-2 text-white text-[11px] font-bold uppercase tracking-[0.18em] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-            Quick View →
+          {/* Add to Cart — slides up from bottom on hover */}
+          <div
+            className="absolute inset-x-0 bottom-0 z-20 flex items-center justify-center pb-3 pt-10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out pointer-events-none group-hover:pointer-events-auto"
+            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)' }}
+          >
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className="inline-flex items-center gap-2 rounded-full bg-white text-slate-950 px-5 py-2.5 text-[12px] sm:text-[13px] font-bold shadow-lg hover:bg-slate-950 hover:text-white transition-all duration-200 active:scale-95"
+              aria-label="Add to bag"
+            >
+              <FiShoppingBag className="h-4 w-4 stroke-[2.5]" />
+              Add to Cart
+            </button>
           </div>
         </div>
 

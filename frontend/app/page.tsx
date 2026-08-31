@@ -75,8 +75,8 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative border-b border-surface-300 overflow-hidden bg-surface-950 text-white">
         {heroBanner ? (
-          <div className="relative w-full aspect-video group">
-            <Link href="/products" className="block" aria-label="Shop all products">
+          <div className="relative w-full aspect-[4/3] sm:aspect-[16/7] group">
+            <Link href="/products" className="block h-full" aria-label="Shop all products">
               <Image
                 src={heroBanner}
                 alt="Top Threadz collection"
@@ -84,7 +84,7 @@ export default function HomePage() {
                 priority
                 fetchPriority="high"
                 sizes="100vw"
-                className="object-cover"
+                className="object-cover object-top"
               />
             </Link>
             {/* Scroll Down Indicator */}
@@ -150,7 +150,7 @@ export default function HomePage() {
           {categories.map((category: any, idx: number) => (
             <Link
               key={category.id}
-              href={`/products?category=${encodeURIComponent(category.name)}`}
+              href={`/products/category/${encodeURIComponent(category.slug || category.name)}`}
               className="group relative w-[88vw] min-w-[88vw] xs:w-[82vw] xs:min-w-[82vw] sm:min-w-[210px] sm:w-auto lg:flex-1 snap-center sm:snap-start overflow-hidden rounded-2xl sm:rounded-2xl bg-surface-100 border border-surface-200/90 shadow-soft hover:shadow-lg transition-all"
             >
               <div className="aspect-[16/11] xs:aspect-[4/3] sm:aspect-[3/4]">

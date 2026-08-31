@@ -90,7 +90,7 @@ export default function ProductGrid({
   );
 
   const renderGridControls = () => (
-    <div className="mb-5 flex flex-col gap-3 border-b border-surface-200 pb-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mb-5 hidden sm:flex flex-col gap-3 border-b border-surface-200 pb-3 sm:flex-row sm:items-center sm:justify-between">
       {gridControlsLabel ? <h2 className="text-xl font-bold text-surface-950">{gridControlsLabel}</h2> : <span className="text-sm font-semibold text-surface-600">Choose a layout</span>}
       <div className="inline-flex items-center gap-1.5 rounded-full border border-surface-300 bg-white p-1 shadow-sm">
         <span className="px-2 text-xs font-semibold text-surface-600">Columns:</span>
@@ -168,7 +168,7 @@ export default function ProductGrid({
             delay={(i % gridCols) * 100}
             animation="slide-up"
           >
-            <ProductCard {...product} priority={i === 0} />
+            <ProductCard {...product} />
           </ScrollReveal>
         ))}
 
