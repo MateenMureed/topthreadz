@@ -266,18 +266,32 @@ export default function ProductCard({
           <p className="truncate text-[11px] min-[768px]:max-[1023px]:text-xs font-bold text-slate-600 uppercase tracking-widest">{category}</p>
           <h3 className="mt-1 line-clamp-2 text-[14px] sm:text-[15px] font-bold leading-snug text-slate-950">{name}</h3>
 
-          <div className="mt-1.5 md:mt-2 flex items-center gap-2">
+          <div className="mt-1.5 md:mt-2 flex items-center gap-2 flex-wrap">
             {discount > 0 ? (
               <span className="text-[12px] sm:text-[13px] font-semibold leading-none text-slate-400 line-through">PKR {price.toLocaleString()}</span>
             ) : null}
             <span className="text-[15px] sm:text-[16px] font-black leading-none text-slate-950">PKR {Math.round(effectivePrice).toLocaleString()}</span>
-          </div>
-
-          {discount > 0 ? (
-            <div className="mt-2 md:mt-2.5 flex items-center gap-1.5">
-              <span className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.02em] text-white shadow-xs">
+            {discount > 0 ? (
+              <span className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.02em] text-white">
                 {discount}% Off
               </span>
+            ) : null}
+          </div>
+
+          {/* Available sizes */}
+          {sizes.length > 0 ? (
+            <div className="mt-2 flex items-center gap-1 flex-wrap">
+              {sizes.slice(0, 5).map((size) => (
+                <span
+                  key={size}
+                  className="inline-flex items-center justify-center rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[10px] font-bold text-slate-700 leading-none"
+                >
+                  {size}
+                </span>
+              ))}
+              {sizes.length > 5 && (
+                <span className="text-[10px] font-bold text-slate-400">+{sizes.length - 5}</span>
+              )}
             </div>
           ) : null}
         </div>

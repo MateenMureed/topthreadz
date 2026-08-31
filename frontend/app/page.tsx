@@ -55,7 +55,9 @@ export default function HomePage() {
     if (!categoryScrollRef.current) return;
     const { scrollLeft, clientWidth } = categoryScrollRef.current;
     if (clientWidth > 0) {
-      const cardWidth = clientWidth * 0.88;
+      // On mobile cards are full-width; on sm+ they are partial
+      const isMobile = window.innerWidth < 640;
+      const cardWidth = isMobile ? clientWidth : clientWidth * 0.88;
       const index = Math.round(scrollLeft / (cardWidth || 1));
       setActiveCategoryIndex(Math.max(0, Math.min(categories.length - 1, index)));
     }
@@ -63,7 +65,10 @@ export default function HomePage() {
 
   const scrollCategory = (direction: 'left' | 'right') => {
     if (!categoryScrollRef.current) return;
-    const scrollAmount = categoryScrollRef.current.clientWidth * 0.88;
+    const isMobile = window.innerWidth < 640;
+    const scrollAmount = isMobile
+      ? categoryScrollRef.current.clientWidth
+      : categoryScrollRef.current.clientWidth * 0.88;
     categoryScrollRef.current.scrollBy({
       left: direction === 'left' ? -scrollAmount : scrollAmount,
       behavior: 'smooth',
@@ -75,7 +80,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative border-b border-surface-300 overflow-hidden bg-surface-950 text-white">
         {heroBanner ? (
-          <div className="relative w-full aspect-[4/3] sm:aspect-[16/7] group">
+          <div className="relative w-full aspect-[3/4] sm:aspect-[16/7]">
             <Link href="/products" className="block h-full" aria-label="Shop all products">
               <Image
                 src={heroBanner}
@@ -87,27 +92,22 @@ export default function HomePage() {
                 className="object-cover object-top"
               />
             </Link>
-            {/* Scroll Down Indicator */}
-            <a
-              href="#catalog"
-              className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-white/90 hover:text-white transition-all bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 shadow-lg text-[10px] sm:text-xs font-bold tracking-widest uppercase"
-            >
-              <span>Explore Collection</span>
-              <FiChevronDown className="w-4 h-4 animate-bounce" />
-            </a>
           </div>
         ) : (
-          <div className="relative w-full bg-surface-100 py-20 md:py-32 flex items-center justify-center">
-            <a
-              href="#catalog"
-              className="inline-flex flex-col items-center gap-1 text-surface-400 hover:text-surface-600 transition-colors text-[10px] font-bold uppercase tracking-widest"
-            >
-              <span>Explore Collection</span>
-              <FiChevronDown className="w-4 h-4 animate-bounce mt-1" />
-            </a>
-          </div>
+          <div className="relative w-full bg-surface-100 py-20 md:py-32" />
         )}
       </section>
+
+      {/* Explore Collection CTA — below banner */}
+      <div className="flex items-center justify-center py-5 bg-white border-b border-surface-200">
+        <a
+          href="#catalog"
+          className="inline-flex flex-col items-center gap-1 text-surface-700 hover:text-surface-950 transition-colors text-[11px] font-bold uppercase tracking-widest"
+        >
+          <span>Explore Collection</span>
+          <FiChevronDown className="w-4 h-4 animate-bounce mt-0.5" />
+        </a>
+      </div>
 
       {/* Explore Collection (Mobile Touch Slider & Grid) */}
       <section className="w-full max-w-[1536px] mx-auto px-3 sm:px-6 py-6 sm:py-10 md:py-14">
@@ -151,21 +151,21 @@ export default function HomePage() {
             <Link
               key={category.id}
               href={`/products/category/${encodeURIComponent(category.slug || category.name)}`}
-              className="group relative w-[88vw] min-w-[88vw] xs:w-[82vw] xs:min-w-[82vw] sm:min-w-[210px] sm:w-auto lg:flex-1 snap-center sm:snap-start overflow-hidden rounded-2xl sm:rounded-2xl bg-surface-100 border border-surface-200/90 shadow-soft hover:shadow-lg transition-all"
+              className="group relative w-[calc(100vw-24px)] min-w-[calc(100vw-24px)] sm:min-w-[210px] sm:w-auto lg:flex-1 snap-start overflow-hidden rounded-2xl bg-surface-100 border border-surface-200/90 shadow-soft hover:shadow-lg transition-all"
             >
-              <div className="aspect-[16/11] xs:aspect-[4/3] sm:aspect-[3/4]">
+              <div className="aspect-[3/4]">
                 <Image
                   src={category.coverImage || `https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=700&q=80`}
                   alt={category.name}
                   fill
-                  sizes="(max-width: 640px) 88vw, (max-width: 1024px) 33vw, 25vw"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 25vw"
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 pt-12 sm:p-5 sm:pt-16 text-white flex items-end justify-between">
                 <div>
                   <span className="inline-block px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white mb-1.5">
-                    Category {idx + 1} of {categories.length}
+                    {idx + 1} / {categories.length}
                   </span>
                   <h3 className="text-base sm:text-lg font-extrabold uppercase tracking-wide drop-shadow-md line-clamp-1">
                     {category.name}
@@ -189,9 +189,10 @@ export default function HomePage() {
                 type="button"
                 onClick={() => {
                   if (categoryScrollRef.current) {
-                    const cardWidth = categoryScrollRef.current.clientWidth * 0.88;
+                    // Full-width cards on mobile
+                    const cardWidth = categoryScrollRef.current.clientWidth;
                     categoryScrollRef.current.scrollTo({
-                      left: dotIdx * cardWidth,
+                      left: dotIdx * (cardWidth + 12), // +gap
                       behavior: 'smooth',
                     });
                   }
