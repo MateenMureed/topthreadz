@@ -146,7 +146,7 @@ export default function ProductImageGallery({ images, name, category }: ProductI
             fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
             unoptimized={isBackendUploadUrl(currentImageUrl)}
             sizes="(max-width: 768px) 100vw, 50vw"
-            className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-[600ms] ease-out will-change-transform group-hover:scale-[1.75]"
+            className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.08]"
             quality={80}
             style={{ transformOrigin: '50% 50%' }}
             draggable={false}
@@ -155,7 +155,7 @@ export default function ProductImageGallery({ images, name, category }: ProductI
           /* ====== GRADIENT PLACEHOLDER ====== */
           <div
             ref={placeholderRef}
-            className={`absolute inset-0 bg-gradient-to-br ${gradient} flex items-center justify-center transition-transform duration-[600ms] ease-out will-change-transform group-hover:scale-[1.75]`}
+            className={`absolute inset-0 bg-gradient-to-br ${gradient} flex items-center justify-center transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.08]`}
             style={{ transformOrigin: '50% 50%' }}
           >
             <div className="text-center pointer-events-none px-6">

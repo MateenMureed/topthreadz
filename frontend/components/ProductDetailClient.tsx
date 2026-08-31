@@ -364,31 +364,7 @@ export default function ProductDetailClient({ initialProduct, productId }: Produ
   };
 
   return (
-    <div className="max-w-[1536px] mx-auto px-3 sm:px-6 py-4 sm:py-8">
-      {/* Breadcrumb Navigation */}
-      <nav aria-label="Breadcrumbs" className="mb-4 text-xs font-semibold text-surface-500">
-        <ol className="flex items-center gap-1.5 flex-wrap">
-          <li>
-            <Link href="/" className="hover:text-surface-950 transition-colors">Home</Link>
-          </li>
-          <li>/</li>
-          <li>
-            <Link href="/products" className="hover:text-surface-950 transition-colors">Products</Link>
-          </li>
-          <li>/</li>
-          <li>
-            <Link
-              href={`/products/category/${encodeURIComponent(product.category || 'Unstitched')}`}
-              className="hover:text-surface-950 transition-colors"
-            >
-              {product.category || 'Unstitched'}
-            </Link>
-          </li>
-          <li>/</li>
-          <li className="text-surface-900 font-bold truncate max-w-[200px] sm:max-w-none">{product.name}</li>
-        </ol>
-      </nav>
-
+    <div className="max-w-[1536px] mx-auto px-3 sm:px-6 py-4 sm:py-6">
       {/* Main Product Container */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
         {/* Left Column: Image Gallery */}

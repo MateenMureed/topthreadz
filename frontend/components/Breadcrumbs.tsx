@@ -41,6 +41,7 @@ export default function Breadcrumbs() {
   }
 
   const breadcrumbProductName = productBreadcrumbData?.data?.name as string | undefined;
+  const breadcrumbProductCategory = productBreadcrumbData?.data?.category as string | undefined;
 
   const crumbs: Array<{ href?: string; label: string }> = [{ href: '/', label: 'Home' }];
 
@@ -49,21 +50,27 @@ export default function Breadcrumbs() {
     if (segments[2]) {
       crumbs.push({ label: formatSegment(segments[2]) });
     }
+  } else if (segments[0] === 'products' && productSegment) {
+    // Product detail page: Home > Products > Category > Product Name
+    crumbs.push({ href: '/products', label: 'Products' });
+    if (breadcrumbProductCategory) {
+      crumbs.push({
+        href: `/products/category/${encodeURIComponent(breadcrumbProductCategory)}`,
+        label: breadcrumbProductCategory,
+      });
+    }
+    crumbs.push({
+      label: breadcrumbProductName || formatSegment(productSegment),
+    });
   } else {
     segments.forEach((segment, index) => {
       const href = `/${segments.slice(0, index + 1).join('/')}`;
       const isLast = index === segments.length - 1;
-      const isProductDetailLast = isLast && segments[0] === 'products' && segment === productSegment;
       crumbs.push({
         href: isLast ? undefined : href,
-        label: isProductDetailLast && breadcrumbProductName ? breadcrumbProductName : formatSegment(segment),
+        label: formatSegment(segment),
       });
     });
-  }
-
-  if (normalizedPathname === '/products' && brand) {
-    crumbs.push({ href: '/products', label: 'Brands' });
-    crumbs.push({ label: formatSegment(brand) });
   }
 
   return (
