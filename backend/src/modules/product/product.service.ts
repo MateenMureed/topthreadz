@@ -53,22 +53,22 @@ export class ProductService {
 
     const catQuery = (query.category || query.subcategory || '').trim();
     if (catQuery && catQuery !== 'All') {
-      const isUnstitched = /unstitched/i.test(catQuery);
+      const isUnstitched = /^unstitched/i.test(catQuery);
       if (isUnstitched) {
         andConditions.push({
           OR: [
             { category: { in: ['Unstitched Fabric', 'Unstitched'], mode: 'insensitive' } },
+            { category: { contains: 'unstitched', mode: 'insensitive' } },
             { subcategory: { contains: 'unstitched', mode: 'insensitive' } },
-            { collection: { contains: 'unstitched', mode: 'insensitive' } },
           ],
         });
       } else {
         andConditions.push({
           OR: [
             { category: { equals: catQuery, mode: 'insensitive' } },
+            { category: { contains: catQuery, mode: 'insensitive' } },
             { subcategory: { equals: catQuery, mode: 'insensitive' } },
             { collection: { equals: catQuery, mode: 'insensitive' } },
-            { tags: { has: catQuery } },
           ],
         });
       }
@@ -97,6 +97,12 @@ export class ProductService {
     }
     if (query.minDiscount) {
       andConditions.push({ discount: { gte: parseFloat(query.minDiscount) } });
+    }
+    if (query.featured === 'true' || query.featured === true) {
+      andConditions.push({ featured: true });
+    }
+    if (query.trending === 'true' || query.trending === true) {
+      andConditions.push({ trending: true });
     }
     if (query.size) {
       andConditions.push({ sizes: { has: query.size } });

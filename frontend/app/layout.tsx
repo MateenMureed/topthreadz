@@ -8,7 +8,6 @@ import MobileNav from '@/components/MobileNav';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import AuthRouteHandler from '@/components/AuthRouteHandler';
 import WhatsAppButton from '@/components/WhatsAppButton';
-import { STANDARD_SEO_TAGS } from '@/lib/standardProductDetails';
 import './globals.css';
 
 const CartDrawer = dynamic(() => import('@/components/CartDrawer'));
@@ -24,23 +23,6 @@ export const metadata: Metadata = {
     template: '%s | Top Threadz',
   },
   description: 'Official Top Threadz Store. Shop premium unstitched men\'s fabric in Pakistan. Visit our flagship store at Zamzama Commercial Area DHA Phase 5 Karachi. Free delivery nationwide on orders over PKR 10,000.',
-  keywords: [
-    'Top Threadz',
-    'Top Threadz Zamzama',
-    'Top Threadz Karachi',
-    'Top Threadz DHA Phase 5',
-    'Top Threadz Zamzama Commercial Area',
-    'Top Threadz Karachi Outlet',
-
-    'topthreadz.com.pk',
-    'topthreadz',
-    'men unstitched fabric Pakistan',
-    'wash n wear suit',
-    '4.5 meter men suit',
-    'boski fabric karachi',
-    'R28V+R3W Karachi',
-    ...STANDARD_SEO_TAGS,
-  ],
   alternates: {
     canonical: '/',
   },

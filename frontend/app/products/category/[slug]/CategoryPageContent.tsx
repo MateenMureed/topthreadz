@@ -27,7 +27,6 @@ export default function CategoryPageContent({ slug }: Props) {
         page: pageParam as number,
         limit: 16,
         category: categoryName,
-        subcategory: categoryName,
         sortBy,
       }),
     getNextPageParam: (lastPage) => {

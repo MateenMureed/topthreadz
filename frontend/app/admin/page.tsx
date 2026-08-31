@@ -9,7 +9,7 @@ import { authService } from '@/services/auth.service';
 import { useHydration } from '@/hooks/useHydration';
 import api from '@/services/api';
 import { productService } from '@/services/product.service';
-import { FormattedProductDescription } from '@/app/products/[id]/page';
+import { FormattedProductDescription } from '@/components/ProductDetailClient';
 import {
   FiUsers,
   FiPackage,
@@ -197,7 +197,8 @@ const COLOR_PRESET_OPTIONS = [
 ];
 
 const STITCHED_SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL'];
-const UNSTITCHED_LENGTH_OPTIONS = ['4.5m', '7m'];
+const TWO_PIECE_SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL', 'Standard Fit'];
+const UNSTITCHED_SIZE_OPTIONS = ['4.5 Meters', '7 Meters', '4 Meters', '5 Meters', 'Standard (4.5M)'];
 
 interface ImageMeta {
   url: string;
@@ -1235,14 +1236,42 @@ function ProductsTab() {
     const nextErrors: Record<string, string> = {};
     if (!form.name.trim()) nextErrors.name = 'Product name is required';
     if (!form.description.trim()) nextErrors.description = 'Product description is required';
-    if (!form.subcategory.trim()) nextErrors.subcategory = 'Subcategory is required';
     if (!form.price || Number(form.price) <= 0) nextErrors.price = 'Regular price must be greater than zero';
-    if (!form.stock || Number(form.stock) < 0) nextErrors.stock = 'Stock quantity cannot be negative';
+    if (form.stock === '' || Number(form.stock) < 0) nextErrors.stock = 'Stock quantity cannot be negative';
     if (!form.sku.trim()) nextErrors.sku = 'SKU is required';
     if (form.images.length === 0) nextErrors.images = 'Upload at least one image';
     setFormErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
+
+  const [customColorInput, setCustomColorInput] = useState('');
+
+  const handleAddCustomColor = () => {
+    const val = customColorInput.trim();
+    if (!val) return;
+    const next = Array.from(new Set([...colorList, val]));
+    setForm((prev) => ({ ...prev, colorsText: next.join(', ') }));
+    setCustomColorInput('');
+  };
+
+  const handleToggleSize = (size: string) => {
+    const currentSizes = splitCsv(form.sizesText);
+    let nextSizes: string[];
+    if (currentSizes.includes(size)) {
+      nextSizes = currentSizes.filter((s) => s !== size);
+    } else {
+      nextSizes = [...currentSizes, size];
+    }
+    setForm((prev) => ({ ...prev, sizesText: nextSizes.join(', ') }));
+  };
+
+  const isTwoPieceCategory = /two\s*piece|2\s*piece/i.test(form.category);
+  const isUnstitchedCategory = /unstitched/i.test(form.category);
+  const activeCategorySizes = isTwoPieceCategory
+    ? TWO_PIECE_SIZE_OPTIONS
+    : isUnstitchedCategory
+    ? UNSTITCHED_SIZE_OPTIONS
+    : STITCHED_SIZE_OPTIONS;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1263,20 +1292,26 @@ function ProductsTab() {
     if (form.featured) generatedTags.push('featured');
     if (form.trending) generatedTags.push('trending');
 
+    const defaultSizesForCat = isTwoPieceCategory
+      ? TWO_PIECE_SIZE_OPTIONS
+      : isUnstitchedCategory
+      ? UNSTITCHED_SIZE_OPTIONS
+      : STITCHED_SIZE_OPTIONS;
+
     const payload = {
       name: form.name.trim(),
       slug: form.slug.trim() || undefined,
       description: form.description.trim(),
       category: form.category || 'Unstitched',
-      subcategory: form.subcategory.trim() || undefined,
-      brand: form.brand.trim() || undefined,
+      subcategory: form.category || 'Unstitched',
+      brand: 'Top Threadz',
       price: regularPrice,
       discount: discountPercent,
       stock: Number(form.stock || 0),
       stockStatus: form.stockStatus,
       lowStockThreshold: Number(form.lowStockThreshold || 0),
       sku: form.sku.trim() || undefined,
-      sizes: splitCsv(form.sizesText).length ? splitCsv(form.sizesText) : (isStitched ? STITCHED_SIZE_OPTIONS : UNSTITCHED_LENGTH_OPTIONS),
+      sizes: splitCsv(form.sizesText).length ? splitCsv(form.sizesText) : defaultSizesForCat,
       colors: splitCsv(form.colorsText),
       tags: Array.from(new Set(generatedTags)),
       images: orderedImages,
@@ -1303,7 +1338,6 @@ function ProductsTab() {
 
     setUploadingImages(true);
     try {
-      // Compress image files client-side to keep request payload tiny (< 300KB)
       const files = await Promise.all(rawFiles.map((file) => compressImageFile(file)));
       const uploadedImages = await productService.uploadImages(files);
       const uploadedUrls = uploadedImages.map((image) => image.url).filter(Boolean);
@@ -1390,8 +1424,8 @@ function ProductsTab() {
     <>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-surface-950">Products</h2>
-          <p className="text-sm text-surface-500">Manage the men&apos;s unstitched catalog, stock, pricing, and merchandising.</p>
+          <h2 className="text-xl font-bold text-[#0F1F3D]">Products</h2>
+          <p className="text-sm text-[#6B7280]">Manage clothing items, stock, pricing, and catalog merchandising.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -1399,66 +1433,22 @@ function ProductsTab() {
               const confirmed = window.confirm("Clean stale cart/search/view data and delete legacy non-unstitched products? Orders, payments, users, and current men's unstitched products will be kept.");
               if (confirmed) cleanupLegacyData.mutate();
             }}
-            className="btn-secondary !py-2 !px-4 text-sm flex items-center gap-2"
-            disabled={cleanupLegacyData.isPending}
+            className="admin-btn-secondary"
           >
-            <FiTrash2 className="w-4 h-4" /> {cleanupLegacyData.isPending ? 'Cleaning...' : 'Clean Legacy Data'}
+            Clean Legacy Data
           </button>
-          <button onClick={openCreateInlineForm} className="btn-primary !py-2 !px-4 text-sm flex items-center gap-2">
-            <FiPlus className="w-4 h-4" /> Add Product
+          <button onClick={openCreateInlineForm} className="admin-btn-primary">
+            <FiPlus className="inline w-3.5 h-3.5" /> Add Product
           </button>
-        </div>
-      </div>
-
-      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {[
-          { label: 'Published', value: publishedCount, icon: FiEye, tone: 'bg-emerald-50 text-emerald-700' },
-          { label: 'Drafts', value: draftCount, icon: FiEdit2, tone: 'bg-amber-50 text-amber-700' },
-          { label: 'Low stock', value: lowStockCount, icon: FiAlertTriangle, tone: 'bg-orange-50 text-orange-700' },
-          { label: 'Out of stock', value: outOfStockCount, icon: FiX, tone: 'bg-red-50 text-red-700' },
-        ].map((metric) => (
-          <div key={metric.label} className="rounded-2xl border border-surface-300 bg-white p-4 shadow-soft">
-            <div className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg ${metric.tone}`}>
-              <metric.icon className="h-4 w-4" />
-            </div>
-            <p className="text-2xl font-bold text-surface-950">{metric.value}</p>
-            <p className="text-xs font-semibold uppercase tracking-wide text-surface-500">{metric.label}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mb-4 rounded-2xl border border-surface-300 bg-white p-3 shadow-soft">
-        <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1fr_180px_160px]">
-          <div className="relative">
-            <FiSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
-            <input
-              className="input-field !pl-9"
-              placeholder="Search products by name, SKU, brand, or subcategory"
-              value={productSearch}
-              onChange={(e) => setProductSearch(e.target.value)}
-            />
-          </div>
-          <select className="input-field" value={productStatusFilter} onChange={(e) => setProductStatusFilter(e.target.value as typeof productStatusFilter)}>
-            <option value="ALL">All statuses</option>
-            <option value="PUBLISHED">Published</option>
-            <option value="DRAFT">Draft</option>
-            <option value="HIDDEN">Hidden</option>
-          </select>
-          <select className="input-field" value={stockView} onChange={(e) => setStockView(e.target.value as typeof stockView)}>
-            <option value="ALL">All stock</option>
-            <option value="LOW">Low stock</option>
-            <option value="OUT">Out of stock</option>
-          </select>
         </div>
       </div>
 
       {showInlineForm && (
-        <div className="mb-6 rounded-2xl border border-surface-300 bg-[#f7f7f5] p-3 shadow-soft md:p-5">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <div className="mb-6 rounded-[10px] border border-[#E5E7EB] bg-white p-4 shadow-sm md:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-[#E5E7EB]">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-surface-500">Product editor</p>
-              <p className="text-xl font-bold text-surface-950">{editingProduct ? 'Edit unstitched fabric' : 'Add unstitched fabric'}</p>
-              <p className="text-xs text-surface-500">Shopify-style setup for men&apos;s unstitched clothing.</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280]">Product Editor</p>
+              <h2 className="text-xl font-bold text-[#0F1F3D]">{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
             </div>
             <button
               type="button"
@@ -1469,334 +1459,480 @@ function ProductsTab() {
                 setImageMeta([]);
                 setFormErrors({});
               }}
-              className="btn-secondary !py-1.5 !px-3 text-xs"
+              className="admin-btn-secondary"
             >
               Close
             </button>
           </div>
 
-          <div className="mb-4 rounded-xl border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-600">
-            Choose a product type first. The editor shows garment sizes for stitched items and fabric lengths for unstitched items.
-          </div>
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6">
+            <div className="space-y-5">
+              {/* 1. Basic Information Panel */}
+              <section className="space-y-4 rounded-[10px] border border-[#E5E7EB] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="flex items-center justify-between gap-2 border-b border-[#E5E7EB] pb-2">
+                  <h3 className="text-sm font-bold text-[#0F1F3D] uppercase tracking-wide">1. Basic Information</h3>
+                  <button type="button" onClick={autofillBasicWithAi} className="text-xs text-[#0F1F3D] font-bold hover:underline">
+                    ⚡ Auto-Generate Description
+                  </button>
+                </div>
 
-          <form onSubmit={handleSubmit} className="admin-compact-form grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-4">
-            <div className="xl:col-span-1 space-y-4">
-                <section className="space-y-3 rounded-xl border border-surface-300 bg-white p-4 shadow-soft">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-base font-semibold text-surface-900">Basic information</h3>
-                    <button type="button" onClick={autofillBasicWithAi} className="admin-ai-btn">Generate Copy</button>
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-surface-600">Product Name *</label>
-                    <input
-                      className="input-field"
-                      placeholder="Premium Embroidered Lawn Suit"
-                      value={form.name}
-                      onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                <div>
+                  <label className="admin-label">Product Name *</label>
+                  <input
+                    className="admin-input"
+                    placeholder="e.g. Premium White Wash & Wear Suit"
+                    value={form.name}
+                    onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                  />
+                  {formErrors.name && <p className="text-xs text-[#B91C2B] mt-1">{formErrors.name}</p>}
+                </div>
+
+                <div>
+                  <label className="admin-label">Product Description (Rich Text) *</label>
+                  <div className="border border-[#D1D5DB] rounded-[8px] overflow-hidden">
+                    <div className="flex items-center gap-2 border-b border-[#E5E7EB] p-2 bg-[#F9FAFB]">
+                      <button type="button" onClick={() => applyRichText('bold')} className="admin-btn-secondary !h-7 !py-0 !px-2 text-xs font-bold">B</button>
+                      <button type="button" onClick={() => applyRichText('italic')} className="admin-btn-secondary !h-7 !py-0 !px-2 text-xs italic">I</button>
+                      <button type="button" onClick={() => applyRichText('insertUnorderedList')} className="admin-btn-secondary !h-7 !py-0 !px-2 text-xs">• List</button>
+                    </div>
+                    <div
+                      ref={descriptionEditorRef}
+                      contentEditable
+                      suppressContentEditableWarning
+                      onInput={(e) => {
+                        const html = (e.currentTarget as HTMLDivElement).innerHTML;
+                        setForm((prev) => ({ ...prev, description: html }));
+                      }}
+                      className="min-h-32 p-3 text-sm outline-none bg-white"
                     />
-                    {formErrors.name && <p className="text-xs text-red-600 mt-1">{formErrors.name}</p>}
+                  </div>
+                  {formErrors.description && <p className="text-xs text-[#B91C2B] mt-1">{formErrors.description}</p>}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="admin-label">Category *</label>
+                    <select
+                      className="admin-input"
+                      value={form.category}
+                      onChange={(e) => {
+                        const cat = e.target.value;
+                        const isTwoPiece = /two\s*piece|2\s*piece/i.test(cat);
+                        const isUnstitched = /unstitched/i.test(cat);
+                        const defaultSizes = isTwoPiece
+                          ? TWO_PIECE_SIZE_OPTIONS.join(', ')
+                          : isUnstitched
+                          ? UNSTITCHED_SIZE_OPTIONS.join(', ')
+                          : STITCHED_SIZE_OPTIONS.join(', ');
+                        setForm((prev) => ({ ...prev, category: cat, sizesText: prev.sizesText || defaultSizes }));
+                      }}
+                    >
+                      <option value="Unstitched">Unstitched</option>
+                      <option value="Stitched">Stitched</option>
+                      <option value="Two Piece">Two Piece</option>
+                      <option value="Kurta">Kurta</option>
+                      <option value="Boski">Boski</option>
+                      <option value="Kids">Kids</option>
+                      {categories.map((c: any) => (
+                        !['Unstitched', 'Stitched', 'Two Piece', 'Kurta', 'Boski', 'Kids'].includes(c.name) ? (
+                          <option key={c.id} value={c.name}>{c.name}</option>
+                        ) : null
+                      ))}
+                    </select>
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-surface-600">Product Description (Rich Text) *</label>
-                    <div className="border border-surface-200 rounded-xl overflow-hidden">
-                      <div className="flex items-center gap-2 border-b border-surface-200 p-2 bg-surface-50">
-                        <button type="button" onClick={() => applyRichText('bold')} className="btn-secondary !py-1 !px-2 text-xs">Bold</button>
-                        <button type="button" onClick={() => applyRichText('italic')} className="btn-secondary !py-1 !px-2 text-xs">Italic</button>
-                        <button type="button" onClick={() => applyRichText('insertUnorderedList')} className="btn-secondary !py-1 !px-2 text-xs">List</button>
-                      </div>
-                      <div
-                        ref={descriptionEditorRef}
-                        contentEditable
-                        suppressContentEditableWarning
-                        onInput={(e) => {
-                          const html = (e.currentTarget as HTMLDivElement).innerHTML;
-                          setForm((prev) => ({ ...prev, description: html }));
-                        }}
-                        className="min-h-36 p-3 text-sm outline-none"
-                      />
-                    </div>
-                    {formErrors.description && <p className="text-xs text-red-600 mt-1">{formErrors.description}</p>}
+                    <label className="admin-label">Collection / Season</label>
+                    <select
+                      className="admin-input"
+                      value={form.collection}
+                      onChange={(e) => setForm((prev) => ({ ...prev, collection: e.target.value }))}
+                    >
+                      <option value="">No Collection</option>
+                      {collectionOptions.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs font-semibold text-surface-600">Category *</label>
-                      <select className="input-field" value={form.category} onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}>
-                        <option value="">Select category</option>
-                        {categories.map((category: any) => <option key={category.id} value={category.name}>{category.name}</option>)}
-                        {categories.length === 0 && <option value="Unstitched">Unstitched (legacy)</option>}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-surface-600">Subcategory *</label>
-                      <select
-                        className="input-field"
-                        value={form.subcategory}
-                        onChange={(e) => setForm((prev) => ({ ...prev, subcategory: e.target.value }))}
-                      >
-                        <option value="">Select subcategory</option>
-                        {subcategoryOptions.map((subcategory) => (
-                          <option key={subcategory} value={subcategory}>{subcategory}</option>
-                        ))}
-                      </select>
-                      {formErrors.subcategory && <p className="text-xs text-red-600 mt-1">{formErrors.subcategory}</p>}
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-surface-600">Brand *</label>
-                      <select className="input-field" value={form.brand} onChange={(e) => setForm((prev) => ({ ...prev, brand: e.target.value }))}>
-                        <option value="">Select Brand</option>
-                        {BRAND_OPTIONS.map((brand) => (
-                          <option key={brand} value={brand}>{brand}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-surface-600">Tags</label>
-                      <input className="input-field" value={form.tagsText} onChange={(e) => setForm((prev) => ({ ...prev, tagsText: e.target.value }))} placeholder="embroidered, lawn, festive" />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="text-xs font-semibold text-surface-600">Product Slug</label>
-                      <input
-                        className="input-field"
-                        value={form.slug}
-                        onChange={(e) => {
-                          setIsSlugEditedManually(true);
-                          setForm((prev) => ({ ...prev, slug: makeSlug(e.target.value) }));
-                        }}
-                        placeholder="premium-embroidered-lawn-suit"
-                      />
-                    </div>
+                  <div>
+                    <label className="admin-label">Product Slug</label>
+                    <input
+                      className="admin-input"
+                      value={form.slug}
+                      onChange={(e) => {
+                        setIsSlugEditedManually(true);
+                        setForm((prev) => ({ ...prev, slug: makeSlug(e.target.value) }));
+                      }}
+                      placeholder="e.g. premium-white-suit"
+                    />
                   </div>
-                </section>
 
-                <section className="rounded-xl border border-surface-300 bg-white p-4 shadow-soft">
-                  <div className="mb-3 flex items-center justify-between gap-2">
-                    <h3 className="text-base font-semibold text-surface-900">Pricing & inventory</h3>
-                  </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-surface-600">Regular Price *</label>
-                    <input className="input-field" type="number" min="1" step="0.01" value={form.price} onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))} />
-                    {formErrors.price && <p className="text-xs text-red-600 mt-1">{formErrors.price}</p>}
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-surface-600">Discount %</label>
-                    <input className="input-field" type="number" min="0" max="100" step="1" value={form.discount} onChange={(e) => setForm((prev) => ({ ...prev, discount: e.target.value }))} />
+                    <label className="admin-label">Tags (comma-separated)</label>
+                    <input
+                      className="admin-input"
+                      value={form.tagsText}
+                      onChange={(e) => setForm((prev) => ({ ...prev, tagsText: e.target.value }))}
+                      placeholder="e.g. summer, wash and wear, luxury"
+                    />
                   </div>
                 </div>
-                </section>
+              </section>
 
-                <section className="rounded-xl border border-surface-300 bg-white p-4 shadow-soft">
-                  <div className="mb-3 flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide">Inventory</p>
-                    <button type="button" onClick={autofillInventoryWithAi} className="admin-ai-btn">Sync Status</button>
-                  </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* 2. Pricing & Inventory (Unified Single Panel) */}
+              <section className="space-y-4 rounded-[10px] border border-[#E5E7EB] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <h3 className="text-sm font-bold text-[#0F1F3D] uppercase tracking-wide border-b border-[#E5E7EB] pb-2">
+                  2. Pricing & Inventory
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="text-xs font-semibold text-surface-600">SKU (Auto) *</label>
-                    <input className="input-field bg-surface-100" value={form.sku} readOnly placeholder="MW-LAWN-001" />
-                    {formErrors.sku && <p className="text-xs text-red-600 mt-1">{formErrors.sku}</p>}
+                    <label className="admin-label">Regular Price (PKR) *</label>
+                    <input
+                      className="admin-input"
+                      type="number"
+                      min="1"
+                      step="1"
+                      placeholder="e.g. 4500"
+                      value={form.price}
+                      onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
+                    />
+                    {formErrors.price && <p className="text-xs text-[#B91C2B] mt-1">{formErrors.price}</p>}
                   </div>
+
                   <div>
-                    <label className="text-xs font-semibold text-surface-600">Stock Quantity *</label>
-                    <input className="input-field" type="number" min="0" value={form.stock} onChange={(e) => setForm((prev) => ({ ...prev, stock: e.target.value }))} />
-                    {formErrors.stock && <p className="text-xs text-red-600 mt-1">{formErrors.stock}</p>}
+                    <label className="admin-label">Discount (%)</label>
+                    <input
+                      className="admin-input"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      placeholder="e.g. 15"
+                      value={form.discount}
+                      onChange={(e) => setForm((prev) => ({ ...prev, discount: e.target.value }))}
+                    />
                   </div>
+
                   <div>
-                    <label className="text-xs font-semibold text-surface-600">Stock Status</label>
-                    <select className="input-field" value={form.stockStatus} onChange={(e) => setForm((prev) => ({ ...prev, stockStatus: e.target.value as ProductFormState['stockStatus'] }))}>
+                    <label className="admin-label">Effective Price (PKR)</label>
+                    <div className="h-10 px-3 flex items-center bg-[#F9FAFB] border border-[#D1D5DB] rounded-[8px] text-sm font-bold text-[#1A1A1A]">
+                      PKR {previewSalePrice.toLocaleString()}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="admin-label">Stock Quantity *</label>
+                    <input
+                      className="admin-input"
+                      type="number"
+                      min="0"
+                      placeholder="e.g. 50"
+                      value={form.stock}
+                      onChange={(e) => setForm((prev) => ({ ...prev, stock: e.target.value }))}
+                    />
+                    {formErrors.stock && <p className="text-xs text-[#B91C2B] mt-1">{formErrors.stock}</p>}
+                  </div>
+
+                  <div>
+                    <label className="admin-label">Stock Status</label>
+                    <select
+                      className="admin-input"
+                      value={form.stockStatus}
+                      onChange={(e) => setForm((prev) => ({ ...prev, stockStatus: e.target.value as ProductFormState['stockStatus'] }))}
+                    >
                       <option value="IN_STOCK">In Stock</option>
                       <option value="OUT_OF_STOCK">Out of Stock</option>
                       <option value="PREORDER">Preorder</option>
                     </select>
                   </div>
+
                   <div>
-                    <label className="text-xs font-semibold text-surface-600">Low Stock Alert Threshold</label>
-                    <input className="input-field" type="number" min="0" value={form.lowStockThreshold} onChange={(e) => setForm((prev) => ({ ...prev, lowStockThreshold: e.target.value }))} />
+                    <label className="admin-label">SKU (Auto)</label>
+                    <input
+                      className="admin-input bg-[#F9FAFB]"
+                      value={form.sku}
+                      onChange={(e) => setForm((prev) => ({ ...prev, sku: e.target.value }))}
+                      placeholder="TT-PROD-001"
+                    />
                   </div>
                 </div>
-                </section>
+              </section>
 
-                <section className="space-y-3 rounded-xl border border-surface-300 bg-white p-4 shadow-soft">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-base font-semibold text-surface-900">Variants</h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div>
-                      <label className="text-xs font-semibold text-surface-600">Collection / Season</label>
-                      <select className="input-field" value={form.collection} onChange={(e) => setForm((prev) => ({ ...prev, collection: e.target.value }))}>
-                        <option value="">No collection</option>
-                        {collectionOptions.map((c) => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-surface-600">Colors</label>
-                      <div className="flex gap-2">
-                        <select className="input-field" value={selectedColorPreset} onChange={(e) => setSelectedColorPreset(e.target.value)}>
-                          <option value="">Select color</option>
-                          {COLOR_PRESET_OPTIONS.map((color) => (
-                            <option key={color} value={color}>{color}</option>
-                          ))}
-                        </select>
-                        <button type="button" onClick={addColorFromPreset} className="btn-secondary !px-3 !py-2 text-xs">Add</button>
-                      </div>
-                    </div>
-                      <div>
-                        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-                          <label className="text-sm font-semibold text-surface-600">{isStitched ? 'Garment sizes' : 'Fabric lengths'}</label>
-                          <div className="flex gap-1.5 text-xs">
-                            {isStitched && <button type="button" onClick={() => setForm(p => ({ ...p, sizesText: STITCHED_SIZE_OPTIONS.join(', ') }))} className="text-brand-600 font-semibold hover:underline">S–XXL</button>}
-                          <span className="text-surface-300">•</span>
-                            {!isStitched && <button type="button" onClick={() => setForm(p => ({ ...p, sizesText: UNSTITCHED_LENGTH_OPTIONS.join(', ') }))} className="text-brand-600 font-semibold hover:underline">4.5m / 7m</button>}
-                        </div>
-                      </div>
-                      <input
-                        className="input-field"
-                        value={form.sizesText}
-                        onChange={(e) => setForm((prev) => ({ ...prev, sizesText: e.target.value }))}
-                        placeholder={isStitched ? 'S, M, L, XL' : '4.5m, 7m'}
-                      />
-                    </div>
+              {/* 3. Variants: Sizes & Colors */}
+              <section className="space-y-4 rounded-[10px] border border-[#E5E7EB] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <h3 className="text-sm font-bold text-[#0F1F3D] uppercase tracking-wide border-b border-[#E5E7EB] pb-2">
+                  3. Variants (Sizes & Colors)
+                </h3>
+
+                {/* Size Presets based on Category */}
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <label className="admin-label !mb-0">
+                      Available Sizes ({isTwoPieceCategory ? 'Two Piece Sizes' : isUnstitchedCategory ? 'Fabric Lengths' : 'Garment Sizes'})
+                    </label>
+                    <span className="text-xs text-[#6B7280]">Click chip to toggle</span>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    {colorList.length === 0 ? <p className="text-xs text-surface-500">No colors selected yet.</p> : null}
-                    {colorList.map((color) => (
-                      <button key={color} type="button" onClick={() => removeColor(color)} className="rounded-full border border-surface-300 bg-white px-3 py-1 text-xs text-surface-700 hover:bg-surface-100">
-                        {color} ×
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {activeCategorySizes.map((size) => {
+                      const isSelected = splitCsv(form.sizesText).includes(size);
+                      return (
+                        <button
+                          key={size}
+                          type="button"
+                          onClick={() => handleToggleSize(size)}
+                          className={`px-3 py-1 rounded-[6px] text-xs font-semibold transition-all ${
+                            isSelected
+                              ? 'bg-[#0F1F3D] text-white shadow-xs'
+                              : 'bg-[#F3F4F6] text-[#374151] border border-[#D1D5DB] hover:bg-[#E5E7EB]'
+                          }`}
+                        >
+                          {isSelected ? '✓ ' : '+ '}{size}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <input
+                    className="admin-input"
+                    value={form.sizesText}
+                    onChange={(e) => setForm((prev) => ({ ...prev, sizesText: e.target.value }))}
+                    placeholder="e.g. S, M, L, XL or 4.5 Meters, 7 Meters"
+                  />
+                </div>
+
+                {/* Add Color Option */}
+                <div className="pt-2 border-t border-[#E5E7EB]">
+                  <label className="admin-label">Add Colors</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      className="admin-input flex-1"
+                      placeholder="Type a color (e.g. Navy Blue, Off White) and press Enter"
+                      value={customColorInput}
+                      onChange={(e) => setCustomColorInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddCustomColor();
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCustomColor}
+                      className="admin-btn-primary shrink-0"
+                    >
+                      + Add Color
+                    </button>
+                  </div>
+
+                  {/* Popular color suggestion chips */}
+                  <div className="mt-2.5 flex flex-wrap gap-1.5 items-center">
+                    <span className="text-[11px] text-[#6B7280] font-medium mr-1">Quick Add:</span>
+                    {COLOR_PRESET_OPTIONS.slice(0, 10).map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => {
+                          const next = Array.from(new Set([...colorList, color]));
+                          setForm((prev) => ({ ...prev, colorsText: next.join(', ') }));
+                        }}
+                        className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#F3F4F6] hover:bg-[#0F1F3D] hover:text-white transition-all text-[#374151]"
+                      >
+                        + {color}
                       </button>
                     ))}
                   </div>
 
-                </section>
-
-                <section className="space-y-3 rounded-xl border border-surface-300 bg-white p-4 shadow-soft">
-                  <h3 className="text-base font-semibold text-surface-900">Product images</h3>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-200 pb-3">
-                    <p className="text-sm font-semibold">Product Images</p>
-                    <label className="btn-secondary !py-1.5 !px-3 text-xs cursor-pointer inline-flex items-center gap-1 shrink-0">
-                      <FiUpload className="w-3.5 h-3.5" />
-                      {uploadingImages ? 'Uploading File...' : 'Upload Image File(s)'}
-                      <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" disabled={uploadingImages} />
-                    </label>
-                  </div>
-
-                  {/* Direct Image URL Input Option */}
-                  <div className="flex gap-2 items-center pt-1">
-                    <input
-                      type="url"
-                      placeholder="Or paste image URL (e.g. https://...)"
-                      value={directImageUrl}
-                      onChange={(e) => setDirectImageUrl(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddImageUrl(); } }}
-                      className="input-field flex-1 text-xs"
-                    />
-                    <button type="button" onClick={handleAddImageUrl} className="btn-secondary !py-2 !px-3 text-xs shrink-0 font-bold">
-                      + Add URL
-                    </button>
-                  </div>
-                  {formErrors.images && <p className="text-xs text-red-600">{formErrors.images}</p>}
-
-                  {form.images.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-surface-300 p-6 text-center text-sm text-surface-500">No images uploaded yet.</div>
-                  ) : (
-                    <div className="space-y-2">
-                      {form.images.map((img, index) => {
-                        const meta = imageMeta.find((item) => item.url === img);
-                        return (
-                          <div
-                            key={img}
-                            className="rounded-xl border border-surface-200 p-2 bg-white"
-                            draggable
-                            onDragStart={() => setDragImageIndex(index)}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={() => {
-                              if (dragImageIndex === null || dragImageIndex === index) return;
-                              moveImage(dragImageIndex, index);
-                              setDragImageIndex(null);
-                            }}
+                  {/* Selected Colors List */}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {colorList.length === 0 ? (
+                      <p className="text-xs text-[#6B7280]">No colors added yet.</p>
+                    ) : (
+                      colorList.map((color) => (
+                        <span
+                          key={color}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E2E8F4] text-[#0F1F3D] text-xs font-semibold"
+                        >
+                          {color}
+                          <button
+                            type="button"
+                            onClick={() => removeColor(color)}
+                            className="hover:text-[#B91C2B] font-bold"
+                            title="Remove color"
                           >
-                            <div className="flex flex-col md:flex-row gap-2">
-                              <AdminImage src={img} alt={meta?.alt || 'Product image'} className="w-full md:w-24 h-24 object-cover rounded-lg border border-surface-200" />
-                              <div className="flex-1 space-y-2">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <button type="button" onClick={() => setPrimaryImage(img)} className={`btn-secondary !py-1 !px-2 text-xs ${meta?.isPrimary ? '!bg-amber-100 !text-amber-700 !border-amber-200' : ''}`}>
-                                    <FiStar className="inline-block mr-1" /> {meta?.isPrimary ? 'Primary' : 'Set Primary'}
-                                  </button>
-                                  <button type="button" className="btn-secondary !py-1 !px-2 text-xs" onClick={() => index > 0 && moveImage(index, index - 1)}>
-                                    <FiArrowUp className="inline-block" />
-                                  </button>
-                                  <button type="button" className="btn-secondary !py-1 !px-2 text-xs" onClick={() => index < form.images.length - 1 && moveImage(index, index + 1)}>
-                                    <FiArrowDown className="inline-block" />
-                                  </button>
-                                  <button type="button" className="btn-secondary !py-1 !px-2 text-xs !text-red-600 !border-red-200" onClick={() => removeUploadedImage(img)}>
-                                    <FiTrash2 className="inline-block" />
-                                  </button>
-                                </div>
-                                <input
-                                  className="input-field !py-1.5"
-                                  placeholder="Alt text for SEO"
-                                  value={meta?.alt || ''}
-                                  onChange={(e) => updateImageAlt(img, e.target.value)}
-                                />
+                            ×
+                          </button>
+                        </span>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              {/* 4. Product Images */}
+              <section className="space-y-4 rounded-[10px] border border-[#E5E7EB] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E7EB] pb-2">
+                  <h3 className="text-sm font-bold text-[#0F1F3D] uppercase tracking-wide">4. Product Images</h3>
+                  <label className="admin-btn-secondary cursor-pointer inline-flex items-center gap-1 shrink-0">
+                    <FiUpload className="w-3.5 h-3.5" />
+                    {uploadingImages ? 'Uploading...' : 'Upload Image File(s)'}
+                    <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" disabled={uploadingImages} />
+                  </label>
+                </div>
+
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="url"
+                    placeholder="Or paste direct image URL (e.g. https://...)"
+                    value={directImageUrl}
+                    onChange={(e) => setDirectImageUrl(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddImageUrl();
+                      }
+                    }}
+                    className="admin-input flex-1"
+                  />
+                  <button type="button" onClick={handleAddImageUrl} className="admin-btn-secondary shrink-0">
+                    + Add URL
+                  </button>
+                </div>
+                {formErrors.images && <p className="text-xs text-[#B91C2B]">{formErrors.images}</p>}
+
+                {form.images.length === 0 ? (
+                  <div className="rounded-[8px] border border-dashed border-[#D1D5DB] p-6 text-center text-xs text-[#6B7280]">
+                    No images uploaded yet. Upload high resolution files or paste image URLs.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {form.images.map((img, index) => {
+                      const meta = imageMeta.find((item) => item.url === img);
+                      return (
+                        <div key={img} className="rounded-[8px] border border-[#E5E7EB] p-2 bg-[#FAFAF8]">
+                          <div className="flex flex-col sm:flex-row gap-3 items-center">
+                            <AdminImage src={img} alt={meta?.alt || 'Product image'} className="w-20 h-20 object-cover rounded-[6px] border border-[#E5E7EB] bg-white" />
+                            <div className="flex-1 space-y-2 w-full">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setPrimaryImage(img)}
+                                  className={`admin-btn-secondary !h-7 !py-0 !px-2.5 text-xs ${
+                                    meta?.isPrimary ? '!bg-[#DCFCE7] !text-[#16A34A] !border-[#16A34A]' : ''
+                                  }`}
+                                >
+                                  <FiStar className="inline mr-1" /> {meta?.isPrimary ? 'Primary Image' : 'Set Primary'}
+                                </button>
+                                <button type="button" className="admin-btn-secondary !h-7 !py-0 !px-2 text-xs" onClick={() => index > 0 && moveImage(index, index - 1)}>
+                                  <FiArrowUp className="inline" />
+                                </button>
+                                <button type="button" className="admin-btn-secondary !h-7 !py-0 !px-2 text-xs" onClick={() => index < form.images.length - 1 && moveImage(index, index + 1)}>
+                                  <FiArrowDown className="inline" />
+                                </button>
+                                <button type="button" className="admin-btn-destructive !h-7 !py-0 !px-2 text-xs" onClick={() => removeUploadedImage(img)}>
+                                  <FiTrash2 className="inline" />
+                                </button>
                               </div>
+                              <input
+                                className="admin-input !h-8 text-xs"
+                                placeholder="Alt text for SEO (e.g. Men's white unstitched suit)"
+                                value={meta?.alt || ''}
+                                onChange={(e) => updateImageAlt(img, e.target.value)}
+                              />
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </section>
-
-                <section className="rounded-xl border border-surface-300 bg-white p-4 shadow-soft">
-                  <div className="mb-3 flex items-center justify-between gap-2">
-                    <h3 className="text-base font-semibold text-surface-900">Care instructions</h3>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <textarea className="input-field min-h-24" placeholder="Care Instructions" value={form.careInstructions} onChange={(e) => setForm((prev) => ({ ...prev, careInstructions: e.target.value }))} />
-                </section>
+                )}
+              </section>
 
-                <section className="rounded-xl border border-surface-300 bg-white p-4 shadow-soft">
-                  <h3 className="text-base font-semibold text-surface-900 mb-3">Status & visibility</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.featured} onChange={(e) => setForm((prev) => ({ ...prev, featured: e.target.checked }))} /> Featured Product</label>
-                  <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.trending} onChange={(e) => setForm((prev) => ({ ...prev, trending: e.target.checked }))} /> Trending / New Arrival</label>
+              {/* 5. Status & Visibility & Merchandising */}
+              <section className="space-y-4 rounded-[10px] border border-[#E5E7EB] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <h3 className="text-sm font-bold text-[#0F1F3D] uppercase tracking-wide border-b border-[#E5E7EB] pb-2">
+                  5. Merchandising & Visibility
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-[#1A1A1A] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.featured}
+                      onChange={(e) => setForm((prev) => ({ ...prev, featured: e.target.checked }))}
+                      className="w-4 h-4 rounded text-[#0F1F3D] focus:ring-[#0F1F3D]"
+                    />
+                    ⭐ Featured Product (Show in Featured List)
+                  </label>
+
+                  <label className="flex items-center gap-2 text-sm font-semibold text-[#1A1A1A] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.trending}
+                      onChange={(e) => setForm((prev) => ({ ...prev, trending: e.target.checked }))}
+                      className="w-4 h-4 rounded text-[#B91C2B] focus:ring-[#B91C2B]"
+                    />
+                    🔥 Trending / New Arrival (Show on Homepage)
+                  </label>
+
                   <div>
-                    <label className="text-xs font-semibold text-surface-600">Product Status</label>
-                    <select className="input-field" value={form.productStatus} onChange={(e) => setForm((prev) => ({ ...prev, productStatus: e.target.value as ProductFormState['productStatus'] }))}>
+                    <label className="admin-label">Product Status</label>
+                    <select
+                      className="admin-input"
+                      value={form.productStatus}
+                      onChange={(e) => setForm((prev) => ({ ...prev, productStatus: e.target.value as ProductFormState['productStatus'] }))}
+                    >
                       <option value="DRAFT">Draft</option>
                       <option value="PUBLISHED">Published</option>
                       <option value="HIDDEN">Hidden</option>
                     </select>
                   </div>
-                </div>
-                </section>
 
-              <div className="pt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                  <div>
+                    <label className="admin-label">Care Instructions</label>
+                    <input
+                      className="admin-input"
+                      placeholder="e.g. Hand wash in cold water, do not bleach"
+                      value={form.careInstructions}
+                      onChange={(e) => setForm((prev) => ({ ...prev, careInstructions: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Form Action Buttons */}
+              <div className="pt-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => {
                     setShowInlineForm(false);
                     setEditingProduct(null);
                   }}
-                  className="btn-secondary min-h-11 !py-2 !px-4 text-sm"
+                  className="admin-btn-secondary"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary min-h-11 !py-2 !px-4 text-sm" disabled={createProduct.isPending || updateProduct.isPending}>
-                  {editingProduct ? (updateProduct.isPending ? 'Saving...' : 'Update product') : (createProduct.isPending ? 'Creating...' : 'Save product')}
+                <button
+                  type="submit"
+                  className="admin-btn-primary !h-10 !px-6 text-sm"
+                  disabled={createProduct.isPending || updateProduct.isPending}
+                >
+                  {editingProduct
+                    ? updateProduct.isPending ? 'Saving Changes...' : 'Update Product'
+                    : createProduct.isPending ? 'Creating Product...' : 'Publish Product'}
                 </button>
               </div>
             </div>
 
+            {/* Sidebar Preview */}
             <div className="xl:col-span-1">
-              <div className="sticky top-4 space-y-4">
-              <div className="rounded-xl border border-surface-300 bg-white p-4 shadow-soft space-y-3">
-                <p className="font-semibold">Storefront preview</p>
-                <div className="rounded-xl overflow-hidden border border-surface-200 bg-white">
-                  <div className="relative aspect-[4/5] bg-surface-100 overflow-hidden">
+              <div className="sticky top-20 space-y-4">
+                <div className="admin-card space-y-3">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">Storefront Card Preview</p>
+                  <div className="rounded-[10px] overflow-hidden border border-[#E5E7EB] bg-white">
+                    <div className="relative aspect-[4/5] bg-[#F9FAFB] overflow-hidden">
                     {form.images[0] ? (
                       <AdminImage src={form.images[0]} alt="Preview" className="h-full w-full object-cover" />
                     ) : (
@@ -1826,9 +1962,53 @@ function ProductsTab() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-surface-300 bg-white shadow-soft">
-        <div className="border-b border-surface-200 px-4 py-3">
-          <p className="text-sm font-semibold text-surface-950">{filteredProducts.length} product(s)</p>
+      {/* Summary Metric Cards */}
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          { label: 'Published', value: publishedCount, icon: FiEye, tone: 'bg-[#DCFCE7] text-[#16A34A]' },
+          { label: 'Drafts', value: draftCount, icon: FiEdit2, tone: 'bg-[#FEF3C7] text-[#D97706]' },
+          { label: 'Low Stock', value: lowStockCount, icon: FiAlertTriangle, tone: 'bg-[#FFEDD5] text-[#EA580C]' },
+          { label: 'Out of Stock', value: outOfStockCount, icon: FiX, tone: 'bg-[#FEE2E2] text-[#B91C2B]' },
+        ].map((metric) => (
+          <div key={metric.label} className="rounded-[10px] border border-[#E5E7EB] bg-white p-4 shadow-xs">
+            <div className={`mb-2 inline-flex h-8 w-8 items-center justify-center rounded-md ${metric.tone}`}>
+              <metric.icon className="h-4 w-4" />
+            </div>
+            <p className="text-2xl font-black text-[#1A1A1A]">{metric.value}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280]">{metric.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Search and Filters Bar */}
+      <div className="mb-4 rounded-[10px] border border-[#E5E7EB] bg-white p-3 shadow-xs">
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1fr_180px_160px]">
+          <div className="relative">
+            <FiSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
+            <input
+              className="admin-input !pl-9"
+              placeholder="Search products by name, SKU, or category..."
+              value={productSearch}
+              onChange={(e) => setProductSearch(e.target.value)}
+            />
+          </div>
+          <select className="admin-input" value={productStatusFilter} onChange={(e) => setProductStatusFilter(e.target.value as typeof productStatusFilter)}>
+            <option value="ALL">All Statuses</option>
+            <option value="PUBLISHED">Published</option>
+            <option value="DRAFT">Draft</option>
+            <option value="HIDDEN">Hidden</option>
+          </select>
+          <select className="admin-input" value={stockView} onChange={(e) => setStockView(e.target.value as typeof stockView)}>
+            <option value="ALL">All Stock</option>
+            <option value="LOW">Low Stock</option>
+            <option value="OUT">Out of Stock</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-[10px] border border-[#E5E7EB] bg-white shadow-xs">
+        <div className="border-b border-[#E5E7EB] px-4 py-3 bg-[#F9FAFB]">
+          <p className="text-sm font-bold text-[#0F1F3D]">{filteredProducts.length} Product(s)</p>
         </div>
         {filteredProducts.length === 0 ? (
           <div className="p-10 text-center text-sm text-surface-500">No products match the current filters.</div>
