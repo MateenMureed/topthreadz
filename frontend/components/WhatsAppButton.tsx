@@ -16,19 +16,21 @@ export default function WhatsAppButton() {
   const phoneNumber = rawNumber.replace(/\D/g, '');
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=Hi%20TopThreadz%2C%20I%20have%20an%20inquiry%20about%20your%20products.`;
 
-  if (pathname?.startsWith('/admin') || pathname?.startsWith('/products/')) return null;
-
   return (
     <a
       href={whatsappUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-[136px] right-3.5 sm:bottom-28 sm:right-6 md:bottom-8 md:right-8 z-[80] flex items-center gap-2 rounded-full bg-[#25D366] px-3.5 py-3 sm:px-4 sm:py-3 text-white shadow-[0_4px_20px_rgba(37,211,102,0.4)] transition-all duration-300 hover:scale-105 hover:bg-[#20ba5a] hover:shadow-[0_6px_28px_rgba(37,211,102,0.5)] active:scale-95 group"
+      className={`fixed right-3.5 sm:right-6 md:right-8 z-[75] flex items-center gap-2 rounded-full bg-[#25D366] text-white shadow-[0_4px_20px_rgba(37,211,102,0.4)] transition-all duration-300 hover:scale-105 hover:bg-[#20ba5a] hover:shadow-[0_6px_28px_rgba(37,211,102,0.5)] active:scale-95 group ${
+        pathname?.startsWith('/products/')
+          ? 'bottom-[76px] p-3 sm:px-4 sm:py-3'
+          : 'bottom-[72px] sm:bottom-20 md:bottom-8 p-3 sm:px-4 sm:py-3'
+      }`}
       aria-label="Chat with us on WhatsApp"
       title={`Chat with us on WhatsApp (${rawNumber})`}
     >
       <svg
-        className="h-6 w-6 fill-current transition-transform duration-300 group-hover:rotate-12"
+        className="h-5 w-5 sm:h-6 sm:w-6 fill-current transition-transform duration-300 group-hover:rotate-12"
         viewBox="0 0 24 24"
         xmlns="http://www.w3.org/2000/svg"
       >

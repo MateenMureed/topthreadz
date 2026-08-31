@@ -49,66 +49,75 @@ export class ProductService {
     const limit = parseInt(query.limit || '16');
     const skip = (page - 1) * limit;
 
-    const where: Prisma.ProductWhereInput = { isActive: true };
+    const andConditions: Prisma.ProductWhereInput[] = [{ isActive: true }];
 
-    if (query.category && !query.subcategory && !query.collection) {
-      where.category = query.category === 'Unstitched Fabric'
-        ? { in: ['Unstitched Fabric', 'Unstitched'], mode: 'insensitive' }
-        : { equals: query.category, mode: 'insensitive' };
+    const catQuery = (query.category || query.subcategory || '').trim();
+    if (catQuery && catQuery !== 'All') {
+      const isUnstitched = /unstitched/i.test(catQuery);
+      if (isUnstitched) {
+        andConditions.push({
+          OR: [
+            { category: { in: ['Unstitched Fabric', 'Unstitched'], mode: 'insensitive' } },
+            { subcategory: { contains: 'unstitched', mode: 'insensitive' } },
+            { collection: { contains: 'unstitched', mode: 'insensitive' } },
+          ],
+        });
+      } else {
+        andConditions.push({
+          OR: [
+            { category: { equals: catQuery, mode: 'insensitive' } },
+            { subcategory: { equals: catQuery, mode: 'insensitive' } },
+            { collection: { equals: catQuery, mode: 'insensitive' } },
+            { tags: { has: catQuery } },
+          ],
+        });
+      }
     }
-    if (query.subcategory && query.collection) {
-      where.subcategory = { equals: query.subcategory, mode: 'insensitive' };
-      where.collection = { equals: query.collection, mode: 'insensitive' };
-    } else if (query.subcategory) {
-      where.OR = [
-        { subcategory: { equals: query.subcategory, mode: 'insensitive' } },
-        { collection: { equals: query.subcategory, mode: 'insensitive' } },
-        { category: { equals: query.subcategory, mode: 'insensitive' } },
-      ];
-    } else if (query.collection) {
-      where.OR = [
-        { collection: { equals: query.collection, mode: 'insensitive' } },
-        { subcategory: { equals: query.collection, mode: 'insensitive' } },
-        { category: { equals: query.collection, mode: 'insensitive' } },
-      ];
-    }
+
     if (query.brand) {
-      where.brand = { equals: query.brand, mode: 'insensitive' };
+      andConditions.push({ brand: { equals: query.brand, mode: 'insensitive' } });
     }
     if (query.gender) {
-      where.gender = query.gender;
+      andConditions.push({ gender: query.gender });
     }
     if (query.productStatus) {
-      where.productStatus = query.productStatus;
+      andConditions.push({ productStatus: query.productStatus });
     }
     if (query.visibility) {
-      where.visibility = query.visibility;
+      andConditions.push({ visibility: query.visibility });
     }
     if (query.stockStatus) {
-      where.stockStatus = query.stockStatus;
+      andConditions.push({ stockStatus: query.stockStatus });
     }
     if (query.minPrice || query.maxPrice) {
-      where.price = {};
-      if (query.minPrice) where.price.gte = parseFloat(query.minPrice);
-      if (query.maxPrice) where.price.lte = parseFloat(query.maxPrice);
+      const priceFilter: Prisma.FloatFilter = {};
+      if (query.minPrice) priceFilter.gte = parseFloat(query.minPrice);
+      if (query.maxPrice) priceFilter.lte = parseFloat(query.maxPrice);
+      andConditions.push({ price: priceFilter });
     }
     if (query.minDiscount) {
-      where.discount = { gte: parseFloat(query.minDiscount) };
+      andConditions.push({ discount: { gte: parseFloat(query.minDiscount) } });
     }
     if (query.size) {
-      where.sizes = { has: query.size };
+      andConditions.push({ sizes: { has: query.size } });
     }
     if (query.color) {
-      where.colors = { has: query.color };
+      andConditions.push({ colors: { has: query.color } });
     }
     const searchText = String(query.search || '').trim();
     if (searchText) {
-      where.OR = [
-        { name: { contains: searchText, mode: 'insensitive' } },
-        { description: { contains: searchText, mode: 'insensitive' } },
-        { tags: { has: searchText } },
-      ];
+      andConditions.push({
+        OR: [
+          { name: { contains: searchText, mode: 'insensitive' } },
+          { description: { contains: searchText, mode: 'insensitive' } },
+          { tags: { has: searchText } },
+          { category: { contains: searchText, mode: 'insensitive' } },
+          { subcategory: { contains: searchText, mode: 'insensitive' } },
+        ],
+      });
     }
+
+    const where: Prisma.ProductWhereInput = andConditions.length > 1 ? { AND: andConditions } : andConditions[0] || {};
 
     let orderBy: Prisma.ProductOrderByWithRelationInput | Prisma.ProductOrderByWithRelationInput[] = [
       { featured: 'desc' },

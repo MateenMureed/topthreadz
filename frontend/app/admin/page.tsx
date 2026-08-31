@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/auth.service';
@@ -320,12 +321,58 @@ export default function AdminPage() {
   ] as const;
 
   return (
-    <div className="-mt-16 min-h-screen bg-[#f6f6f4]">
+    <div className="min-h-screen bg-[#f6f6f4]">
+      {/* ── TOP ADMIN HEADER BAR ── */}
+      <header className="sticky top-0 z-40 bg-white border-b border-surface-200 px-4 py-3 shadow-xs">
+        <div className="mx-auto max-w-[1440px] flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-2 group">
+              <span className="font-display font-black text-lg tracking-wider text-surface-950">
+                TOP THREADZ
+              </span>
+              <span className="rounded-md bg-surface-950 text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">
+                Admin
+              </span>
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              target="_blank"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-surface-300 bg-white px-3 py-1.5 text-xs font-bold text-surface-700 hover:bg-surface-50 transition-colors shadow-2xs"
+            >
+              <FiEye className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">View Storefront</span>
+            </Link>
+
+            <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-surface-200">
+              <div className="w-7 h-7 rounded-full bg-surface-950 text-white flex items-center justify-center text-xs font-bold">
+                {user?.name?.charAt(0) || 'A'}
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-bold text-surface-900 leading-none">{user?.name || 'Administrator'}</p>
+                <p className="text-[10px] text-surface-500 font-semibold">{user?.email || 'admin@topthreadz.pk'}</p>
+              </div>
+            </div>
+
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 px-3 py-1.5 text-xs font-bold hover:bg-red-100 transition-colors"
+              title="Sign out of Admin"
+            >
+              <FiLogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
       <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-5 px-3 py-4 lg:grid-cols-[240px_1fr] lg:px-5 lg:py-5">
-        <aside className="hidden h-fit rounded-2xl border border-surface-300 bg-white p-3 shadow-soft lg:sticky lg:top-24 lg:block">
+        <aside className="hidden h-fit rounded-2xl border border-surface-300 bg-white p-3 shadow-soft lg:sticky lg:top-20 lg:block">
           <div className="px-3 py-3">
-            <p className="text-xs font-bold uppercase tracking-wide text-surface-500">Top Threadz</p>
-            <p className="mt-1 text-xl font-bold text-surface-950">Commerce Admin</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-surface-500">Navigation</p>
+            <p className="mt-0.5 text-lg font-bold text-surface-950">Management Hub</p>
           </div>
           <nav className="mt-2 space-y-1">
             {tabs.map(tab => (

@@ -21,11 +21,12 @@ export default function Breadcrumbs() {
   const segments = normalizedPathname.split('/').filter(Boolean);
   const isHome = normalizedPathname === '/' || segments.length === 0;
   const brand = searchParams.get('brand');
-  const productSegment = segments[0] === 'products' && segments[1] ? segments[1] : '';
+  const isCategoryRoute = segments[0] === 'products' && segments[1] === 'category';
+  const productSegment = !isCategoryRoute && segments[0] === 'products' && segments[1] ? segments[1] : '';
 
   const { data: productBreadcrumbData } = useQuery({
     queryKey: ['breadcrumb-product', productSegment],
-    enabled: Boolean(productSegment) && normalizedPathname.startsWith('/products/'),
+    enabled: Boolean(productSegment) && normalizedPathname.startsWith('/products/') && !isCategoryRoute,
     queryFn: async () => {
       try {
         return await productService.getById(productSegment);
@@ -43,15 +44,22 @@ export default function Breadcrumbs() {
 
   const crumbs: Array<{ href?: string; label: string }> = [{ href: '/', label: 'Home' }];
 
-  segments.forEach((segment, index) => {
-    const href = `/${segments.slice(0, index + 1).join('/')}`;
-    const isLast = index === segments.length - 1;
-    const isProductDetailLast = isLast && segments[0] === 'products' && segment === productSegment;
-    crumbs.push({
-      href: isLast ? undefined : href,
-      label: isProductDetailLast && breadcrumbProductName ? breadcrumbProductName : formatSegment(segment),
+  if (isCategoryRoute) {
+    crumbs.push({ href: '/products', label: 'Products' });
+    if (segments[2]) {
+      crumbs.push({ label: formatSegment(segments[2]) });
+    }
+  } else {
+    segments.forEach((segment, index) => {
+      const href = `/${segments.slice(0, index + 1).join('/')}`;
+      const isLast = index === segments.length - 1;
+      const isProductDetailLast = isLast && segments[0] === 'products' && segment === productSegment;
+      crumbs.push({
+        href: isLast ? undefined : href,
+        label: isProductDetailLast && breadcrumbProductName ? breadcrumbProductName : formatSegment(segment),
+      });
     });
-  });
+  }
 
   if (normalizedPathname === '/products' && brand) {
     crumbs.push({ href: '/products', label: 'Brands' });

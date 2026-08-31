@@ -2,23 +2,20 @@
 
 import { Suspense, useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { productService } from '@/services/product.service';
 import ProductGrid from '@/components/ProductGrid';
-import { FiSearch, FiX } from 'react-icons/fi';
+import { FiSearch, FiX, FiFilter, FiCheck } from 'react-icons/fi';
 
-const SEASONAL_CATEGORIES = [
-  'All',
-  'Summer Collection',
-  'Winter Collection',
-  'Wedding',
-  'Formal',
-  'Semi-Formal',
-  'Casual',
-  'Office Wear',
-  'Festive Wear',
-  'Jummah Collection',
-  'Traditional',
+const PRIMARY_CATEGORIES = [
+  { name: 'All Products', slug: '' },
+  { name: 'Unstitched Fabric', slug: 'Unstitched-Fabric' },
+  { name: 'Stitched', slug: 'Stitched' },
+  { name: 'Summer Collection', slug: 'Summer-Collection' },
+  { name: 'Traditional', slug: 'Traditional' },
+  { name: 'Winter Collection', slug: 'Winter-Collection' },
+  { name: 'Festive Wear', slug: 'Festive-Wear' },
 ];
 
 const dedupeSuggestions = (items: Array<{ id: string; name: string; price: number; images?: string[] }>) => {
@@ -54,7 +51,8 @@ function ProductsPageContent() {
       const trimmedSearch = search.trim();
       return productService.getAll({
         page: pageParam as number,
-        limit: 12,
+        limit: 16,
+        category: subcategory || undefined,
         subcategory: subcategory || undefined,
         search: trimmedSearch || undefined,
         sortBy,
@@ -80,11 +78,6 @@ function ProductsPageContent() {
     if (observerTarget.current) observer.observe(observerTarget.current);
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  const { data: categoriesData } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => productService.getCategories(),
-  });
 
   const clearFilters = () => {
     setSubcategory('');
@@ -114,60 +107,92 @@ function ProductsPageContent() {
 
   const products = data?.pages.flatMap((page) => page?.data?.products || page?.products || []) || [];
   const firstPagePagination = data?.pages?.[0]?.data?.pagination || data?.pages?.[0]?.pagination;
-  const backendCategories: string[] = categoriesData?.data || [];
-
-  // Merge backend categories with our seasonal list (deduped)
-  const allCategoryOptions = (() => {
-    const merged = new Set<string>(SEASONAL_CATEGORIES);
-    backendCategories.forEach((cat) => merged.add(cat));
-    return Array.from(merged);
-  })();
-
-  const handleCategoryPill = (cat: string) => {
-    setSubcategory(cat === 'All' ? '' : cat);
-  };
-
-  const activeCategory = subcategory || 'All';
+  const totalItems = firstPagePagination?.total || products.length || 0;
 
   return (
-    <div className="max-w-[1500px] mx-auto px-4 py-6 bg-[#fafafa]">
-      {/* ── CATEGORY PILL TABS ── */}
-      <div className="mb-6 overflow-x-auto scrollbar-hide -mx-4 px-4">
-        <div className="flex items-center gap-2 pb-2 min-w-max">
-          {allCategoryOptions.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => handleCategoryPill(cat)}
-              className={`whitespace-nowrap rounded-full px-4 py-2 text-xs sm:text-sm font-bold transition-all border ${
-                activeCategory === cat
-                  ? 'bg-slate-950 text-white border-slate-950 shadow-md'
-                  : 'bg-white text-slate-800 border-slate-300 hover:border-slate-500 hover:bg-slate-100'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+    <div className="max-w-[1536px] mx-auto px-3 sm:px-6 py-4 sm:py-8 bg-[#fafafa]">
+      {/* ── HEADER BANNER ── */}
+      <div className="mb-6 rounded-2xl bg-white border border-surface-200/90 p-4 sm:p-7 shadow-soft">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.25em] text-surface-500">
+              Top Threadz Store
+            </span>
+            <h1 className="mt-1 text-2xl sm:text-3xl md:text-4xl font-display font-bold text-surface-950 uppercase tracking-tight">
+              {subcategory ? `${subcategory} Collection` : 'All Menswear & Fabrics'}
+            </h1>
+            <p className="mt-1.5 text-xs sm:text-sm text-surface-600 font-medium max-w-xl leading-relaxed">
+              Explore 4.5m unstitched wash & wear fabrics, Boski, and tailored ready-to-wear kurtas crafted with fine Pakistani tailoring.
+            </p>
+          </div>
+
+          <div className="text-left md:text-right shrink-0">
+            <span className="inline-block rounded-full bg-surface-100 px-3.5 py-1 text-xs font-bold text-surface-800 border border-surface-200">
+              {isLoading ? 'Loading items...' : `${totalItems.toLocaleString()} Products Available`}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* ── SEARCH + SORT BAR ── */}
+      {/* ── CATEGORY DIRECT LINKS (SEO Landing Hub) ── */}
+      <div className="mb-6 overflow-x-auto scrollbar-hide -mx-3 px-3 sm:mx-0 sm:px-0">
+        <div className="flex items-center gap-2 pb-2 min-w-max">
+          {PRIMARY_CATEGORIES.map((cat) => {
+            const isAll = cat.slug === '';
+            const isActive = isAll ? !subcategory : subcategory.toLowerCase() === cat.name.toLowerCase() || subcategory.toLowerCase() === cat.slug.toLowerCase();
+
+            if (isAll) {
+              return (
+                <button
+                  key="all"
+                  type="button"
+                  onClick={() => setSubcategory('')}
+                  className={`min-h-11 rounded-full px-4 py-2 text-xs sm:text-sm font-bold transition-all border ${
+                    isActive
+                      ? 'bg-surface-950 text-white border-surface-950 shadow-sm'
+                      : 'bg-white text-surface-700 border-surface-300 hover:border-surface-600 hover:bg-surface-50'
+                  }`}
+                >
+                  All Products
+                </button>
+              );
+            }
+
+            return (
+              <Link
+                key={cat.slug}
+                href={`/products/category/${cat.slug}`}
+                className={`min-h-11 inline-flex items-center rounded-full px-4 py-2 text-xs sm:text-sm font-bold transition-all border ${
+                  isActive
+                    ? 'bg-surface-950 text-white border-surface-950 shadow-sm'
+                    : 'bg-white text-surface-700 border-surface-300 hover:border-surface-600 hover:bg-surface-50'
+                }`}
+              >
+                {cat.name}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── SEARCH & SORT CONTROLS ── */}
       <div className="mb-6 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-        {/* Search */}
+        {/* Search Input */}
         <div className="relative flex-1 min-w-0">
-          <div className="h-11 rounded-xl border border-slate-300 bg-white flex items-center px-4 gap-2 shadow-sm">
-            <FiSearch className="w-4.5 h-4.5 text-slate-700 shrink-0" />
+          <div className="min-h-11 rounded-xl border border-surface-300 bg-white flex items-center px-3.5 gap-2.5 shadow-xs">
+            <FiSearch className="w-4 h-4 text-surface-500 shrink-0" />
             <input
               id="product-search"
               name="product-search"
               type="text"
-              placeholder="Search by product or fabric..."
+              placeholder="Search by fabric, color, or style..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
                 setShowSearchSuggestions(true);
               }}
               onFocus={() => setShowSearchSuggestions(true)}
-              className="w-full bg-transparent outline-none text-sm font-semibold text-slate-900 placeholder:text-slate-400"
+              className="w-full bg-transparent outline-none text-xs sm:text-sm font-semibold text-surface-900 placeholder:text-surface-400"
             />
             {search && (
               <button
@@ -177,16 +202,17 @@ function ProductsPageContent() {
                   setSearchSuggestions([]);
                   setShowSearchSuggestions(false);
                 }}
-                className="text-slate-600 hover:text-slate-950 p-1"
+                className="text-surface-400 hover:text-surface-900 p-1"
+                aria-label="Clear search"
               >
-                <FiX className="w-4 h-4 text-slate-700" />
+                <FiX className="w-4 h-4" />
               </button>
             )}
           </div>
 
           {/* Search Suggestions Dropdown */}
           {showSearchSuggestions && searchSuggestions.length > 0 && (
-            <div className="absolute z-20 mt-2 w-full bg-white border border-slate-300 rounded-xl shadow-lg max-h-72 overflow-auto">
+            <div className="absolute z-30 mt-2 w-full bg-white border border-surface-300 rounded-xl shadow-xl max-h-72 overflow-auto">
               {searchSuggestions.map((suggestion, index) => (
                 <button
                   key={`${suggestion.id}-${index}`}
@@ -196,78 +222,81 @@ function ProductsPageContent() {
                     setSearch('');
                     router.push(`/products/${suggestion.id}`);
                   }}
-                  className="w-full text-left px-3.5 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
+                  className="w-full text-left px-4 py-3 border-b border-surface-100 last:border-0 hover:bg-surface-50 transition-colors flex items-center justify-between"
                 >
-                  <p className="text-sm font-bold text-slate-950 line-clamp-1">{suggestion.name}</p>
-                  <p className="text-xs font-semibold text-slate-600">PKR {Math.round(suggestion.price || 0).toLocaleString()}</p>
+                  <span className="text-sm font-bold text-surface-950 line-clamp-1">{suggestion.name}</span>
+                  <span className="text-xs font-black text-surface-700 shrink-0 ml-2">PKR {Math.round(suggestion.price || 0).toLocaleString()}</span>
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* Sort */}
-        <div className="h-11 rounded-xl border border-slate-300 bg-white flex items-center px-4 shadow-sm min-w-[180px] sm:max-w-[220px]">
+        {/* Sort Select */}
+        <div className="min-h-11 rounded-xl border border-surface-300 bg-white flex items-center px-3 shadow-xs min-w-[170px] sm:max-w-[210px]">
+          <span className="text-xs font-semibold text-surface-500 mr-2 shrink-0">Sort:</span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full bg-transparent text-sm font-bold text-slate-900 outline-none cursor-pointer"
+            className="w-full bg-transparent text-xs sm:text-sm font-bold text-surface-900 outline-none cursor-pointer"
             id="sort-select"
           >
-            <option value="newest" className="bg-white text-slate-900 font-medium">Newest</option>
-            <option value="recommended" className="bg-white text-slate-900 font-medium">Recommended</option>
-            <option value="price_asc" className="bg-white text-slate-900 font-medium">Price: Low to High</option>
-            <option value="price_desc" className="bg-white text-slate-900 font-medium">Price: High to Low</option>
+            <option value="newest">Newest Drops</option>
+            <option value="recommended">Featured / Best</option>
+            <option value="price_asc">Price: Low to High</option>
+            <option value="price_desc">Price: High to Low</option>
           </select>
         </div>
 
-        {/* Clear */}
+        {/* Clear Filters Button */}
         {(subcategory || search) && (
           <button
+            type="button"
             onClick={clearFilters}
-            className="h-11 rounded-xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-800 hover:bg-slate-100 hover:border-slate-400 transition-all flex items-center gap-2 shadow-sm shrink-0"
+            className="min-h-11 rounded-xl border border-surface-300 bg-white px-4 text-xs sm:text-sm font-bold text-surface-800 hover:bg-surface-50 transition-all flex items-center justify-center gap-1.5 shadow-xs shrink-0"
           >
-            <FiX className="w-4 h-4 text-slate-800" /> Clear
+            <FiX className="w-4 h-4 text-surface-600" />
+            <span>Reset</span>
           </button>
         )}
       </div>
 
-      {/* ── ITEM COUNT ── */}
-      <div className="mb-4 flex items-center justify-between text-slate-800 font-bold text-sm px-1">
-        <span>{(firstPagePagination?.total || products.length || 0).toLocaleString()} items available</span>
-        {subcategory && (
-          <span className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-3.5 py-1 text-xs font-bold text-slate-950 bg-white shadow-xs">
+      {/* ── ACTIVE FILTERS ROW ── */}
+      {subcategory && (
+        <div className="mb-4 flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-semibold text-surface-500">Filtered by:</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-950 text-white px-3 py-1 text-xs font-bold shadow-xs">
             {subcategory}
             <button
               type="button"
-              className="text-slate-600 hover:text-slate-950"
               onClick={() => setSubcategory('')}
-              aria-label="Clear subcategory filter"
+              className="hover:opacity-80 p-0.5"
+              aria-label="Remove category filter"
             >
-              <FiX className="w-3.5 h-3.5 text-slate-800" />
+              <FiX className="w-3.5 h-3.5" />
             </button>
           </span>
-        )}
-      </div>
-
-      {/* ── PRODUCTS GRID ── */}
-      <div className="flex-1">
-        <ProductGrid products={products} loading={isLoading} />
-
-        {/* Infinite Scroll Trigger */}
-        <div ref={observerTarget} className="mt-8 flex justify-center py-6">
-          {isFetchingNextPage ? (
-            <div className="flex gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-700 animate-bounce" />
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-700 animate-bounce" style={{ animationDelay: '0.2s' }} />
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-700 animate-bounce" style={{ animationDelay: '0.4s' }} />
-            </div>
-          ) : hasNextPage ? (
-            <div className="h-8" />
-          ) : products.length > 0 ? (
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">End of Catalog</p>
-          ) : null}
         </div>
+      )}
+
+      {/* ── PRODUCT GRID ── */}
+      <ProductGrid products={products} loading={isLoading} showGridControls={true} initialGridCols={4} />
+
+      {/* ── INFINITE SCROLL LOADER ── */}
+      <div ref={observerTarget} className="mt-8 flex justify-center py-6">
+        {isFetchingNextPage ? (
+          <div className="flex gap-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-surface-800 animate-bounce" />
+            <div className="w-2.5 h-2.5 rounded-full bg-surface-800 animate-bounce" style={{ animationDelay: '0.2s' }} />
+            <div className="w-2.5 h-2.5 rounded-full bg-surface-800 animate-bounce" style={{ animationDelay: '0.4s' }} />
+          </div>
+        ) : hasNextPage ? (
+          <div className="h-8" />
+        ) : products.length > 0 ? (
+          <p className="text-xs font-bold text-surface-500 uppercase tracking-widest text-center">
+            You have reached the end of the collection
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -275,7 +304,7 @@ function ProductsPageContent() {
 
 export default function ProductsPage() {
   return (
-    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-8 text-slate-900 font-bold">Loading products...</div>}>
+    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-12 text-center text-surface-600 font-bold">Loading Top Threadz Catalog...</div>}>
       <ProductsPageContent />
     </Suspense>
   );

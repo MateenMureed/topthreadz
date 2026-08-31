@@ -80,8 +80,8 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative border-b border-surface-300 overflow-hidden bg-surface-950 text-white">
         {heroBanner ? (
-          <div className="relative w-full aspect-[3/4] sm:aspect-[16/7]">
-            <Link href="/products" className="block h-full" aria-label="Shop all products">
+          <div className="relative w-full h-[280px] xs:h-[340px] sm:h-[420px] md:h-[500px] lg:h-[580px] xl:h-[640px]">
+            <Link href="/products" className="block h-full w-full" aria-label="Shop all products">
               <Image
                 src={heroBanner}
                 alt="Top Threadz collection"
@@ -89,7 +89,7 @@ export default function HomePage() {
                 priority
                 fetchPriority="high"
                 sizes="100vw"
-                className="object-cover object-top"
+                className="object-cover object-top sm:object-center"
               />
             </Link>
           </div>

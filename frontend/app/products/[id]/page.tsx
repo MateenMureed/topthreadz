@@ -10,8 +10,9 @@ import ProductGrid from '@/components/ProductGrid';
 import ProductImageGallery from '@/components/ProductImageGallery';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
-import { FiMinus, FiPlus, FiHeart } from 'react-icons/fi';
+import { FiMinus, FiPlus, FiHeart, FiShoppingBag } from 'react-icons/fi';
 import Link from 'next/link';
+import Image from 'next/image';
 import toast from 'react-hot-toast';
 import ScrollReveal from '@/components/ScrollReveal';
 import { resolveImageUrl } from '@/lib/images';
@@ -720,6 +721,50 @@ export default function ProductDetailPage() {
           </section>
         </ScrollReveal>
       )}
+
+      {/* Mobile Sticky Add to Bag Bar */}
+      <aside
+        aria-label="Quick Add to Bag"
+        className="lg:hidden fixed bottom-3 inset-x-3 z-[85] max-w-lg mx-auto bg-slate-950/95 backdrop-blur-xl text-white rounded-full px-3 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.35)] border border-white/15 flex items-center justify-between gap-3 animate-fade-in"
+      >
+        <div className="flex items-center gap-2.5 min-w-0 pl-1">
+          {product.images?.[0] ? (
+            <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0 border border-white/20 bg-slate-900">
+              <Image
+                src={resolveImageUrl(product.images[0])}
+                alt={product.name}
+                fill
+                sizes="40px"
+                className="object-cover object-top"
+              />
+            </div>
+          ) : null}
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-white truncate max-w-[130px] sm:max-w-[180px]">
+              {product.name}
+            </p>
+            <div className="flex items-center gap-1.5 leading-none mt-0.5">
+              <span className="text-[13px] font-black text-white">
+                PKR {Math.round(effectivePrice).toLocaleString()}
+              </span>
+              {selectedSize && (
+                <span className="text-[10px] text-slate-300 font-bold bg-white/10 px-1.5 py-0.5 rounded">
+                  {selectedSize}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={handleAddToCart}
+          disabled={product.stock === 0}
+          className="min-h-11 px-5 rounded-full bg-white text-slate-950 text-xs font-black uppercase tracking-wider hover:bg-slate-100 active:scale-95 transition-all shadow-md shrink-0 flex items-center gap-1.5 disabled:opacity-50"
+        >
+          <FiShoppingBag className="w-3.5 h-3.5 stroke-[2.5]" />
+          <span>{addedInline ? 'Added ✓' : product.stock === 0 ? 'Sold Out' : 'Add to Bag'}</span>
+        </button>
+      </aside>
 
     </div>
   );
