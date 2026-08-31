@@ -364,16 +364,16 @@ export default function ProductDetailClient({ initialProduct, productId }: Produ
   };
 
   return (
-    <div className="max-w-[1536px] mx-auto px-3 sm:px-6 py-4 sm:py-6">
+    <div className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
       {/* Main Product Container */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
-        {/* Left Column: Image Gallery */}
-        <div className="lg:col-span-7">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-10">
+        {/* Left Column: Image Gallery — compact */}
+        <div className="lg:col-span-5">
           <ProductImageGallery images={galleryImages} name={product.name} category={product.category} />
         </div>
 
         {/* Right Column: Product Info & Actions */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="lg:col-span-7 space-y-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F1F3D] bg-surface-100 px-2.5 py-1 rounded-full">
