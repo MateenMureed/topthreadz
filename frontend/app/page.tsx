@@ -1,12 +1,9 @@
 'use client';
 
-import { useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
   FiChevronDown,
-  FiChevronLeft,
-  FiChevronRight,
   FiTruck,
   FiHeadphones,
   FiCheckCircle,
@@ -48,33 +45,6 @@ export default function HomePage() {
   const homepageSubheading = settingsData?.homepageSubheading || 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION';
   const homepageGridCols = ([2, 3, 4].includes(Number(settingsData?.homepageGridCols)) ? Number(settingsData.homepageGridCols) : 4) as 2 | 3 | 4;
 
-  const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
-  const categoryScrollRef = useRef<HTMLDivElement>(null);
-
-  const handleCategoryScroll = () => {
-    if (!categoryScrollRef.current) return;
-    const { scrollLeft, clientWidth } = categoryScrollRef.current;
-    if (clientWidth > 0) {
-      // On mobile cards are full-width; on sm+ they are partial
-      const isMobile = window.innerWidth < 640;
-      const cardWidth = isMobile ? clientWidth : clientWidth * 0.88;
-      const index = Math.round(scrollLeft / (cardWidth || 1));
-      setActiveCategoryIndex(Math.max(0, Math.min(categories.length - 1, index)));
-    }
-  };
-
-  const scrollCategory = (direction: 'left' | 'right') => {
-    if (!categoryScrollRef.current) return;
-    const isMobile = window.innerWidth < 640;
-    const scrollAmount = isMobile
-      ? categoryScrollRef.current.clientWidth
-      : categoryScrollRef.current.clientWidth * 0.88;
-    categoryScrollRef.current.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth',
-    });
-  };
-
   return (
     <div className="bg-white text-black">
       {/* Hero Section */}
@@ -109,103 +79,67 @@ export default function HomePage() {
         </a>
       </div>
 
-      {/* Explore Collection (Mobile Touch Slider & Grid) */}
-      <section className="w-full max-w-[1536px] mx-auto px-3 sm:px-6 py-6 sm:py-10 md:py-14">
-        <div className="mb-4 sm:mb-6 flex items-end justify-between gap-3">
+      {/* Explore Collection (Responsive Category Grid Across Breakpoints) */}
+      <section className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-10 md:py-14">
+        <div className="mb-5 sm:mb-8 flex items-end justify-between gap-3">
           <div>
-            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.25em] text-surface-500">Top Threadz</p>
-            <h2 className="mt-1 text-xl sm:text-2xl md:text-4xl font-display font-bold text-surface-950">Explore Our Collection</h2>
-            <p className="mt-1 text-xs sm:text-sm text-surface-600">Find your perfect Unstitched, Stitched & Kids Wear, all in one place.</p>
+            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.25em] text-surface-500">
+              Top Threadz
+            </p>
+            <h2 className="mt-1 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold text-surface-950">
+              Shop by Category
+            </h2>
+            <p className="mt-1 text-xs sm:text-sm text-surface-600">
+              Discover unstitched wash & wear fabrics, Boski, and tailored stitched collections.
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            {/* Desktop Navigation Arrows */}
-            <div className="hidden sm:flex items-center gap-1.5 mr-2">
-              <button
-                type="button"
-                onClick={() => scrollCategory('left')}
-                className="w-8 h-8 rounded-full border border-surface-300 flex items-center justify-center text-surface-700 hover:bg-surface-100 transition-colors"
-                aria-label="Previous categories"
-              >
-                <FiChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollCategory('right')}
-                className="w-8 h-8 rounded-full border border-surface-300 flex items-center justify-center text-surface-700 hover:bg-surface-100 transition-colors"
-                aria-label="Next categories"
-              >
-                <FiChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-            <Link href="/products" className="text-xs sm:text-sm font-semibold underline underline-offset-4 shrink-0">View all</Link>
-          </div>
+          <Link
+            href="/products"
+            className="text-xs sm:text-sm font-bold text-surface-900 hover:text-black underline underline-offset-4 shrink-0"
+          >
+            View all →
+          </Link>
         </div>
 
-        {/* Categories Scroll / Touch Slider */}
-        <div
-          ref={categoryScrollRef}
-          onScroll={handleCategoryScroll}
-          className="flex snap-x snap-mandatory gap-3 sm:gap-4 overflow-x-auto pb-4 pt-1 -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-none scroll-smooth"
-        >
+        {/* Responsive Category Cards Grid: Mobile 2-col, Tablet 2-3 col, Desktop 3-4 col max */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
           {categories.map((category: any, idx: number) => (
             <Link
               key={category.id}
               href={`/products/category/${encodeURIComponent(category.slug || category.name)}`}
-              className="group relative w-[calc(100vw-24px)] min-w-[calc(100vw-24px)] sm:min-w-[210px] sm:w-auto lg:flex-1 snap-start overflow-hidden rounded-2xl bg-surface-100 border border-surface-200/90 shadow-soft hover:shadow-lg transition-all"
+              className="group relative block aspect-[4/5] w-full min-h-[44px] overflow-hidden rounded-xl bg-surface-100 border border-surface-200/90 shadow-soft hover:shadow-lg transition-all duration-300 active:scale-[0.98]"
             >
-              <div className="aspect-[3/4]">
-                <Image
-                  src={category.coverImage || `https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=700&q=80`}
-                  alt={category.name}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 25vw"
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 pt-12 sm:p-5 sm:pt-16 text-white flex items-end justify-between">
-                <div>
-                  <span className="inline-block px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white mb-1.5">
-                    {idx + 1} / {categories.length}
+              <Image
+                src={category.coverImage || `https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=700&q=80`}
+                alt={category.name}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent p-3 sm:p-4.5 pt-10 sm:pt-14 text-white flex items-end justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <span
+                    className="inline-block px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md font-bold uppercase tracking-wider text-white mb-1.5 whitespace-nowrap"
+                    style={{ fontSize: 'clamp(10px, 1.8vw, 12px)' }}
+                  >
+                    Collection {idx + 1}
                   </span>
-                  <h3 className="text-base sm:text-lg font-extrabold uppercase tracking-wide drop-shadow-md line-clamp-1">
+                  <h3
+                    className="font-extrabold uppercase tracking-wide drop-shadow-md whitespace-nowrap truncate leading-tight"
+                    style={{ fontSize: 'clamp(12px, 2.2vw, 18px)' }}
+                  >
                     {category.name}
                   </h3>
                 </div>
-                <span className="w-8 h-8 rounded-full bg-white text-surface-950 flex items-center justify-center text-sm font-bold transition-transform group-hover:translate-x-1 shrink-0 ml-2 shadow-md">
+                <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white text-surface-950 flex items-center justify-center text-xs sm:text-sm font-bold transition-transform group-hover:translate-x-1 shrink-0 shadow-md">
                   →
                 </span>
               </div>
             </Link>
           ))}
-          {categories.length === 0 && <p className="text-xs sm:text-sm text-surface-500">Collections coming soon.</p>}
         </div>
-
-        {/* Mobile Swipe Dot Indicators */}
-        {categories.length > 1 && (
-          <div className="flex sm:hidden items-center justify-center gap-1.5 mt-2">
-            {categories.map((_: any, dotIdx: number) => (
-              <button
-                key={dotIdx}
-                type="button"
-                onClick={() => {
-                  if (categoryScrollRef.current) {
-                    // Full-width cards on mobile
-                    const cardWidth = categoryScrollRef.current.clientWidth;
-                    categoryScrollRef.current.scrollTo({
-                      left: dotIdx * (cardWidth + 12), // +gap
-                      behavior: 'smooth',
-                    });
-                  }
-                }}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  activeCategoryIndex === dotIdx
-                    ? 'w-6 bg-surface-950'
-                    : 'w-1.5 bg-surface-300'
-                }`}
-                aria-label={`Slide to category ${dotIdx + 1}`}
-              />
-            ))}
-          </div>
+        {categories.length === 0 && (
+          <p className="text-xs sm:text-sm text-surface-500 text-center py-8">Collections coming soon.</p>
         )}
       </section>
 
