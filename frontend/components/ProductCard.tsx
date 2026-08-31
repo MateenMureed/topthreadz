@@ -235,25 +235,25 @@ export default function ProductCard({
             type="button"
             onClick={handleToggleWishlist}
             disabled={wishlistLoading}
-            className={`absolute right-2 top-2 sm:right-3 sm:top-3 z-20 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full shadow-md backdrop-blur-md transition-all duration-300
+            className={`absolute right-2 top-2 sm:right-3 sm:top-3 z-20 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full shadow-md backdrop-blur-md transition-all duration-150
               opacity-90 sm:opacity-0 translate-y-0 sm:translate-y-1 sm:group-hover:opacity-100 sm:group-hover:translate-y-0
-              pointer-events-auto
-              ${isWishlisted ? 'bg-white/95 text-pink-600 border border-pink-200' : 'bg-white/95 text-slate-900 border border-slate-200/80 hover:scale-105'}`}
+              pointer-events-auto active:scale-[0.98]
+              ${isWishlisted ? 'bg-white text-[#B91C2B] border border-[#B91C2B]/30' : 'bg-white/95 text-[#0F1F3D] border border-surface-300 hover:border-[#0F1F3D]'}`}
             aria-label="Add to wishlist"
             title="Wishlist"
           >
-            <FiHeart className={`h-4 w-4 ${isWishlisted ? 'fill-current text-pink-600' : 'text-slate-900 stroke-[2.2]'}`} />
+            <FiHeart className={`h-4 w-4 ${isWishlisted ? 'fill-current text-[#B91C2B]' : 'text-[#0F1F3D] stroke-[2.2]'}`} />
           </button>
 
-          {/* Add to Cart — Desktop hover only, completely hidden on mobile so cards are clean */}
+          {/* Add to Cart — Desktop hover only, solid primary red #B91C2B */}
           <div
-            className="absolute inset-x-0 bottom-0 z-20 hidden sm:flex items-center justify-center pb-3 pt-10 sm:translate-y-full sm:group-hover:translate-y-0 transition-transform duration-300 ease-out pointer-events-none group-hover:pointer-events-auto"
-            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)' }}
+            className="absolute inset-x-0 bottom-0 z-20 hidden sm:flex items-center justify-center pb-3 pt-10 sm:translate-y-full sm:group-hover:translate-y-0 transition-transform duration-150 ease-out pointer-events-none group-hover:pointer-events-auto"
+            style={{ background: 'linear-gradient(to top, rgba(15,31,61,0.6) 0%, transparent 100%)' }}
           >
             <button
               type="button"
               onClick={handleAddToCart}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white text-slate-950 px-5 py-2.5 text-[12px] sm:text-[13px] font-bold shadow-lg hover:bg-slate-950 hover:text-white transition-all duration-200 active:scale-95"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-[6px] bg-[#B91C2B] text-white px-5 py-2.5 text-[13px] font-semibold shadow-md hover:bg-[#8F1620] transition-all duration-150 active:scale-[0.98]"
               aria-label="Add to cart"
             >
               <FiShoppingBag className="h-4 w-4 stroke-[2.5]" />
@@ -264,27 +264,27 @@ export default function ProductCard({
 
         <div className="pt-2.5 sm:pt-3.5">
           {/* Category / Subcategory standard label */}
-          <p className="truncate text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-[0.18em]">
+          <p className="truncate text-[10px] sm:text-[11px] font-bold text-[#6B7280] uppercase tracking-[0.18em]">
             Men | {subcategory || category || 'Premium Fabric'}
           </p>
 
           {/* Title with clean 2-line clamp */}
-          <h3 className="mt-1 line-clamp-2 text-[13px] sm:text-[14px] font-bold leading-snug text-slate-950 group-hover:text-slate-700 transition-colors">
+          <h3 className="mt-1 line-clamp-2 text-[13px] sm:text-[14px] font-bold leading-snug text-[#1A1A1A] group-hover:text-[#0F1F3D] transition-colors">
             {name}
           </h3>
 
           {/* Price & discount row */}
           <div className="mt-1.5 flex items-center gap-2 flex-wrap">
-            <span className="text-[14px] sm:text-[15px] font-black leading-none text-slate-950">
+            <span className="text-[14px] sm:text-[15px] font-black leading-none text-[#1A1A1A]">
               PKR {Math.round(effectivePrice).toLocaleString()}
             </span>
             {discount > 0 ? (
-              <span className="text-[11px] sm:text-[12px] font-semibold leading-none text-slate-400 line-through">
+              <span className="text-[11px] sm:text-[12px] font-semibold leading-none text-[#6B7280] line-through">
                 PKR {price.toLocaleString()}
               </span>
             ) : null}
             {discount > 0 ? (
-              <span className="rounded-full bg-red-600 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.02em] text-white">
+              <span className="rounded-full bg-[#B91C2B] px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.02em] text-white shadow-2xs">
                 {discount}% Off
               </span>
             ) : null}
@@ -296,13 +296,13 @@ export default function ProductCard({
               {sizes.slice(0, 4).map((size) => (
                 <span
                   key={size}
-                  className="inline-flex items-center justify-center rounded border border-slate-300/80 bg-white px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold text-slate-700 leading-none shadow-2xs"
+                  className="inline-flex items-center justify-center rounded border border-[#E5E7EB] bg-[#FAFAF8] px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold text-[#374151] leading-none"
                 >
                   {size}
                 </span>
               ))}
               {sizes.length > 4 && (
-                <span className="text-[9px] sm:text-[10px] font-bold text-slate-400">+{sizes.length - 4}</span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-[#6B7280]">+{sizes.length - 4}</span>
               )}
             </div>
           ) : null}

@@ -224,11 +224,11 @@ function formatPkr(value?: number) {
 }
 
 function statusBadgeClass(status?: string) {
-  if (status === 'DELIVERED') return 'badge-success';
-  if (status === 'PAID') return 'badge-info';
-  if (status === 'SHIPPED') return 'badge-warning';
-  if (status === 'CANCELLED') return 'badge-error';
-  return 'badge-warning';
+  if (status === 'DELIVERED') return 'badge-active';
+  if (status === 'PAID') return 'bg-[#E2E8F4] text-[#0F1F3D] text-[12px] px-2.5 py-0.5 rounded-full font-medium';
+  if (status === 'SHIPPED') return 'bg-[#FEF3C7] text-[#92400E] text-[12px] px-2.5 py-0.5 rounded-full font-medium';
+  if (status === 'CANCELLED') return 'badge-danger';
+  return 'badge-draft';
 }
 
 function splitCsv(text: string) {
@@ -236,15 +236,15 @@ function splitCsv(text: string) {
 }
 
 const productStatusBadgeClass = (status?: string) => {
-  if (status === 'PUBLISHED') return 'badge-success';
-  if (status === 'HIDDEN') return 'badge-error';
-  return 'badge-warning';
+  if (status === 'PUBLISHED') return 'badge-active';
+  if (status === 'HIDDEN') return 'badge-danger';
+  return 'badge-draft';
 };
 
 const paymentStatusBadgeClass = (status?: string) => {
-  if (status === 'VERIFIED') return 'badge-success';
-  if (status === 'FAILED') return 'badge-error';
-  return 'badge-warning';
+  if (status === 'VERIFIED') return 'badge-active';
+  if (status === 'FAILED') return 'badge-danger';
+  return 'bg-[#FEF3C7] text-[#92400E] text-[12px] px-2.5 py-0.5 rounded-full font-medium';
 };
 
 export default function AdminPage() {
@@ -305,7 +305,7 @@ export default function AdminPage() {
   if (!isAuthenticated || user?.role !== 'ADMIN') {
     return (
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
-        <h1 className="font-display text-2xl font-bold mb-4">Access Denied</h1>
+        <h1 className="font-display text-2xl font-bold mb-4 text-[#0F1F3D]">Access Denied</h1>
         <p className="text-surface-500">Admin access required</p>
       </div>
     );
@@ -321,16 +321,16 @@ export default function AdminPage() {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-[#f6f6f4]">
+    <div className="min-h-screen bg-[#FAFAF8]">
       {/* ── TOP ADMIN HEADER BAR ── */}
-      <header className="sticky top-0 z-40 bg-white border-b border-surface-200 px-4 py-3 shadow-xs">
+      <header className="sticky top-0 z-40 bg-white border-b border-[#E5E7EB] px-4 py-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
         <div className="mx-auto max-w-[1440px] flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 group">
-              <span className="font-display font-black text-lg tracking-wider text-surface-950">
+              <span className="font-display font-black text-lg tracking-wider text-[#0F1F3D]">
                 TOP THREADZ
               </span>
-              <span className="rounded-md bg-surface-950 text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">
+              <span className="rounded-md bg-[#0F1F3D] text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">
                 Admin
               </span>
             </Link>
@@ -340,25 +340,25 @@ export default function AdminPage() {
             <Link
               href="/"
               target="_blank"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-surface-300 bg-white px-3 py-1.5 text-xs font-bold text-surface-700 hover:bg-surface-50 transition-colors shadow-2xs"
+              className="admin-btn-secondary"
             >
               <FiEye className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">View Storefront</span>
             </Link>
 
-            <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-surface-200">
-              <div className="w-7 h-7 rounded-full bg-surface-950 text-white flex items-center justify-center text-xs font-bold">
+            <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-[#E5E7EB]">
+              <div className="w-7 h-7 rounded-full bg-[#0F1F3D] text-white flex items-center justify-center text-xs font-bold">
                 {user?.name?.charAt(0) || 'A'}
               </div>
               <div className="text-left">
-                <p className="text-xs font-bold text-surface-900 leading-none">{user?.name || 'Administrator'}</p>
-                <p className="text-[10px] text-surface-500 font-semibold">{user?.email || 'admin@topthreadz.pk'}</p>
+                <p className="text-xs font-bold text-[#1A1A1A] leading-none">{user?.name || 'Administrator'}</p>
+                <p className="text-[10px] text-[#6B7280] font-medium">{user?.email || 'admin@topthreadz.pk'}</p>
               </div>
             </div>
 
             <button
               onClick={handleLogout}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 px-3 py-1.5 text-xs font-bold hover:bg-red-100 transition-colors"
+              className="admin-btn-destructive"
               title="Sign out of Admin"
             >
               <FiLogOut className="w-3.5 h-3.5" />
@@ -369,29 +369,35 @@ export default function AdminPage() {
       </header>
 
       <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-5 px-3 py-4 lg:grid-cols-[240px_1fr] lg:px-5 lg:py-5">
-        <aside className="hidden h-fit rounded-2xl border border-surface-300 bg-white p-3 shadow-soft lg:sticky lg:top-20 lg:block">
-          <div className="px-3 py-3">
-            <p className="text-xs font-bold uppercase tracking-wide text-surface-500">Navigation</p>
-            <p className="mt-0.5 text-lg font-bold text-surface-950">Management Hub</p>
+        {/* ── SIDEBAR NAV (Shopify-Style Navy with Red Active Indicator) ── */}
+        <aside className="hidden h-fit rounded-[10px] bg-[#0F1F3D] p-3 shadow-md lg:sticky lg:top-16 lg:block text-white">
+          <div className="px-3 py-2.5 mb-1 border-b border-white/10">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">Navigation</p>
+            <p className="mt-0.5 text-base font-bold text-white">Management Hub</p>
           </div>
           <nav className="mt-2 space-y-1">
-            {tabs.map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition-colors ${
-                  activeTab === tab.key ? 'bg-surface-900 text-white' : 'text-surface-600 hover:bg-surface-100 hover:text-surface-950'
-                }`}
-              >
-                <tab.icon className="h-4 w-4" />
-                {tab.label}
-              </button>
-            ))}
+            {tabs.map(tab => {
+              const isActive = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`flex w-full items-center gap-3 rounded-[8px] px-3 py-2 text-left text-[13px] font-medium transition-all duration-150 ${
+                    isActive
+                      ? 'bg-[#1A2F5A] text-white border-l-[3px] border-[#B91C2B] font-semibold pl-2.5 shadow-xs'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <tab.icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-white/60'}`} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
           </nav>
-          <div className="mt-4 border-t border-surface-200 pt-3">
+          <div className="mt-4 border-t border-white/10 pt-3">
             <button
               onClick={handleLogout}
-              className="w-full flex min-h-11 items-center justify-center gap-2 rounded-lg bg-red-50 text-red-700 border border-red-200 px-3 py-2 text-sm font-semibold hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+              className="w-full flex h-[36px] items-center justify-center gap-2 rounded-[8px] bg-white/10 text-white/90 hover:bg-[#B91C2B] hover:text-white transition-all text-xs font-semibold"
             >
               <FiLogOut className="w-4 h-4" /> Logout
             </button>
@@ -399,37 +405,41 @@ export default function AdminPage() {
         </aside>
 
         <main className="min-w-0">
-          <div className="mb-4 rounded-2xl border border-surface-300 bg-white p-3 shadow-soft lg:p-4">
+          <div className="mb-4 admin-card">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-xs font-semibold tracking-wide text-surface-500">Admin workspace</p>
-                <h1 className="text-2xl font-bold text-surface-950">Operations Command Center</h1>
+                <p className="text-xs font-semibold tracking-wide text-[#6B7280]">Admin Workspace</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-[#1A1A1A]">Operations Command Center</h1>
               </div>
               <div className="flex flex-wrap gap-2 items-center">
-                <button className="btn-secondary !rounded-lg !px-3 !py-2 text-xs" onClick={() => toast.success('Export tools are ready for order and catalog reports.')}>
-                  <FiDownload className="mr-1 inline" /> Export
+                <button className="admin-btn-secondary" onClick={() => toast.success('Export tools are ready for order and catalog reports.')}>
+                  <FiDownload className="mr-1 inline w-3.5 h-3.5" /> Export
                 </button>
                 <button
-                  className={`btn-secondary !rounded-lg !px-3 !py-2 text-xs ${activeTab === 'settings' ? '!bg-surface-900 !text-white' : ''}`}
+                  className={`admin-btn-secondary ${activeTab === 'settings' ? '!bg-[#0F1F3D] !text-white' : ''}`}
                   onClick={() => setActiveTab('settings')}
                 >
-                  <FiSettings className="mr-1 inline" /> Settings
+                  <FiSettings className="mr-1 inline w-3.5 h-3.5" /> Settings
                 </button>
               </div>
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-1 rounded-xl bg-surface-50 p-1 sm:grid-cols-3 lg:hidden">
-              {tabs.map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-all ${
-                    activeTab === tab.key ? 'bg-white text-surface-950 shadow-sm' : 'text-surface-500 hover:text-surface-800'
-                  }`}
-                >
-                  <tab.icon className="h-4 w-4" />
-                  {tab.label}
-                </button>
-              ))}
+            {/* Mobile Tab Switcher */}
+            <div className="mt-3 grid grid-cols-3 gap-1 rounded-lg bg-[#F3F4F6] p-1 lg:hidden">
+              {tabs.map(tab => {
+                const isActive = activeTab === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`flex h-[36px] items-center justify-center gap-1.5 rounded-[6px] px-2 py-1 text-xs font-medium transition-all ${
+                      isActive ? 'bg-white text-[#0F1F3D] shadow-xs font-semibold' : 'text-[#6B7280] hover:text-[#1A1A1A]'
+                    }`}
+                  >
+                    <tab.icon className="h-3.5 w-3.5" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

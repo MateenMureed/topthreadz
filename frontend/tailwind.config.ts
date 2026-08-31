@@ -13,82 +13,64 @@ const config: Config = {
         display: ['Outfit', 'Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
-        // Neutral black-white utility set
-        brand: {
-          50: '#f5f5f5',
-          100: '#ebebeb',
-          200: '#d9d9d9',
-          300: '#bfbfbf',
-          400: '#a6a6a6',
-          500: '#808080',
-          600: '#666666',
-          700: '#4d4d4d',
-          800: '#2b2b2b',
-          900: '#121212',
+        // Primary brand red for CTAs, sale badges, active states
+        primary: {
+          DEFAULT: '#B91C2B',
+          hover: '#8F1620',
+          50: '#FDF2F3',
+          100: '#FCE7E8',
+          200: '#F7C4C7',
+          500: '#B91C2B',
+          600: '#8F1620',
+          700: '#6B1018',
         },
 
-        // Keep accent neutral to maintain black-white direction
-        accent: {
-          50: '#ffffff',
-          100: '#f7f7f7',
-          200: '#ededed',
-          300: '#d9d9d9',
-          400: '#bdbdbd',
-          500: '#8c8c8c',
-          600: '#666666',
-          700: '#4d4d4d',
-          800: '#2e2e2e',
-          900: '#121212',
+        // Structural Navy Blue for headers, footers, trust & admin
+        navy: {
+          DEFAULT: '#0F1F3D',
+          hover: '#1A2F5A',
+          50: '#F0F3F9',
+          100: '#E2E8F4',
+          200: '#C5D2E9',
+          300: '#94ACD6',
+          400: '#5F83BC',
+          500: '#3D62A2',
+          600: '#2A477D',
+          700: '#1F345D',
+          800: '#16284D',
+          900: '#0F1F3D',
+          950: '#091326',
+        },
+
+        // Clean neutral surface & background tokens
+        brand: {
+          bg: '#FAFAF8',
+          text: '#1A1A1A',
+          muted: '#6B7280',
+          border: '#E5E7EB',
+          success: '#16A34A',
         },
 
         // Main grayscale system
         surface: {
-          50: '#ffffff',
-          100: '#f5f5f5',
-          200: '#ededed',
-          300: '#e0e0e0',
-          400: '#cfcfcf',
-          500: '#8f8f8f',
-          600: '#666666',
-          700: '#444444',
-          800: '#222222',
-          900: '#121212',
-          950: '#0f172a',
+          50: '#FAFAF8',
+          100: '#F9FAFB',
+          200: '#F3F4F6',
+          300: '#E5E7EB',
+          400: '#D1D5DB',
+          500: '#9CA3AF',
+          600: '#6B7280',
+          700: '#374151',
+          800: '#1F2937',
+          900: '#111827',
+          950: '#0F1F3D',
         },
 
-        // Bright red only for sale states
+        // Bright red for sale states
         sale: {
-          50: '#ffe5e5',
-          500: '#ff1f1f',
-          700: '#e00000',
-        },
-
-        // Retained for compatibility in existing classes
-        navy: {
-          50:  '#f4f6f9',
-          100: '#e5e9f0',
-          200: '#c8cfe0',
-          300: '#9aa8c4',
-          400: '#6b7ea5',
-          500: '#4a5f8a',
-          600: '#394b72',
-          700: '#2e3d5c',
-          800: '#24304a',
-          900: '#1a2236',
-        },
-
-        // Retained for compatibility in existing classes
-        cream: {
-          50:  '#fdfcfa',
-          100: '#f9f6f0',
-          200: '#f0ebe0',
-          300: '#e4dbc8',
-          400: '#d5c8ad',
-          500: '#c4b291',
-          600: '#a89574',
-          700: '#8a785d',
-          800: '#6e604b',
-          900: '#574d3d',
+          50: '#FDF2F3',
+          500: '#B91C2B',
+          700: '#8F1620',
         },
       },
       borderRadius: {

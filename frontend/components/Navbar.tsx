@@ -41,15 +41,6 @@ const FAVORITE_BRANDS = [
   'Istor', 'Moosa Jee', 'Kingdom Fabrics', 'Zain G Fabrics',
 ];
 
-const dedupe = (items: SearchProduct[]) => {
-  const seen = new Set<string>();
-  return items.filter((item) => {
-    if (!item?.id || seen.has(item.id)) return false;
-    seen.add(item.id);
-    return true;
-  });
-};
-
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -113,7 +104,6 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', onClickOutside);
   }, []);
 
-  // Defer persisted store values until after hydration to avoid SSR mismatch
   const isAdmin = hydrated && isAuthenticated && user?.role === 'ADMIN';
   const isAuthed = hydrated && isAuthenticated;
 
@@ -121,22 +111,18 @@ export default function Navbar() {
     try {
       await authService.logout();
     } catch {
-      // Keep local logout resilient even if request fails.
-    } finally {
-      logout();
-      toast.success('Signed out successfully');
-      router.push('/');
+      // Ignore API logout errors and clear state locally
     }
+    logout();
+    toast.success('Signed out successfully');
   };
 
-  // No longer fetching instant product results; only relying on Enter to navigate
-
-  useEffect(() => {
-    if (!searchOpen) return;
-    setHasMoreBrands(true);
-    setBrandPage(1);
-    fetchBrandPage(1, true);
-  }, [searchOpen]);
+  const handleOpenSearch = () => {
+    setSearchOpen(true);
+    if (brands.length === 0) {
+      fetchBrandPage(1, true);
+    }
+  };
 
   const handleBrandsScroll = async () => {
     const container = brandsScrollRef.current;
@@ -183,7 +169,7 @@ export default function Navbar() {
               {isAuthed && !isAdmin ? (
                 <Link
                   href="/orders"
-                  className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 transition-colors flex items-center justify-center"
+                  className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
                   aria-label="Track order"
                   title="Track orders"
                 >
@@ -196,14 +182,14 @@ export default function Navbar() {
                   {isAdmin ? (
                     <Link
                       href="/admin"
-                      className="h-10 rounded-xl border border-surface-300 px-4 text-sm font-semibold text-surface-800 hover:bg-surface-100 transition-colors inline-flex items-center"
+                      className="h-10 rounded-xl border border-surface-300 px-4 text-sm font-semibold text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors inline-flex items-center"
                     >
                       Admin
                     </Link>
                   ) : (
                     <Link
                       href="/orders"
-                      className="h-10 rounded-xl border border-surface-300 px-4 text-sm font-semibold text-surface-800 hover:bg-surface-100 transition-colors inline-flex items-center"
+                      className="h-10 rounded-xl border border-surface-300 px-4 text-sm font-semibold text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors inline-flex items-center"
                     >
                       My Orders
                     </Link>
@@ -220,7 +206,7 @@ export default function Navbar() {
               ) : (
                 <button
                   type="button"
-                  className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 transition-colors inline-flex items-center justify-center"
+                  className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors inline-flex items-center justify-center"
                   onClick={() => openModal('login')}
                   aria-label="Login"
                 >
@@ -230,15 +216,15 @@ export default function Navbar() {
 
               <button
                 type="button"
-                className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 transition-colors flex items-center justify-center"
-                onClick={() => setSearchOpen((v) => !v)}
+                className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
+                onClick={handleOpenSearch}
                 aria-label="Open search"
               >
                 <FiSearch className="w-5 h-5" />
               </button>
               <Link
                 href="/products?sortBy=recommended"
-                className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 transition-colors flex items-center justify-center"
+                className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
                 aria-label="Favourite"
               >
                 <FiHeart className="w-5 h-5" />
@@ -247,12 +233,12 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={openCart}
-                className="relative h-9 w-11 rounded-xl border border-surface-300 text-surface-800 hover:bg-surface-100 transition-colors flex items-center justify-center"
+                className="relative h-9 w-11 rounded-lg border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
                 aria-label="Cart"
               >
                 <FiShoppingBag className="w-4.5 h-4.5" />
                 {itemCount > 0 ? (
-                  <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-md bg-black text-white text-[9px] leading-[16px] font-semibold text-center">
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[#B91C2B] text-white text-[9px] leading-[16px] font-bold text-center shadow-xs">
                     {itemCount}
                   </span>
                 ) : null}
@@ -266,70 +252,65 @@ export default function Navbar() {
         <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px] pt-20 pb-24 md:pb-28 lg:pb-8 px-3 sm:px-4 md:px-6 lg:px-8">
           <div
             ref={searchPanelRef}
-            className="mx-auto w-full max-w-5xl max-h-[calc(100vh-9rem)] lg:max-h-[70vh] rounded-3xl border-2 border-black bg-white shadow-soft-lg overflow-auto"
+            className="mx-auto w-full max-w-5xl max-h-[calc(100vh-9rem)] lg:max-h-[70vh] rounded-3xl border-2 border-navy bg-white shadow-soft-lg overflow-auto"
           >
             <div className="px-4 sm:px-6 md:px-8 py-5 md:py-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="w-full">
-                <p className="text-2xl sm:text-3xl font-black tracking-tight text-black">SEARCH</p>
-                <div className="mt-3 flex items-center gap-3 border-b border-surface-400 pb-3">
-                  <FiSearch className="w-5 h-5 text-black" />
-                  <input
-                    id="site-search"
-                    name="site-search"
-                    type="search"
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && searchText.trim().length > 0) {
-                        setSearchOpen(false);
-                        router.push(`/products?search=${encodeURIComponent(searchText.trim())}`);
-                      }
-                    }}
-                    className="w-full bg-transparent outline-none text-base sm:text-lg font-semibold text-black placeholder:text-surface-500"
-                    placeholder="Search for products or brands... (Press enter)"
-                    autoFocus
-                  />
-                </div>
-                <div className="mt-6">
-                  <p className="text-black font-bold mb-3">Brands</p>
-                  <div
-                    ref={brandsScrollRef}
-                    onScroll={handleBrandsScroll}
-                    className="overflow-x-auto hide-scrollbar border border-surface-300 rounded-xl p-3"
-                  >
-                    <div className="flex flex-nowrap items-center gap-2 pb-1">
-                      {Array.from(new Set([...FAVORITE_BRANDS, ...brands])).map((brand) => (
-                        <button
-                          key={brand}
-                          type="button"
-                          onClick={() => {
-                            setSearchOpen(false);
-                            router.push(`/products?brand=${encodeURIComponent(brand)}`);
-                          }}
-                          className="px-4 py-2 flex-shrink-0 whitespace-nowrap rounded-full bg-surface-100 border border-surface-300 text-black text-sm font-semibold hover:bg-surface-200 transition-colors"
-                        >
-                          {brand}
-                        </button>
-                      ))}
-                    </div>
-                    {(loadingBrands || (!hasMoreBrands && brands.length > 0)) && (
-                      <div className="flex gap-2 text-xs text-surface-500 mt-2 px-2">
-                         {loadingBrands ? 'Loading more...' : ''}
+              <div className="flex items-start justify-between gap-4">
+                <div className="w-full">
+                  <p className="text-2xl sm:text-3xl font-black tracking-tight text-navy">SEARCH</p>
+                  <div className="mt-3 flex items-center gap-3 border-b border-surface-400 pb-3">
+                    <FiSearch className="w-5 h-5 text-navy" />
+                    <input
+                      id="site-search"
+                      name="site-search"
+                      type="search"
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && searchText.trim().length > 0) {
+                          setSearchOpen(false);
+                          router.push(`/products?search=${encodeURIComponent(searchText.trim())}`);
+                        }
+                      }}
+                      className="w-full bg-transparent outline-none text-base sm:text-lg font-semibold text-navy placeholder:text-surface-500"
+                      placeholder="Search for products or brands... (Press enter)"
+                      autoFocus
+                    />
+                  </div>
+                  <div className="mt-6">
+                    <p className="text-navy font-bold mb-3">Popular Brands</p>
+                    <div
+                      ref={brandsScrollRef}
+                      onScroll={handleBrandsScroll}
+                      className="overflow-x-auto hide-scrollbar border border-surface-300 rounded-xl p-3"
+                    >
+                      <div className="flex flex-nowrap items-center gap-2 pb-1">
+                        {Array.from(new Set([...FAVORITE_BRANDS, ...brands])).map((brand) => (
+                          <button
+                            key={brand}
+                            type="button"
+                            onClick={() => {
+                              setSearchOpen(false);
+                              router.push(`/products?brand=${encodeURIComponent(brand)}`);
+                            }}
+                            className="shrink-0 px-3.5 py-1.5 rounded-full border border-surface-300 hover:border-navy hover:bg-navy hover:text-white transition-all text-xs font-semibold"
+                          >
+                            {brand}
+                          </button>
+                        ))}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen(false)}
+                  className="w-10 h-10 rounded-full border border-surface-300 hover:bg-surface-100 flex items-center justify-center shrink-0"
+                  aria-label="Close search"
+                >
+                  <FiX className="w-5 h-5 text-navy" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setSearchOpen(false)}
-                className="w-10 h-10 rounded-full border border-surface-300 text-black hover:bg-surface-100 transition-colors flex items-center justify-center"
-                aria-label="Close search"
-              >
-                <FiX className="w-5 h-5" />
-              </button>
-            </div>
             </div>
           </div>
         </div>

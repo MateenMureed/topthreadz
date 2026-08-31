@@ -131,7 +131,7 @@ export default function CartDrawer() {
               <Link
                 href="/checkout"
                 onClick={closeCart}
-                className="h-11 sm:h-12 px-6 sm:px-8 rounded-full bg-surface-950 text-white hover:bg-neutral-800 text-xs sm:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-xl shadow-surface-950/20 active:scale-95 whitespace-nowrap"
+                className="h-11 sm:h-12 px-6 sm:px-7 rounded-[6px] bg-[#B91C2B] text-white hover:bg-[#8F1620] text-xs sm:text-sm font-semibold uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-150 shadow-md active:scale-[0.98] whitespace-nowrap"
               >
                 <span>Proceed to Checkout</span>
                 <FiArrowRight className="w-4 h-4" />

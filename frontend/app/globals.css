@@ -6,22 +6,28 @@
 
 :root {
   color-scheme: light !important;
-  --bg-main: #fafafa;
-  --text-main: #0f172a;
+  --bg-main: #FAFAF8;
+  --text-main: #1A1A1A;
+  --primary-red: #B91C2B;
+  --primary-hover: #8F1620;
+  --navy-blue: #0F1F3D;
+  --border-light: #E5E7EB;
+  --text-muted: #6B7280;
+  --success-green: #16A34A;
 }
 
 @media (prefers-color-scheme: dark) {
   :root, html, body {
     color-scheme: light !important;
-    background-color: #fafafa !important;
-    color: #0f172a !important;
+    background-color: #FAFAF8 !important;
+    color: #1A1A1A !important;
   }
 }
 
 html {
   color-scheme: light !important;
-  background-color: #fafafa !important;
-  color: #0f172a !important;
+  background-color: #FAFAF8 !important;
+  color: #1A1A1A !important;
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -29,8 +35,8 @@ html {
 
 body {
   color-scheme: light !important;
-  background-color: #fafafa !important;
-  color: #0f172a !important;
+  background-color: #FAFAF8 !important;
+  color: #1A1A1A !important;
   min-height: 100vh;
 }
 
@@ -67,12 +73,13 @@ input, select, textarea, button {
 
 option {
   background-color: #ffffff !important;
-  color: #0f172a !important;
+  color: #1A1A1A !important;
 }
 
 @layer base {
   ::selection {
-    @apply bg-surface-300 text-surface-900;
+    background-color: #E2E8F4;
+    color: #0F1F3D;
   }
 
   ::-webkit-scrollbar {
@@ -80,21 +87,22 @@ option {
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-surface-100;
+    background-color: #FAFAF8;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-surface-300 rounded-full;
+    background-color: #D1D5DB;
+    border-radius: 9999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-surface-400;
+    background-color: #9CA3AF;
   }
 }
 
 @layer components {
   .fashion-display {
-    font-family: Poppins, Inter, system-ui, sans-serif;
+    font-family: Outfit, Inter, system-ui, sans-serif;
   }
 
   .fashion-body {
@@ -102,87 +110,302 @@ option {
   }
 
   .brand-wordmark {
-    font-family: Poppins, Inter, system-ui, sans-serif;
-    font-weight: 700;
+    font-family: Outfit, Inter, system-ui, sans-serif;
+    font-weight: 800;
     letter-spacing: 0.16em;
     text-transform: uppercase;
   }
 
   /* ============================================================
-     BUTTONS — Monochrome primary actions
+     BUTTON SYSTEM — Red Accent Primary & Navy Secondary
      ============================================================ */
   .btn-primary {
-      @apply bg-surface-900 text-white px-6 py-3 rounded-xl font-medium
-        hover:bg-surface-800 active:bg-black
-           transition-all duration-300 ease-out
-           shadow-soft hover:shadow-soft-md
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-900 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center font-semibold text-white transition-all duration-150 ease-out active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none;
+    background-color: #B91C2B;
+    border-radius: 6px;
+    padding: 12px 20px;
+  }
+  @screen sm {
+    .btn-primary {
+      padding: 14px 28px;
+    }
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: #8F1620;
   }
 
   .btn-secondary {
-      @apply bg-white text-surface-900 px-6 py-3 rounded-xl font-medium
-        border border-surface-900
-        hover:bg-surface-100
-        active:bg-surface-200
-           transition-all duration-300 ease-out
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-900 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center font-semibold transition-all duration-150 ease-out active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+    background-color: transparent;
+    color: #0F1F3D;
+    border: 1.5px solid #0F1F3D;
+    border-radius: 6px;
+    padding: 12px 20px;
   }
-
-  .btn-accent {
-      @apply bg-surface-900 text-white px-6 py-3 rounded-xl font-medium
-        hover:bg-surface-800 active:bg-black
-           transition-all duration-300 ease-out
-           shadow-soft hover:shadow-soft-lg
-           disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-    .btn-sale {
-      @apply bg-sale-500 text-white px-6 py-3 rounded-xl font-medium
-        hover:bg-sale-700 active:bg-sale-700
-        transition-all duration-300 ease-out
-        shadow-soft hover:shadow-soft-md
-        disabled:opacity-50 disabled:cursor-not-allowed;
+  @screen sm {
+    .btn-secondary {
+      padding: 14px 28px;
     }
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: rgba(15, 31, 61, 0.05);
+  }
 
-  /* ============================================================
-     INPUTS — Clean, minimal with warm focus
-     ============================================================ */
-  .input-field {
-      @apply w-full px-4 py-3 rounded-xl border border-surface-500
-        bg-white text-surface-900
-           placeholder:text-surface-400
-        focus:outline-none focus:ring-2 focus:ring-surface-500/30 focus:border-surface-700
-           transition-all duration-300;
+  .btn-ghost {
+    @apply inline-flex items-center justify-center font-semibold transition-all duration-150 underline-offset-4 hover:underline;
+    background-color: transparent;
+    color: #0F1F3D;
+    border: none;
+    padding: 8px 12px;
+  }
+
+  .btn-disabled {
+    background-color: #D1D5DB !important;
+    color: #9CA3AF !important;
+    cursor: not-allowed !important;
+  }
+
+  /* Button Sizes */
+  .btn-lg {
+    height: 52px;
+    font-size: 16px;
+  }
+  .btn-md {
+    height: 44px;
+    font-size: 14px;
+  }
+  .btn-sm {
+    height: 36px;
+    font-size: 13px;
   }
 
   /* ============================================================
-     CARDS — Soft shadows, warm feel
+     SHOPIFY-STYLE ADMIN UI COMPONENTS
      ============================================================ */
-  .card {
-    @apply bg-white rounded-2xl border border-surface-400
-           shadow-soft hover:shadow-soft-md
-           transition-all duration-300 ease-out;
+  .admin-input {
+    height: 40px;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #1A1A1A;
+    background-color: #FFFFFF;
+    transition: all 150ms ease;
+    width: 100%;
+  }
+  .admin-input:focus {
+    border-color: #0F1F3D;
+    box-shadow: 0 0 0 3px rgba(15, 31, 61, 0.1);
+    outline: none;
+  }
+  .admin-input.error {
+    border-color: #B91C2B;
   }
 
-  .card-glass {
-    @apply bg-white/90 backdrop-blur-sm rounded-2xl border border-surface-300
-           shadow-soft;
+  .admin-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
   }
 
-  /* ============================================================
-     BADGES
-     ============================================================ */
-  .badge {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+  .admin-btn-primary {
+    height: 36px;
+    background-color: #0F1F3D;
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 8px 16px;
+    border: none;
+    transition: all 150ms ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .admin-btn-primary:hover:not(:disabled) {
+    background-color: #1A2F5A;
+  }
+  .admin-btn-primary:active:not(:disabled) {
+    transform: scale(0.98);
   }
 
-  .badge-success { @apply bg-accent-100 text-accent-700; }
-  .badge-warning { @apply bg-brand-100 text-brand-700; }
+  .admin-btn-destructive {
+    height: 36px;
+    background-color: #B91C2B;
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 8px 16px;
+    border: none;
+    transition: all 150ms ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .admin-btn-destructive:hover:not(:disabled) {
+    background-color: #8F1620;
+  }
+  .admin-btn-destructive:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .admin-btn-secondary {
+    height: 36px;
+    background-color: #FFFFFF;
+    border: 1px solid #D1D5DB;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 8px 16px;
+    transition: all 150ms ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .admin-btn-secondary:hover:not(:disabled) {
+    background-color: #F9FAFB;
+    border-color: #9CA3AF;
+  }
+  .admin-btn-secondary:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .admin-card {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    padding: 20px;
+  }
+  @screen sm {
+    .admin-card {
+      padding: 24px;
+    }
+  }
+
+  /* Status Badges */
+  .badge-active {
+    background-color: #DCFCE7;
+    color: #16A34A;
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+  }
+  .badge-draft {
+    background-color: #F3F4F6;
+    color: #6B7280;
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+  }
+  .badge-danger {
+    background-color: #FEE2E2;
+    color: #B91C2B;
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+  }
   .badge-error { @apply bg-sale-50 text-sale-500; }
   .badge-info { @apply bg-navy-50 text-navy-700; }
 
   .skeleton {
     @apply bg-surface-200 animate-pulse rounded-lg;
+  }
+
+  /* ============================================================
+     SHOPIFY-STYLE ADMIN WORKSPACE COMPONENT STYLES
+     ============================================================ */
+  .admin-workspace input[type="text"],
+  .admin-workspace input[type="number"],
+  .admin-workspace input[type="email"],
+  .admin-workspace input[type="password"],
+  .admin-workspace input[type="search"],
+  .admin-workspace input[type="tel"],
+  .admin-workspace input[type="url"],
+  .admin-workspace select,
+  .admin-workspace textarea {
+    height: 40px;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #1A1A1A;
+    background-color: #FFFFFF;
+    transition: all 150ms ease;
+  }
+
+  .admin-workspace textarea {
+    height: auto;
+    min-height: 80px;
+  }
+
+  .admin-workspace input:focus,
+  .admin-workspace select:focus,
+  .admin-workspace textarea:focus {
+    border-color: #0F1F3D !important;
+    box-shadow: 0 0 0 3px rgba(15, 31, 61, 0.1) !important;
+    outline: none !important;
+  }
+
+  .admin-workspace label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .admin-workspace table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .admin-workspace thead tr,
+  .admin-workspace th {
+    background-color: #F9FAFB !important;
+    font-size: 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    color: #6B7280 !important;
+    font-weight: 600 !important;
+    padding: 10px 14px !important;
+    border-bottom: 1px solid #E5E7EB !important;
+  }
+
+  .admin-workspace tbody tr {
+    min-height: 48px;
+    border-bottom: 1px solid #E5E7EB;
+    transition: background-color 150ms ease;
+  }
+
+  .admin-workspace tbody tr:hover {
+    background-color: #F9FAFB;
+  }
+
+  .admin-workspace tbody td {
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #1A1A1A;
+    vertical-align: middle;
   }
 
   .admin-compact-form .input-field {
@@ -198,7 +421,7 @@ option {
   }
 
   .bag-pill-btn {
-    @apply inline-flex w-full items-center justify-center rounded-full bg-[#232323] px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-white transition-all duration-300 hover:bg-black active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex w-full items-center justify-center rounded-full bg-[#B91C2B] px-6 py-3.5 text-sm font-semibold uppercase tracking-wide text-white transition-all duration-150 hover:bg-[#8F1620] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .qty-chip {
@@ -214,7 +437,7 @@ option {
   }
 
   .sidebar-line-card {
-    @apply rounded-2xl border border-surface-300 bg-white p-4;
+    @apply rounded-[10px] border border-surface-300 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)];
   }
 }
 

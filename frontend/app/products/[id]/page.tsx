@@ -622,7 +622,7 @@ export default function ProductDetailPage() {
 
             <div className="flex flex-wrap items-end gap-3 border-t border-surface-200 pt-4">
               <div>
-                <p className="mb-1 text-sm font-semibold text-surface-700">Quantity</p>
+                <p className="mb-1 text-xs font-semibold text-surface-600">Quantity</p>
                 <div className="qty-chip min-h-11">
                   <button onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="Decrease quantity">
                     <FiMinus className="w-4 h-4" />
@@ -636,16 +636,21 @@ export default function ProductDetailPage() {
               <button
                 type="button"
                 onClick={handleToggleWishlist}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-900 focus-visible:ring-offset-2 ${isWishlisted ? 'border-pink-400 text-pink-600' : 'border-surface-300 text-surface-700 hover:border-pink-400 hover:text-pink-600'}`}
+                className={`inline-flex min-h-[48px] items-center gap-2 rounded-[6px] border-[1.5px] px-4 text-sm font-semibold transition-all duration-150 active:scale-[0.98] ${
+                  isWishlisted
+                    ? 'border-[#B91C2B] bg-[#FDF2F3] text-[#B91C2B]'
+                    : 'border-[#0F1F3D] bg-transparent text-[#0F1F3D] hover:bg-[#0F1F3D]/5'
+                }`}
                 disabled={wishlistLoading}
                 aria-pressed={isWishlisted}
               >
-                <FiHeart className="w-4 h-4" /> {isWishlisted ? 'Saved' : 'Wishlist'}
+                <FiHeart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
+                <span>{isWishlisted ? 'Saved' : 'Wishlist'}</span>
               </button>
               <button
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
-                className={`min-h-11 flex-1 rounded-xl px-5 py-3 text-sm font-semibold transition-colors hover:brightness-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-900 focus-visible:ring-offset-2 disabled:opacity-60 ${addToBagTheme}`}
+                className="min-h-[48px] flex-1 rounded-[6px] bg-[#B91C2B] text-white px-7 py-3.5 text-sm sm:text-base font-semibold shadow-md hover:bg-[#8F1620] active:scale-[0.98] transition-all duration-150 disabled:bg-[#D1D5DB] disabled:text-[#9CA3AF] disabled:cursor-not-allowed"
                 id="add-to-cart"
               >
                 {addedInline ? '✓ Added to Bag' : product.stock === 0 ? 'Sold out' : 'Add to Bag'}
@@ -655,7 +660,7 @@ export default function ProductDetailPage() {
             {addedInline && (
               <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900 transition-all animate-fade-in flex items-center justify-between gap-2 shadow-sm">
                 <span className="font-semibold">Added to Bag</span>
-                <Link href="/checkout" className="rounded-lg bg-emerald-800 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-emerald-900">Checkout</Link>
+                <Link href="/checkout" className="rounded-[6px] bg-[#0F1F3D] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1A2F5A]">Checkout →</Link>
               </div>
             )}
 
