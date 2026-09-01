@@ -83,14 +83,14 @@ export default function MobileNav() {
             <span className="text-[9px] font-medium tracking-tight mt-0.5">Account</span>
           </Link>
         ) : (
-          <Link
-            href="/login"
+          <button
+            type="button"
+            onClick={() => openModal('login')}
             className="flex-1 flex flex-col items-center justify-center h-full rounded-full text-surface-500 hover:text-surface-800 transition-all"
-            aria-label="Login"
           >
             <FiLogIn className="w-4 h-4 stroke-2" />
             <span className="text-[9px] font-medium tracking-tight mt-0.5">Login</span>
-          </Link>
+          </button>
         )}
       </div>
     </nav>

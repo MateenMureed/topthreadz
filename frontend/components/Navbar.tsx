@@ -204,14 +204,14 @@ export default function Navbar() {
                   </button>
                 </>
               ) : (
-                <Link
-                  href="/login"
+                <button
+                  type="button"
                   className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors inline-flex items-center justify-center"
+                  onClick={() => openModal('login')}
                   aria-label="Login"
-                  title="Login"
                 >
                   <FiUser className="w-5 h-5" />
-                </Link>
+                </button>
               )}
 
               <button

@@ -122,11 +122,4 @@ app.get('/api/health', async (_req, res) => {
 });
 
 app.use(errorHandler);
-
-if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
-  app.listen(env.PORT, () => {
-    logger.info(`Server running on port ${env.PORT} in ${env.NODE_ENV} mode`);
-  });
-}
-
 export default app;
