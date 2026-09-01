@@ -2,7 +2,7 @@ const getApiBaseUrl = () => {
   let url = (
     process.env.INTERNAL_API_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
-    'https://www.topthreadz.com.pk/api'
+    'http://localhost:5000/api'
   ).trim();
   url = url.replace(/\/+$/, '');
   if (!url.endsWith('/api')) {
