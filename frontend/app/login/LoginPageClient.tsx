@@ -63,34 +63,30 @@ export default function LoginPageClient() {
               <FiMail className="absolute left-0 top-1/2 -translate-y-1/2 text-surface-400 w-4 h-4" />
               <input
                 type="email"
-                id="login-email"
-                name="email"
-                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-transparent outline-none pl-6 text-base text-surface-800"
                 placeholder=""
                 required
+                id="login-email"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-2xl text-surface-700 block mb-1.5" htmlFor="login-password">
+            <label className="text-2xl text-surface-700 block mb-1.5">
               Password <span className="text-sale-600">*</span>
             </label>
             <div className="relative border-b border-surface-300 pb-1.5">
               <FiLock className="absolute left-0 top-1/2 -translate-y-1/2 text-surface-400 w-4 h-4" />
               <input
                 type={showPassword ? 'text' : 'password'}
-                id="login-password"
-                name="password"
-                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-transparent outline-none pl-6 pr-8 text-base text-surface-800"
                 placeholder=""
                 required
+                id="login-password"
               />
               <button
                 type="button"

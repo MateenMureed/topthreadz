@@ -395,15 +395,8 @@ export default function CheckoutPage() {
 
                 <h3 className="font-bold text-black mt-5 mb-2">Shipping Method</h3>
                 <div className="space-y-2">
-                  <label className="border-2 border-surface-900 rounded-xl bg-white p-3.5 flex items-start gap-3 cursor-pointer shadow-xs" htmlFor="checkout-shipping-standard">
-                    <input
-                      type="radio"
-                      id="checkout-shipping-standard"
-                      name="shipping_method"
-                      checked
-                      readOnly
-                      className="mt-1 accent-surface-950"
-                    />
+                  <label className="border-2 border-surface-900 rounded-xl bg-white p-3.5 flex items-start gap-3 cursor-pointer shadow-xs">
+                    <input type="radio" checked readOnly className="mt-1 accent-surface-950" />
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
                         <p className="font-bold text-black text-sm">
@@ -483,10 +476,9 @@ export default function CheckoutPage() {
             {paymentExpanded ? (
               paymentMode === 'edit' ? (
               <div className="mt-4 space-y-3">
-                <label className="border-2 border-surface-900 rounded-xl bg-surface-50/50 p-4 flex items-center gap-3 cursor-pointer shadow-sm" htmlFor="checkout-payment-cod">
+                <label className="border-2 border-surface-900 rounded-xl bg-surface-50/50 p-4 flex items-center gap-3 cursor-pointer shadow-sm">
                   <input
                     type="radio"
-                    id="checkout-payment-cod"
                     name="payment_method"
                     checked={paymentMethod === 'COD'}
                     onChange={() => setPaymentMethod('COD')}
@@ -504,10 +496,9 @@ export default function CheckoutPage() {
                   </div>
                 </label>
 
-                <label className="border border-surface-200 rounded-xl bg-surface-100/60 p-4 flex items-center gap-3 opacity-75 cursor-not-allowed" htmlFor="checkout-payment-card">
+                <label className="border border-surface-200 rounded-xl bg-surface-100/60 p-4 flex items-center gap-3 opacity-75 cursor-not-allowed">
                   <input
                     type="radio"
-                    id="checkout-payment-card"
                     name="payment_method"
                     disabled
                     checked={false}
