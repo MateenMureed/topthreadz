@@ -236,6 +236,10 @@ function splitCsv(text: string) {
   return text.split(',').map(v => v.trim()).filter(Boolean);
 }
 
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
 const productStatusBadgeClass = (status?: string) => {
   if (status === 'PUBLISHED') return 'badge-active';
   if (status === 'HIDDEN') return 'badge-danger';
@@ -967,7 +971,7 @@ function ProductsTab() {
   const descriptionEditorRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState<ProductFormState>(emptyProductForm);
   const { data: categoryResponse } = useQuery({ queryKey: ['admin-categories'], queryFn: () => api.get('/categories').then(r => r.data) });
-  const categories = categoryResponse?.data || [];
+  const categories = Array.isArray(categoryResponse?.data) ? categoryResponse.data : [];
 
   const colorList = splitCsv(form.colorsText);
   const subcategoryOptions = ['Summer Collection', 'Winter Collection', 'Wedding', 'Formal', 'Semi-Formal', 'Casual', 'Office Wear', 'Festive Wear', 'Jummah Collection', 'Traditional'];
@@ -1103,7 +1107,7 @@ function ProductsTab() {
 
 
 
-  const { data, isLoading } = useQuery({
+  const { data, error, isError, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['admin', 'products'],
     queryFn: () => api.get('/products?limit=50').then(r => r.data),
   });
@@ -1169,7 +1173,7 @@ function ProductsTab() {
 
   if (isLoading) return <div className="space-y-3">{Array(5).fill(0).map((_, i) => <div key={i} className="h-16 skeleton rounded-xl" />)}</div>;
 
-  const products = data?.data?.products || [];
+  const products = Array.isArray(data?.data?.products) ? data.data.products : [];
   const filteredProducts = products.filter((product: any) => {
     const text = `${product.name || ''} ${product.brand || ''} ${product.sku || ''} ${product.subcategory || ''}`.toLowerCase();
     const matchesSearch = !productSearch.trim() || text.includes(productSearch.trim().toLowerCase());
@@ -1211,15 +1215,15 @@ function ProductsTab() {
       lowStockThreshold: String(product.lowStockThreshold ?? 5),
       discount: String(product.discount ?? 0),
       stock: String(product.stock ?? 0),
-      sizesText: (product.sizes || []).join(', '),
-      colorsText: (product.colors || []).join(', '),
-      tagsText: (product.tags || []).join(', '),
+      sizesText: asStringArray(product.sizes).join(', '),
+      colorsText: asStringArray(product.colors).join(', '),
+      tagsText: asStringArray(product.tags).join(', '),
       collection: product.collection || '',
       careInstructions: product.careInstructions || '',
       featured: Boolean(product.featured),
       trending: Boolean(product.trending),
       productStatus: product.productStatus || 'DRAFT',
-      images: product.images || [],
+      images: asStringArray(product.images),
     });
     setImageMeta(Array.isArray(product.imageMeta) ? product.imageMeta : []);
     setShowInlineForm(true);
@@ -1234,11 +1238,17 @@ function ProductsTab() {
 
   const validateForm = () => {
     const nextErrors: Record<string, string> = {};
-    if (!form.name.trim()) nextErrors.name = 'Product name is required';
-    if (!form.description.trim()) nextErrors.description = 'Product description is required';
-    if (!form.price || Number(form.price) <= 0) nextErrors.price = 'Regular price must be greater than zero';
-    if (form.stock === '' || Number(form.stock) < 0) nextErrors.stock = 'Stock quantity cannot be negative';
-    if (!form.sku.trim()) nextErrors.sku = 'SKU is required';
+    const descriptionText = form.description.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').trim();
+    const price = Number(form.price);
+    const discount = Number(form.discount || 0);
+    const stock = Number(form.stock);
+
+    if (form.name.trim().length < 2) nextErrors.name = 'Product name must be at least 2 characters';
+    if (descriptionText.length < 10) nextErrors.description = 'Product description must be at least 10 characters';
+    if (!form.category.trim()) nextErrors.category = 'Category is required';
+    if (!Number.isFinite(price) || price <= 0) nextErrors.price = 'Regular price must be greater than zero';
+    if (!Number.isFinite(discount) || discount < 0 || discount > 100) nextErrors.discount = 'Discount must be between 0 and 100';
+    if (!Number.isInteger(stock) || stock < 0) nextErrors.stock = 'Stock quantity must be a whole number of zero or more';
     if (form.images.length === 0) nextErrors.images = 'Upload at least one image';
     setFormErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -1303,7 +1313,7 @@ function ProductsTab() {
       slug: form.slug.trim() || undefined,
       description: form.description.trim(),
       category: form.category || 'Unstitched',
-      subcategory: form.category || 'Unstitched',
+      subcategory: form.subcategory.trim() || undefined,
       brand: 'Top Threadz',
       price: regularPrice,
       discount: discountPercent,
@@ -1443,6 +1453,15 @@ function ProductsTab() {
         </div>
       </div>
 
+      {isError && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-[#FCA5A5] bg-[#FEF2F2] p-4 text-sm text-[#B91C2B]">
+          <p>{(error as any)?.response?.data?.error || 'Products could not be loaded. Please try again.'}</p>
+          <button type="button" onClick={() => refetch()} className="admin-btn-secondary" disabled={isFetching}>
+            {isFetching ? 'Retrying...' : 'Retry'}
+          </button>
+        </div>
+      )}
+
       {showInlineForm && (
         <div className="mb-6 rounded-[10px] border border-[#E5E7EB] bg-white p-4 shadow-sm md:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-[#E5E7EB]">
@@ -1539,6 +1558,7 @@ function ProductsTab() {
                         ) : null
                       ))}
                     </select>
+                    {formErrors.category && <p className="text-xs text-[#B91C2B] mt-1">{formErrors.category}</p>}
                   </div>
 
                   <div>
@@ -1612,6 +1632,7 @@ function ProductsTab() {
                       value={form.discount}
                       onChange={(e) => setForm((prev) => ({ ...prev, discount: e.target.value }))}
                     />
+                    {formErrors.discount && <p className="text-xs text-[#B91C2B] mt-1">{formErrors.discount}</p>}
                   </div>
 
                   <div>
@@ -2035,7 +2056,7 @@ function ProductsTab() {
                   <span className={`rounded-full px-2 py-1 ${stock <= 0 ? 'bg-red-50 text-red-700' : stock <= Number(p.lowStockThreshold || 5) ? 'bg-orange-50 text-orange-700' : 'bg-emerald-50 text-emerald-700'}`}>
                     Stock {stock}
                   </span>
-                  {(p.colors || []).slice(0, 4).map((color: string) => (
+                  {asStringArray(p.colors).slice(0, 4).map((color) => (
                     <span key={color} className="rounded-full bg-surface-100 px-2 py-1">{color}</span>
                   ))}
                 </div>
@@ -2080,9 +2101,9 @@ function ProductsTab() {
               <p><span className="font-semibold">Price:</span> PKR {detailsProduct.price?.toLocaleString()}</p>
               <p><span className="font-semibold">Discount:</span> {detailsProduct.discount || 0}%</p>
               <p><span className="font-semibold">Stock:</span> {detailsProduct.stock}</p>
-              <p><span className="font-semibold">Sizes:</span> {(detailsProduct.sizes || []).join(', ') || 'N/A'}</p>
-              <p><span className="font-semibold">Colors:</span> {(detailsProduct.colors || []).join(', ') || 'N/A'}</p>
-              <p><span className="font-semibold">Tags:</span> {(detailsProduct.tags || []).join(', ') || 'N/A'}</p>
+              <p><span className="font-semibold">Sizes:</span> {asStringArray(detailsProduct.sizes).join(', ') || 'N/A'}</p>
+              <p><span className="font-semibold">Colors:</span> {asStringArray(detailsProduct.colors).join(', ') || 'N/A'}</p>
+              <p><span className="font-semibold">Tags:</span> {asStringArray(detailsProduct.tags).join(', ') || 'N/A'}</p>
               <div>
                 <p className="font-semibold mb-1">Description:</p>
                 <FormattedProductDescription content={detailsProduct.description} />
@@ -2090,8 +2111,8 @@ function ProductsTab() {
               <div>
                 <p className="font-semibold mb-1">Images:</p>
                 <div className="space-y-1">
-                  {(detailsProduct.images || []).length === 0 && <p className="text-surface-500">No images</p>}
-                  {(detailsProduct.images || []).map((img: string, idx: number) => (
+                  {asStringArray(detailsProduct.images).length === 0 && <p className="text-surface-500">No images</p>}
+                  {asStringArray(detailsProduct.images).map((img, idx) => (
                     <a key={idx} href={resolveImageUrl(img)} target="_blank" rel="noreferrer" className="text-brand-600 hover:underline break-all block">
                       {img}
                     </a>
