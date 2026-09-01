@@ -31,6 +31,9 @@ router.post('/payments/:id/verify', adminController.verifyPayment.bind(adminCont
 // Audit
 router.get('/audit-logs', adminController.getAuditLogs.bind(adminController));
 
+// Products (admin — returns all products including drafts/hidden)
+router.get('/products', adminController.getProducts.bind(adminController));
+
 // Maintenance
 router.post('/maintenance/cleanup-legacy-data', adminController.cleanupLegacyData.bind(adminController));
 

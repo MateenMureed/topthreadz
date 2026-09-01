@@ -88,6 +88,33 @@ export class AdminController {
     } catch (error) { next(error); }
   }
 
+  async getProducts(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const limit = Math.min(parseInt(req.query.limit as string) || 200, 500);
+      const skip = parseInt(req.query.skip as string) || 0;
+      const search = (req.query.search as string || '').trim();
+      const statusFilter = req.query.productStatus as string | undefined;
+
+      const where: any = {};
+      if (statusFilter && statusFilter !== 'ALL') where.productStatus = statusFilter;
+      if (search) {
+        where.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { sku: { contains: search, mode: 'insensitive' } },
+          { category: { contains: search, mode: 'insensitive' } },
+          { brand: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      const [products, total] = await Promise.all([
+        prisma.product.findMany({ where, skip, take: limit, orderBy: { createdAt: 'desc' } }),
+        prisma.product.count({ where }),
+      ]);
+
+      res.json({ success: true, data: { products, pagination: { skip, limit, total } } });
+    } catch (error) { next(error); }
+  }
+
   // ── Hero Banner ──────────────────────────────────────────────────────
   async getHeroBanner(_req: Request, res: Response, next: NextFunction) {
     try {

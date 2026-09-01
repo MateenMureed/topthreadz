@@ -964,6 +964,7 @@ function ProductsTab() {
   const [imageMeta, setImageMeta] = useState<ImageMeta[]>([]);
   const [dragImageIndex, setDragImageIndex] = useState<number | null>(null);
   const [selectedColorPreset, setSelectedColorPreset] = useState('');
+  const [customColorInput, setCustomColorInput] = useState('');
   const descriptionEditorRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState<ProductFormState>(emptyProductForm);
   const { data: categoryResponse } = useQuery({ queryKey: ['admin-categories'], queryFn: () => api.get('/categories').then(r => r.data) });
@@ -1105,7 +1106,7 @@ function ProductsTab() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'products'],
-    queryFn: () => api.get('/products?limit=50').then(r => r.data),
+    queryFn: () => api.get('/admin/products?limit=200').then(r => r.data),
   });
 
   const createProduct = useMutation({
@@ -1244,8 +1245,6 @@ function ProductsTab() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const [customColorInput, setCustomColorInput] = useState('');
-
   const handleAddCustomColor = () => {
     const val = customColorInput.trim();
     if (!val) return;
@@ -1303,7 +1302,7 @@ function ProductsTab() {
       slug: form.slug.trim() || undefined,
       description: form.description.trim(),
       category: form.category || 'Unstitched',
-      subcategory: form.category || 'Unstitched',
+      subcategory: form.subcategory || form.category || 'Unstitched',
       brand: 'Top Threadz',
       price: regularPrice,
       discount: discountPercent,
