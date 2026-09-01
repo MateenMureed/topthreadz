@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -100,14 +100,15 @@ export default function CheckoutPage() {
     return items.length > 0 && isEmailValid && isShippingValid;
   }, [items.length, isEmailValid, isShippingValid]);
 
-  // Guest checkout has no account step: once a valid email is entered, move
-  // straight to shipping while retaining the same email state and payload.
-  useEffect(() => {
-    if (emailMode === 'edit' && isEmailValid) {
+  const handleCheckoutEmailChange = (value: string) => {
+    setCheckoutEmail(value);
+    // Guest checkout has no account step: move on as soon as the entered email
+    // is valid, without a useEffect-driven section transition.
+    if (/.+@.+\..+/.test(value.trim())) {
       setEmailMode('summary');
       setActiveSection('shipping');
     }
-  }, [emailMode, isEmailValid]);
+  };
 
   const saveShippingSection = () => {
     if (!isShippingValid) {
@@ -320,9 +321,9 @@ export default function CheckoutPage() {
                     name="email"
                     type="email"
                     value={checkoutEmail}
-                    onChange={(e) => setCheckoutEmail(e.target.value)}
+                    onChange={(e) => handleCheckoutEmailChange(e.target.value)}
                     onAnimationStart={(event) => {
-                      if (event.animationName === 'checkout-autofill-start') setCheckoutEmail(event.currentTarget.value);
+                      if (event.animationName === 'checkout-autofill-start') handleCheckoutEmailChange(event.currentTarget.value);
                     }}
                     autoComplete="email"
                     className={`checkout-floating-input ${checkoutEmail && !isEmailValid ? 'checkout-field-error' : ''}`}

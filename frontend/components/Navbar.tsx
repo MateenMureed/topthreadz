@@ -223,6 +223,14 @@ export default function Navbar() {
                 <FiSearch className="w-5 h-5" />
               </button>
               <Link
+                href="/orders"
+                className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
+                aria-label="Track order"
+                title="Track order"
+              >
+                <FiTruck className="w-5 h-5" />
+              </Link>
+              <Link
                 href="/products?sortBy=recommended"
                 className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
                 aria-label="Favourite"

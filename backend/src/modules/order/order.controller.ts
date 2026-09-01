@@ -42,7 +42,7 @@ export class OrderController {
 
   async getTrackingByOrderNumber(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const tracking = await orderService.getTrackingByOrderNumber(req.params.orderNumber as string, req.query.email as string | undefined);
+      const tracking = await orderService.getTrackingByReference(String(req.query.q || req.params.orderNumber || ''));
       res.json({ success: true, data: tracking });
     } catch (error) { next(error); }
   }

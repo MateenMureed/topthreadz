@@ -49,8 +49,8 @@ export const orderService = {
   getById: (id: string) =>
     api.get(`/orders/${id}`).then(r => r.data),
 
-  getTrackingByOrderNumber: (orderNumber: string, email: string) =>
-    api.get(`/orders/tracking/${orderNumber}`, { params: { email } }).then(r => r.data),
+  getTrackingByReference: (reference: string) =>
+    api.get('/orders/tracking/lookup', { params: { q: reference } }).then(r => r.data),
 
   getTrackingByOrderId: (id: string) =>
     api.get(`/orders/${id}/tracking`).then(r => r.data),

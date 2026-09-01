@@ -54,9 +54,8 @@ function OrdersContent() {
   const { isAuthenticated } = useAuthStore();
   const queryClient = useQueryClient();
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [trackingOrderNumber, setTrackingOrderNumber] = useState('');
-  const [trackingEmail, setTrackingEmail] = useState('');
-  const [trackingSearch, setTrackingSearch] = useState<{ orderNumber: string; email: string } | null>(null);
+  const [trackingReference, setTrackingReference] = useState('');
+  const [trackingSearch, setTrackingSearch] = useState<string | null>(null);
   const [returnType, setReturnType] = useState<ReturnTypeOption>('RETURN');
   const [returnReason, setReturnReason] = useState('');
   const [partialRefundAmount, setPartialRefundAmount] = useState('');
@@ -88,14 +87,14 @@ function OrdersContent() {
 
   const { data: searchedTrackingData, isFetching: isTrackingSearchFetching, isError: isTrackingSearchError } = useQuery({
     queryKey: ['orders', 'tracking-by-number', trackingSearch],
-    queryFn: () => orderService.getTrackingByOrderNumber(trackingSearch!.orderNumber, trackingSearch!.email),
+    queryFn: () => orderService.getTrackingByReference(trackingSearch!),
     enabled: Boolean(trackingSearch),
   });
 
   useEffect(() => {
     if (trackingParam && trackingParam.trim()) {
       const clean = trackingParam.trim();
-      setTrackingOrderNumber(clean);
+      setTrackingReference(clean);
     }
   }, [trackingParam]);
 
@@ -164,31 +163,26 @@ function OrdersContent() {
         <div className="space-y-4">
           <div className="card p-4">
             <p className="font-semibold mb-1">Track your order</p>
-            <p className="mb-3 text-xs text-surface-500">Enter the tracking number and email used at checkout.</p>
-            <div className="space-y-2">
+            <p className="mb-3 text-xs text-surface-500">Enter your tracking number or the email used at checkout.</p>
+            <div className="space-y-3">
               <input
-                className="input-field"
-                placeholder="Tracking number (e.g. TT-ABC123)"
-                value={trackingOrderNumber}
-                onChange={(e) => setTrackingOrderNumber(e.target.value)}
-              />
-              <input
-                className="input-field"
-                type="email"
-                autoComplete="email"
-                placeholder="Checkout email address"
-                value={trackingEmail}
-                onChange={(e) => setTrackingEmail(e.target.value)}
+                className="h-12 w-full rounded-xl border border-surface-300 bg-white px-4 text-sm text-surface-900 outline-none transition focus:border-brand-600 focus:ring-4 focus:ring-brand-100"
+                placeholder="Tracking number or checkout email"
+                value={trackingReference}
+                onChange={(e) => setTrackingReference(e.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && trackingReference.trim()) setTrackingSearch(trackingReference.trim());
+                }}
               />
               <button
                 type="button"
-                className="btn-primary w-full !py-2 !px-3"
-                disabled={!trackingOrderNumber.trim() || !/.+@.+\..+/.test(trackingEmail.trim()) || isTrackingSearchFetching}
-                onClick={() => setTrackingSearch({ orderNumber: trackingOrderNumber.trim(), email: trackingEmail.trim() })}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#0F1F3D] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#1A2F5A] focus:outline-none focus:ring-4 focus:ring-[#0F1F3D]/15 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!trackingReference.trim() || isTrackingSearchFetching}
+                onClick={() => setTrackingSearch(trackingReference.trim())}
               >
-                <span className="inline-flex items-center gap-2"><FiSearch className="w-4 h-4" /> Track order</span>
+                <FiSearch className="w-4 h-4" /> {isTrackingSearchFetching ? 'Finding order…' : 'Track order'}
               </button>
-              {isTrackingSearchError && <p className="text-xs text-red-600">No order matches that tracking number and email.</p>}
+              {isTrackingSearchError && <p className="text-xs text-red-600">No order matches that tracking number or email.</p>}
             </div>
           </div>
 
