@@ -1284,15 +1284,8 @@ option {
   font-size: 12px;
 }
 
-@keyframes checkout-autofill-start {
-  from { opacity: 0.99; }
-  to { opacity: 1; }
-}
-
 .checkout-floating-input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 1000px #fff inset;
   -webkit-text-fill-color: #171717;
-  animation-name: checkout-autofill-start;
-  animation-duration: 0.01s;
   transition: background-color 9999s ease-out 0s;
 }

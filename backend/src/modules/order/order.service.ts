@@ -502,7 +502,12 @@ export class OrderService {
     const isEmail = /.+@.+\..+/.test(lookup);
     const order = await prisma.order.findFirst({
       where: isEmail
-        ? { guestEmail: { equals: lookup, mode: 'insensitive' } }
+        ? {
+            OR: [
+              { guestEmail: { equals: lookup, mode: 'insensitive' } },
+              { user: { email: { equals: lookup, mode: 'insensitive' } } },
+            ],
+          }
         : { orderNumber: lookup.toUpperCase() },
       include: {
         items: { include: { product: true } },

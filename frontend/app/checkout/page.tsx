@@ -57,15 +57,6 @@ export default function CheckoutPage() {
     province: '',
   });
 
-  // Chrome/Safari can populate a controlled field without firing onChange.
-  // The matching CSS animation below syncs that browser-autofilled value into
-  // the existing address state so validation and the floating label stay true.
-  const syncAutofill = (field: keyof typeof address) => (event: React.AnimationEvent<HTMLInputElement | HTMLSelectElement>) => {
-    if (event.animationName === 'checkout-autofill-start') {
-      setAddress((current) => ({ ...current, [field]: event.currentTarget.value }));
-    }
-  };
-
   const { data: storeSettings } = useQuery({
     queryKey: ['store-settings'],
     queryFn: () => api.get('/settings/store').then((res) => res.data?.data),
@@ -322,9 +313,6 @@ export default function CheckoutPage() {
                     type="email"
                     value={checkoutEmail}
                     onChange={(e) => handleCheckoutEmailChange(e.target.value)}
-                    onAnimationStart={(event) => {
-                      if (event.animationName === 'checkout-autofill-start') handleCheckoutEmailChange(event.currentTarget.value);
-                    }}
                     autoComplete="email"
                     className={`checkout-floating-input ${checkoutEmail && !isEmailValid ? 'checkout-field-error' : ''}`}
                     placeholder=" "
@@ -371,20 +359,20 @@ export default function CheckoutPage() {
                 <h3 className="font-bold text-black mb-2">Customer Details</h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="checkout-floating-field" data-filled={Boolean(address.firstName)}>
-                    <input id="checkout-first-name" name="given-name" autoComplete="given-name" value={address.firstName} onChange={(e) => setAddress({ ...address, firstName: e.target.value })} onAnimationStart={syncAutofill('firstName')} className="checkout-floating-input" placeholder=" " />
+                    <input id="checkout-first-name" name="given-name" autoComplete="given-name" value={address.firstName} onChange={(e) => setAddress({ ...address, firstName: e.target.value })} className="checkout-floating-input" placeholder=" " />
                     <label htmlFor="checkout-first-name">First Name</label>
                   </div>
                   <div className="checkout-floating-field" data-filled={Boolean(address.lastName)}>
-                    <input id="checkout-last-name" name="family-name" autoComplete="family-name" value={address.lastName} onChange={(e) => setAddress({ ...address, lastName: e.target.value })} onAnimationStart={syncAutofill('lastName')} className="checkout-floating-input" placeholder=" " />
+                    <input id="checkout-last-name" name="family-name" autoComplete="family-name" value={address.lastName} onChange={(e) => setAddress({ ...address, lastName: e.target.value })} className="checkout-floating-input" placeholder=" " />
                     <label htmlFor="checkout-last-name">Last Name</label>
                   </div>
                   <div className="checkout-floating-field md:col-span-2" data-filled={Boolean(address.phone)}>
-                    <input id="checkout-phone" name="tel" type="tel" autoComplete="tel" value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} onAnimationStart={syncAutofill('phone')} className={`checkout-floating-input ${address.phone && !isPhoneValid ? 'checkout-field-error' : ''}`} placeholder=" " />
+                    <input id="checkout-phone" name="tel" type="tel" autoComplete="tel" value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} className={`checkout-floating-input ${address.phone && !isPhoneValid ? 'checkout-field-error' : ''}`} placeholder=" " />
                     <label htmlFor="checkout-phone">Mobile Number</label>
                     {address.phone && !isPhoneValid && <p className="checkout-field-message">Enter a valid Pakistani mobile number.</p>}
                   </div>
                   <div className="checkout-floating-field md:col-span-2" data-filled={Boolean(address.streetAddress)}>
-                    <input id="checkout-address" name="street-address" autoComplete="street-address" value={address.streetAddress} onChange={(e) => setAddress({ ...address, streetAddress: e.target.value })} onAnimationStart={syncAutofill('streetAddress')} className="checkout-floating-input" placeholder=" " />
+                    <input id="checkout-address" name="street-address" autoComplete="street-address" value={address.streetAddress} onChange={(e) => setAddress({ ...address, streetAddress: e.target.value })} className="checkout-floating-input" placeholder=" " />
                     <label htmlFor="checkout-address">Street Address</label>
                   </div>
                   <div className="checkout-floating-field" data-filled={Boolean(address.country)}>
@@ -392,7 +380,7 @@ export default function CheckoutPage() {
                     <label htmlFor="checkout-country">Country</label>
                   </div>
                   <div className="checkout-floating-field" data-filled={Boolean(address.province)}>
-                    <select id="checkout-province" name="address-level1" autoComplete="address-level1" value={address.province} onChange={(e) => setAddress({ ...address, province: e.target.value, city: '' })} onAnimationStart={syncAutofill('province')} className="checkout-floating-input checkout-floating-select">
+                    <select id="checkout-province" name="address-level1" autoComplete="address-level1" value={address.province} onChange={(e) => setAddress({ ...address, province: e.target.value, city: '' })} className="checkout-floating-input checkout-floating-select">
                       <option value="">Select Your Region</option>
                       {Object.keys(PAKISTAN_LOCATIONS).map((province) => (
                         <option key={province} value={province}>{province === 'GilgitBaltistan' ? 'Gilgit Baltistan' : province === 'AzadKashmir' ? 'Azad Kashmir' : province}</option>
@@ -401,7 +389,7 @@ export default function CheckoutPage() {
                     <label htmlFor="checkout-province">State / Province</label>
                   </div>
                   <div className="checkout-floating-field md:col-span-2" data-filled={Boolean(address.city)}>
-                    <select id="checkout-city" name="address-level2" autoComplete="address-level2" value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} onAnimationStart={syncAutofill('city')} className="checkout-floating-input checkout-floating-select" disabled={!address.province}>
+                    <select id="checkout-city" name="address-level2" autoComplete="address-level2" value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} className="checkout-floating-input checkout-floating-select" disabled={!address.province}>
                       <option value="">Select Your City</option>
                       {cityOptions.map((city) => (
                         <option key={city} value={city}>{city}</option>

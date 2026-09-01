@@ -5,6 +5,7 @@ import { authenticate } from '../../middleware/auth.middleware';
 const router = Router();
 
 router.post('/guest', orderController.createGuestOrder.bind(orderController));
+router.get('/tracking', orderController.getTrackingByOrderNumber.bind(orderController));
 router.get('/tracking/:orderNumber', orderController.getTrackingByOrderNumber.bind(orderController));
 
 router.use(authenticate);
