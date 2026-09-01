@@ -133,11 +133,14 @@ export default function AuthModal() {
         {view === 'login' ? (
           <form onSubmit={handleLogin} className="space-y-4 fashion-body">
             <div className="space-y-1.5">
-              <label className="text-xs uppercase tracking-[0.15em] text-surface-600">Email</label>
+              <label className="text-xs uppercase tracking-[0.15em] text-surface-600" htmlFor="modal-login-email">Email</label>
               <div className="relative">
                 <FiMail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
                 <input
                   type="email"
+                  id="modal-login-email"
+                  name="email"
+                  autoComplete="email"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   className="w-full rounded-xl border border-surface-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-surface-500"
@@ -148,11 +151,14 @@ export default function AuthModal() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs uppercase tracking-[0.15em] text-surface-600">Password</label>
+              <label className="text-xs uppercase tracking-[0.15em] text-surface-600" htmlFor="modal-login-password">Password</label>
               <div className="relative">
                 <FiLock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  id="modal-login-password"
+                  name="password"
+                  autoComplete="current-password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   className="w-full rounded-xl border border-surface-300 bg-white py-2.5 pl-10 pr-10 text-sm outline-none transition focus:border-surface-500"
@@ -180,6 +186,7 @@ export default function AuthModal() {
             <button
               type="submit"
               disabled={loading}
+              id="modal-login-submit"
               className="fashion-body w-full rounded-xl bg-surface-900 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-surface-800"
             >
               {loading ? 'Logging In...' : 'Login'}
@@ -206,6 +213,9 @@ export default function AuthModal() {
               <FiUser className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
               <input
                 type="text"
+                id="modal-signup-name"
+                name="name"
+                autoComplete="name"
                 value={signupForm.name}
                 onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
                 className="w-full rounded-xl border border-surface-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-surface-500"
@@ -218,6 +228,9 @@ export default function AuthModal() {
               <FiMail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
               <input
                 type="email"
+                id="modal-signup-email"
+                name="email"
+                autoComplete="email"
                 value={signupForm.email}
                 onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
                 className="w-full rounded-xl border border-surface-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-surface-500"
@@ -230,6 +243,9 @@ export default function AuthModal() {
               <FiPhone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
               <input
                 type="tel"
+                id="modal-signup-phone"
+                name="phone"
+                autoComplete="tel"
                 value={signupForm.phone}
                 onChange={(e) => setSignupForm({ ...signupForm, phone: e.target.value })}
                 className="w-full rounded-xl border border-surface-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-surface-500"
@@ -242,6 +258,9 @@ export default function AuthModal() {
               <FiLock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
               <input
                 type={showPassword ? 'text' : 'password'}
+                id="modal-signup-password"
+                name="password"
+                autoComplete="new-password"
                 value={signupForm.password}
                 onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
                 className="w-full rounded-xl border border-surface-300 bg-white py-2.5 pl-10 pr-10 text-sm outline-none transition focus:border-surface-500"
@@ -261,6 +280,7 @@ export default function AuthModal() {
             <button
               type="submit"
               disabled={loading}
+              id="modal-signup-submit"
               className="w-full rounded-xl bg-surface-900 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-surface-800"
             >
               {loading ? 'Creating Account...' : 'Create Account'}

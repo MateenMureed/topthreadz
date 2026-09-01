@@ -40,70 +40,79 @@ export default function SignupPageClient() {
 
         <form onSubmit={handleSignup} className="card p-8 space-y-5">
           <div>
-            <label className="text-sm font-medium text-surface-700 block mb-2">Full Name</label>
+            <label className="text-sm font-medium text-surface-700 block mb-2" htmlFor="signup-name">Full Name</label>
             <div className="relative">
               <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-surface-400 w-4 h-4" />
               <input
                 type="text"
+                id="signup-name"
+                name="name"
+                autoComplete="name"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="input-field !pl-11"
                 placeholder="Muhammad Ali"
                 required
-                id="signup-name"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-surface-700 block mb-2">Email</label>
+            <label className="text-sm font-medium text-surface-700 block mb-2" htmlFor="signup-email">Email</label>
             <div className="relative">
               <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-surface-400 w-4 h-4" />
               <input
                 type="email"
+                id="signup-email"
+                name="email"
+                autoComplete="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className="input-field !pl-11"
                 placeholder="your@email.com"
                 required
-                id="signup-email"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-surface-700 block mb-2">Phone</label>
+            <label className="text-sm font-medium text-surface-700 block mb-2" htmlFor="signup-phone">Phone</label>
             <div className="relative">
               <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-surface-400 w-4 h-4" />
               <input
                 type="tel"
+                id="signup-phone"
+                name="phone"
+                autoComplete="tel"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 className="input-field !pl-11"
                 placeholder="03001234567"
                 required
-                id="signup-phone"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-surface-700 block mb-2">Password</label>
+            <label className="text-sm font-medium text-surface-700 block mb-2" htmlFor="signup-password">Password</label>
             <div className="relative">
               <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-surface-400 w-4 h-4" />
               <input
                 type={showPassword ? 'text' : 'password'}
+                id="signup-password"
+                name="password"
+                autoComplete="new-password"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 className="input-field !pl-11 !pr-11"
                 placeholder="Min 8 chars, 1 upper, 1 number"
                 required
-                id="signup-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-surface-400"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
               </button>
