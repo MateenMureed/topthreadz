@@ -62,6 +62,11 @@ export async function fetchServerHeroBanner() {
   return data?.url as string | undefined;
 }
 
+export async function fetchServerHeroBanners() {
+  const data = await fetchServerData<any[]>('/admin/hero-banners', 120);
+  return Array.isArray(data) ? data : [];
+}
+
 export async function fetchServerStoreSettings() {
   return fetchServerData<any>('/settings/store', 120);
 }

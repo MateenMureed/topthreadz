@@ -22,6 +22,7 @@ interface HomePageClientProps {
   initialCategories: any[];
   initialProducts: any[];
   initialHeroBanner?: string;
+  initialHeroBanners?: HeroBanner[];
   initialSettings?: any;
 }
 
@@ -29,11 +30,13 @@ export default function HomePageClient({
   initialCategories = [],
   initialProducts = [],
   initialHeroBanner,
+  initialHeroBanners = [],
   initialSettings,
 }: HomePageClientProps) {
   const { data: heroResponse } = useQuery({
     queryKey: ['home', 'hero-banners'],
     queryFn: () => api.get('/admin/hero-banners').then((response) => response.data),
+    initialData: { data: initialHeroBanners },
     retry: false,
   });
 
@@ -59,7 +62,7 @@ export default function HomePageClient({
 
   const products = productsResponse?.data?.products || initialProducts || [];
   const categories = categoriesResponse?.data || initialCategories || [];
-  const heroBanners: HeroBanner[] = heroResponse?.data?.length ? heroResponse.data : (initialHeroBanner ? [{ id: 'legacy', imageUrl: initialHeroBanner, link: '/products', altText: 'Top Threadz collection' }] : []);
+  const heroBanners: HeroBanner[] = heroResponse?.data || [];
 
   const homepageHeading = settingsData?.homepageHeading || initialSettings?.homepageHeading || 'Shop Our Collection';
   const homepageSubheading = settingsData?.homepageSubheading || initialSettings?.homepageSubheading || 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION';
@@ -94,7 +97,7 @@ export default function HomePageClient({
   return (
     <div className="bg-white text-black">
       {/* Hero Section */}
-      <HeroSlider banners={heroBanners} />
+      {heroBanners.length > 0 && <HeroSlider banners={heroBanners} />}
 
       {/* Explore Collection CTA — below banner */}
       <div className="flex items-center justify-center py-5 bg-white border-b border-surface-200">

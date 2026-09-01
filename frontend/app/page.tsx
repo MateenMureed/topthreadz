@@ -3,7 +3,7 @@ import HomePageClient from '@/components/HomePageClient';
 import {
   fetchServerCategories,
   fetchServerProducts,
-  fetchServerHeroBanner,
+  fetchServerHeroBanner, fetchServerHeroBanners,
   fetchServerStoreSettings,
 } from '@/lib/serverData';
 
@@ -58,11 +58,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [categories, products, heroBanner, settings] = await Promise.all([
+  const [categories, products, heroBanner, settings, heroBanners] = await Promise.all([
     fetchServerCategories(),
     fetchServerProducts({ limit: 50, sortBy: 'newest' }),
     fetchServerHeroBanner(),
     fetchServerStoreSettings(),
+    fetchServerHeroBanners(),
   ]);
 
   // JSON-LD Structured Data (LocalBusiness + WebSite + ItemList)
@@ -138,6 +139,7 @@ export default async function HomePage() {
         initialCategories={categories}
         initialProducts={products}
         initialHeroBanner={heroBanner}
+        initialHeroBanners={heroBanners}
         initialSettings={settings}
       />
     </>
