@@ -16,6 +16,7 @@ import { useQuery } from '@tanstack/react-query';
 import { productService } from '@/services/product.service';
 import api from '@/services/api';
 import ProductGrid from '@/components/ProductGrid';
+import HeroSlider, { HeroBanner } from '@/components/HeroSlider';
 
 interface HomePageClientProps {
   initialCategories: any[];
@@ -31,9 +32,8 @@ export default function HomePageClient({
   initialSettings,
 }: HomePageClientProps) {
   const { data: heroResponse } = useQuery({
-    queryKey: ['home', 'hero-banner'],
-    queryFn: () => api.get('/settings/hero-banner').then((response) => response.data),
-    initialData: initialHeroBanner ? { data: { url: initialHeroBanner } } : undefined,
+    queryKey: ['home', 'hero-banners'],
+    queryFn: () => api.get('/admin/hero-banners').then((response) => response.data),
     retry: false,
   });
 
@@ -59,7 +59,7 @@ export default function HomePageClient({
 
   const products = productsResponse?.data?.products || initialProducts || [];
   const categories = categoriesResponse?.data || initialCategories || [];
-  const heroBanner = heroResponse?.data?.url || initialHeroBanner;
+  const heroBanners: HeroBanner[] = heroResponse?.data?.length ? heroResponse.data : (initialHeroBanner ? [{ id: 'legacy', imageUrl: initialHeroBanner, link: '/products', altText: 'Top Threadz collection' }] : []);
 
   const homepageHeading = settingsData?.homepageHeading || initialSettings?.homepageHeading || 'Shop Our Collection';
   const homepageSubheading = settingsData?.homepageSubheading || initialSettings?.homepageSubheading || 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION';
@@ -94,25 +94,7 @@ export default function HomePageClient({
   return (
     <div className="bg-white text-black">
       {/* Hero Section */}
-      <section className="relative border-b border-surface-300 overflow-hidden bg-[#78533b]">
-        {heroBanner ? (
-          <div className="relative w-full aspect-[16/9] sm:aspect-[2/1] md:aspect-[2.4/1] lg:aspect-[2.8/1] max-h-[640px]">
-            <Link href="/products" className="block h-full w-full" aria-label="Shop all products">
-              <Image
-                src={heroBanner}
-                alt="Top Threadz collection"
-                fill
-                priority
-                fetchPriority="high"
-                sizes="100vw"
-                className="object-contain sm:object-cover object-center"
-              />
-            </Link>
-          </div>
-        ) : (
-          <div className="relative w-full bg-surface-100 py-20 md:py-32" />
-        )}
-      </section>
+      <HeroSlider banners={heroBanners} />
 
       {/* Explore Collection CTA — below banner */}
       <div className="flex items-center justify-center py-5 bg-white border-b border-surface-200">

@@ -508,7 +508,7 @@ export class OrderService {
               { user: { email: { equals: lookup, mode: 'insensitive' } } },
             ],
           }
-        : { orderNumber: lookup.toUpperCase() },
+        : { orderNumber: { equals: lookup, mode: 'insensitive' } },
       include: {
         items: { include: { product: true } },
         address: true,

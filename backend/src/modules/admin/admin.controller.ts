@@ -96,6 +96,66 @@ export class AdminController {
     } catch (error) { next(error); }
   }
 
+  async listHeroBanners(req: Request, res: Response, next: NextFunction) {
+    try {
+      const banners = await prisma.heroBanner.findMany({ where: { isActive: true }, orderBy: { position: 'asc' } });
+      res.json({ success: true, data: banners });
+    } catch (error) { next(error); }
+  }
+
+  async listAdminHeroBanners(_req: Request, res: Response, next: NextFunction) {
+    try { res.json({ success: true, data: await prisma.heroBanner.findMany({ orderBy: { position: 'asc' } }) }); }
+    catch (error) { next(error); }
+  }
+
+  async createHeroBanner(req: Request, res: Response, next: NextFunction) {
+    try {
+      const file = (req as any).file as Express.Multer.File | undefined;
+      const directUrl = String(req.body?.url || '').trim();
+      let imageUrl = directUrl; let publicId: string | undefined;
+      if (file) {
+        if (!isCloudinaryConfigured()) throw new Error('Cloudinary keys are required for banner uploads.');
+        const uploaded = await uploadToCloudinary(file.buffer, 'topthreadz-hero'); imageUrl = uploaded.url; publicId = uploaded.publicId;
+      }
+      if (!imageUrl) throw new Error('Select a banner image or provide an image URL.');
+      const banner = await prisma.heroBanner.create({ data: {
+        imageUrl, publicId, link: String(req.body?.link || '/products').trim() || '/products',
+        position: Number(req.body?.position || 0), isActive: String(req.body?.isActive ?? 'true') !== 'false',
+        altText: String(req.body?.altText || 'Top Threadz collection').trim() || 'Top Threadz collection',
+      } });
+      res.status(201).json({ success: true, data: banner });
+    } catch (error) { next(error); }
+  }
+
+  async updateHeroBanner(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+      const existing = await prisma.heroBanner.findUnique({ where: { id } });
+      if (!existing) throw new Error('Banner not found');
+      const file = (req as any).file as Express.Multer.File | undefined;
+      const data: any = {};
+      if (file) {
+        if (!isCloudinaryConfigured()) throw new Error('Cloudinary keys are required for banner uploads.');
+        const uploaded = await uploadToCloudinary(file.buffer, 'topthreadz-hero'); data.imageUrl = uploaded.url; data.publicId = uploaded.publicId;
+        if (existing.publicId) void deleteFromCloudinary(existing.publicId);
+      }
+      for (const key of ['link', 'altText']) if (req.body?.[key] !== undefined) data[key] = String(req.body[key]).trim();
+      if (req.body?.position !== undefined) data.position = Number(req.body.position);
+      if (req.body?.isActive !== undefined) data.isActive = String(req.body.isActive) !== 'false';
+      const banner = await prisma.heroBanner.update({ where: { id }, data });
+      res.json({ success: true, data: banner });
+    } catch (error) { next(error); }
+  }
+
+  async removeHeroBanner(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+      const banner = await prisma.heroBanner.delete({ where: { id } });
+      if (banner.publicId) void deleteFromCloudinary(banner.publicId);
+      res.json({ success: true, data: { id: banner.id } });
+    } catch (error) { next(error); }
+  }
+
   async uploadHeroBanner(req: Request, res: Response, next: NextFunction) {
     try {
       const file = (req as any).file as Express.Multer.File | undefined;

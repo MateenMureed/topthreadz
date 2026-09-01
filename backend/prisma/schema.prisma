@@ -258,6 +258,20 @@ model Product {
   @@index([visibility])
 }
 
+model HeroBanner {
+  id        String   @id @default(uuid())
+  imageUrl  String
+  publicId  String?
+  link      String   @default("/products")
+  position  Int      @default(0)
+  isActive  Boolean  @default(true)
+  altText   String   @default("Top Threadz collection")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, position])
+}
+
 model Category {
   id          String   @id @default(uuid())
   name        String

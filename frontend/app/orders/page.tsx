@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
 import { orderService } from '@/services/order.service';
 import { useHydration } from '@/hooks/useHydration';
@@ -55,7 +55,6 @@ function OrdersContent() {
   const queryClient = useQueryClient();
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [trackingReference, setTrackingReference] = useState('');
-  const [trackingSearch, setTrackingSearch] = useState<string | null>(null);
   const [returnType, setReturnType] = useState<ReturnTypeOption>('RETURN');
   const [returnReason, setReturnReason] = useState('');
   const [partialRefundAmount, setPartialRefundAmount] = useState('');
@@ -85,10 +84,9 @@ function OrdersContent() {
   const searchParams = useSearchParams();
   const trackingParam = searchParams.get('tracking') || searchParams.get('orderNumber') || '';
 
-  const { data: searchedTrackingData, isFetching: isTrackingSearchFetching, isError: isTrackingSearchError } = useQuery({
-    queryKey: ['orders', 'tracking-by-number', trackingSearch],
-    queryFn: () => orderService.getTrackingByReference(trackingSearch!),
-    enabled: Boolean(trackingSearch),
+  const publicTracking = useMutation({
+    mutationFn: (reference: string) => orderService.getTrackingByReference(reference),
+    onError: () => toast.error('No order matches that tracking number or email.'),
   });
 
   useEffect(() => {
@@ -98,7 +96,7 @@ function OrdersContent() {
     }
   }, [trackingParam]);
 
-  const activeTracking = liveTrackingData?.data || searchedTrackingData?.data || selectedOrder;
+  const activeTracking = liveTrackingData?.data || publicTracking.data?.data || selectedOrder;
 
   const handleSubmitReturn = async () => {
     if (!selectedOrder?.id) {
@@ -171,18 +169,18 @@ function OrdersContent() {
                 value={trackingReference}
                 onChange={(e) => setTrackingReference(e.target.value)}
                 onKeyDown={(event) => {
-                  if (event.key === 'Enter' && trackingReference.trim()) setTrackingSearch(trackingReference.trim());
+                  if (event.key === 'Enter' && trackingReference.trim()) publicTracking.mutate(trackingReference.trim());
                 }}
               />
               <button
                 type="button"
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#0F1F3D] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#1A2F5A] focus:outline-none focus:ring-4 focus:ring-[#0F1F3D]/15 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={!trackingReference.trim() || isTrackingSearchFetching}
-                onClick={() => setTrackingSearch(trackingReference.trim())}
+                disabled={!trackingReference.trim() || publicTracking.isPending}
+                onClick={() => publicTracking.mutate(trackingReference.trim())}
               >
-                <FiSearch className="w-4 h-4" /> {isTrackingSearchFetching ? 'Finding order…' : 'Track order'}
+                <FiSearch className="w-4 h-4" /> {publicTracking.isPending ? 'Finding order…' : 'Track order'}
               </button>
-              {isTrackingSearchError && <p className="text-xs text-red-600">No order matches that tracking number or email.</p>}
+              {publicTracking.isError && <p className="text-xs text-red-600">No order matches that tracking number or email.</p>}
             </div>
           </div>
 
