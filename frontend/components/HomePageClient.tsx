@@ -16,13 +16,11 @@ import { useQuery } from '@tanstack/react-query';
 import { productService } from '@/services/product.service';
 import api from '@/services/api';
 import ProductGrid from '@/components/ProductGrid';
-import HeroSlider, { HeroBanner } from '@/components/HeroSlider';
 
 interface HomePageClientProps {
   initialCategories: any[];
   initialProducts: any[];
   initialHeroBanner?: string;
-  initialHeroBanners?: HeroBanner[];
   initialSettings?: any;
 }
 
@@ -30,13 +28,12 @@ export default function HomePageClient({
   initialCategories = [],
   initialProducts = [],
   initialHeroBanner,
-  initialHeroBanners = [],
   initialSettings,
 }: HomePageClientProps) {
   const { data: heroResponse } = useQuery({
-    queryKey: ['home', 'hero-banners'],
-    queryFn: () => api.get('/admin/hero-banners').then((response) => response.data),
-    initialData: { data: initialHeroBanners },
+    queryKey: ['home', 'hero-banner'],
+    queryFn: () => api.get('/settings/hero-banner').then((response) => response.data),
+    initialData: initialHeroBanner ? { data: { url: initialHeroBanner } } : undefined,
     retry: false,
   });
 
@@ -62,7 +59,7 @@ export default function HomePageClient({
 
   const products = productsResponse?.data?.products || initialProducts || [];
   const categories = categoriesResponse?.data || initialCategories || [];
-  const heroBanners: HeroBanner[] = heroResponse?.data || [];
+  const heroBanner = heroResponse?.data?.url || initialHeroBanner;
 
   const homepageHeading = settingsData?.homepageHeading || initialSettings?.homepageHeading || 'Shop Our Collection';
   const homepageSubheading = settingsData?.homepageSubheading || initialSettings?.homepageSubheading || 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION';
@@ -96,8 +93,24 @@ export default function HomePageClient({
 
   return (
     <div className="bg-white text-black">
-      {/* Hero Section */}
-      {heroBanners.length > 0 && <HeroSlider banners={heroBanners} />}
+      {/* Hero Banner Section — Auto-adjusts seamlessly across mobile, tablet, and widescreen desktop */}
+      {heroBanner && (
+        <section className="relative w-full overflow-hidden border-b border-surface-300 bg-surface-100" aria-label="Featured hero banner">
+          <div className="relative w-full aspect-[16/9] sm:aspect-[2/1] md:aspect-[2.4/1] lg:aspect-[2.8/1] max-h-[640px]">
+            <Link href="/products" className="block h-full w-full relative" aria-label="Explore Top Threadz collection">
+              <Image
+                src={heroBanner}
+                alt="Top Threadz Men's Luxury Fabrics Collection"
+                fill
+                priority
+                fetchPriority="high"
+                sizes="100vw"
+                className="object-cover object-center"
+              />
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Explore Collection CTA — below banner */}
       <div className="flex items-center justify-center py-5 bg-white border-b border-surface-200">

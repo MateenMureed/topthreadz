@@ -541,7 +541,9 @@ function HeroBannerManager() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
           <h3 className="font-display text-lg font-bold text-surface-950">Homepage Hero Banner</h3>
-          <p className="text-xs text-surface-500">Upload an image file to Cloudinary or paste a direct image URL for your Homepage hero section.</p>
+          <p className="text-xs text-surface-500">
+            Upload an image file or paste a direct image URL. Recommended size: <strong>1920 × 800 px</strong> (or 16:9 / 21:9 wide format). The banner auto-adjusts across mobile, tablet, and desktop screens.
+          </p>
         </div>
         {currentBanner && (
           <button onClick={handleClear} className="btn-secondary !py-1.5 !px-3 text-xs text-red-600 border-red-200 hover:bg-red-50">
@@ -588,30 +590,6 @@ function HeroBannerManager() {
       )}
     </div>
   );
-}
-
-function HeroSliderManager() {
-  const queryClient = useQueryClient();
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [link, setLink] = useState('/products');
-  const [altText, setAltText] = useState('Top Threadz collection');
-  const [position, setPosition] = useState('0');
-  const [uploading, setUploading] = useState(false);
-  const { data } = useQuery({ queryKey: ['admin', 'hero-banners'], queryFn: () => api.get('/admin/hero-banners/manage').then(r => r.data) });
-  const banners = data?.data || [];
-  const add = async () => {
-    const file = fileRef.current?.files?.[0];
-    if (!file) return toast.error('Select a banner image');
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return toast.error('Use JPG, PNG, or WebP');
-    setUploading(true);
-    try {
-      const form = new FormData(); form.append('image', await compressImageFile(file, 1920, 1080, 0.85)); form.append('link', link); form.append('altText', altText); form.append('position', position);
-      await api.post('/admin/hero-banners', form, { headers: { 'Content-Type': 'multipart/form-data' } });
-      await queryClient.invalidateQueries({ queryKey: ['admin', 'hero-banners'] }); toast.success('Banner added');
-    } catch (error: any) { toast.error(error?.response?.data?.error || 'Could not add banner'); }
-    finally { setUploading(false); if (fileRef.current) fileRef.current.value = ''; }
-  };
-  return <div className="space-y-4 rounded-2xl border border-surface-300 bg-white p-4 shadow-soft"><div><h3 className="font-display text-lg font-bold">Hero Banner Slider</h3><p className="text-xs text-surface-500">JPG, PNG, WebP · recommended 1920 × 800px minimum.</p></div><div className="grid gap-3 md:grid-cols-2"><input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="input-field" /><input value={link} onChange={e => setLink(e.target.value)} className="input-field" placeholder="Target link" /><input value={altText} onChange={e => setAltText(e.target.value)} className="input-field" placeholder="Alt text" /><input value={position} onChange={e => setPosition(e.target.value)} type="number" className="input-field" placeholder="Display order" /></div><button onClick={add} disabled={uploading} className="btn-primary !py-2 !px-4">{uploading ? 'Uploading…' : 'Add Banner'}</button><div className="space-y-2">{banners.map((banner: any) => <div key={banner.id} className="flex items-center gap-3 rounded-xl border border-surface-200 p-2"><img src={banner.imageUrl} alt={banner.altText} className="h-14 w-24 rounded-lg object-cover" /><div className="min-w-0 flex-1 text-xs"><b>#{banner.position} · {banner.isActive ? 'Active' : 'Inactive'}</b><p className="truncate text-surface-500">{banner.link}</p></div><button className="btn-secondary !px-2 !py-1 text-xs" onClick={async () => { await api.patch(`/admin/hero-banners/${banner.id}`, { isActive: !banner.isActive }); queryClient.invalidateQueries({ queryKey: ['admin', 'hero-banners'] }); }}>{banner.isActive ? 'Disable' : 'Enable'}</button><button className="text-xs text-red-600" onClick={async () => { await api.delete(`/admin/hero-banners/${banner.id}`); queryClient.invalidateQueries({ queryKey: ['admin', 'hero-banners'] }); }}>Delete</button></div>)}</div></div>;
 }
 
 function DashboardTab({ onNavigate }: { onNavigate: (tab: AdminTab) => void }) {
@@ -661,7 +639,6 @@ function DashboardTab({ onNavigate }: { onNavigate: (tab: AdminTab) => void }) {
         </div>
       </div>
 
-      <HeroSliderManager />
       <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-3">
         {cards.map((card, i) => (
           <div key={i} className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft">
@@ -2432,7 +2409,7 @@ function StoreSettingsTab() {
     <div className="space-y-8">
       <CategoriesManager />
       {/* Hero Banner Section */}
-      <HeroSliderManager />
+      <HeroBannerManager />
 
       {/* Homepage Appearance */}
       <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft">
