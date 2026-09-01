@@ -968,6 +968,7 @@ function ProductsTab() {
   const [imageMeta, setImageMeta] = useState<ImageMeta[]>([]);
   const [dragImageIndex, setDragImageIndex] = useState<number | null>(null);
   const [selectedColorPreset, setSelectedColorPreset] = useState('');
+  const [customColorInput, setCustomColorInput] = useState('');
   const descriptionEditorRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState<ProductFormState>(emptyProductForm);
   const { data: categoryResponse } = useQuery({ queryKey: ['admin-categories'], queryFn: () => api.get('/categories').then(r => r.data) });
@@ -1253,8 +1254,6 @@ function ProductsTab() {
     setFormErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
-
-  const [customColorInput, setCustomColorInput] = useState('');
 
   const handleAddCustomColor = () => {
     const val = customColorInput.trim();
