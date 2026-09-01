@@ -3,6 +3,11 @@ import axios from 'axios';
 const readCookie = (name: string) => typeof document === 'undefined' ? undefined : document.cookie.split('; ').find((value) => value.startsWith(`${name}=`))?.split('=').slice(1).join('=');
 
 const getNormalizedApiUrl = () => {
+  // All browser requests go through Next's /api rewrite. This is important for
+  // session cookies: when the API lives on another site, mobile browsers may
+  // block its third-party cookie even though the login response succeeds.
+  if (typeof window !== 'undefined') return '/api';
+
   let url = (process.env.NEXT_PUBLIC_API_URL || process.env.VITE_API_URL || 'http://localhost:5000/api').trim();
   url = url.replace(/\/+$/, '');
   if (!url.endsWith('/api')) {

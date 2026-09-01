@@ -8,7 +8,7 @@ import { useAuthModalStore } from '@/store/authModalStore';
 import { orderService } from '@/services/order.service';
 import { useHydration } from '@/hooks/useHydration';
 import toast from 'react-hot-toast';
-import { FiClock, FiRefreshCw, FiTruck, FiRotateCcw, FiDollarSign, FiSearch } from 'react-icons/fi';
+import { FiCalendar, FiCheck, FiClock, FiCopy, FiDollarSign, FiMapPin, FiPackage, FiRefreshCw, FiRotateCcw, FiSearch, FiTruck } from 'react-icons/fi';
 
 type ReturnTypeOption = 'RETURN' | 'EXCHANGE';
 
@@ -23,6 +23,31 @@ function statusTone(status?: string) {
 
 function formatPkr(value?: number) {
   return `PKR ${Math.round(value || 0).toLocaleString()}`;
+}
+
+function statusLabel(status?: string) {
+  const value = String(status || 'PENDING').toUpperCase();
+  if (value === 'PAID') return 'Processing';
+  if (value === 'SHIPPED') return 'Shipped';
+  if (value === 'DELIVERED') return 'Delivered';
+  if (value === 'CANCELLED') return 'Cancelled';
+  return 'Order received';
+}
+
+function estimatedDate(order: any) {
+  const date = order?.estimatedDeliveryAt ? new Date(order.estimatedDeliveryAt) : new Date(new Date(order?.createdAt || Date.now()).getTime() + 5 * 86400000);
+  return date.toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function trackingSteps(status?: string) {
+  const current = String(status || 'PENDING').toUpperCase();
+  const position = current === 'DELIVERED' ? 3 : current === 'SHIPPED' ? 2 : current === 'PAID' ? 1 : 0;
+  return [
+    { label: 'Order placed', icon: FiCheck },
+    { label: 'Processing', icon: FiPackage },
+    { label: 'Shipped', icon: FiTruck },
+    { label: 'Delivered', icon: FiMapPin },
+  ].map((step, index) => ({ ...step, complete: position > index, current: position === index }));
 }
 
 function OrdersContent() {
@@ -211,7 +236,7 @@ function OrdersContent() {
         <div className="space-y-4">
           <div className="card p-4">
             <div className="flex items-center justify-between gap-2 mb-3">
-              <p className="font-semibold">Order Tracking Timeline</p>
+              <p className="font-semibold">Order details</p>
               {isLiveTrackingFetching && selectedOrderId ? (
                 <span className="text-xs text-brand-700 inline-flex items-center gap-1">
                   <FiClock className="w-3.5 h-3.5" /> Live updating
@@ -220,9 +245,27 @@ function OrdersContent() {
             </div>
 
             {!activeTracking ? (
-              <p className="text-sm text-surface-500">Select an order or search by order number to view timeline.</p>
+              <p className="text-sm text-surface-500">Select an order or search by order number to view its delivery progress.</p>
             ) : (
               <div className="space-y-4">
+                <section className="rounded-2xl border border-brand-100 bg-brand-50/50 p-4 sm:p-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-surface-500">Tracking number</p>
+                      <button type="button" onClick={() => navigator.clipboard?.writeText(activeTracking.orderNumber).then(() => toast.success('Tracking number copied'))} className="mt-1 inline-flex items-center gap-2 text-left text-xl font-bold text-surface-900 hover:text-brand-700">
+                        {activeTracking.orderNumber}<FiCopy className="h-4 w-4" aria-label="Copy tracking number" />
+                      </button>
+                      <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-surface-500"><FiCalendar className="h-3.5 w-3.5" /> Placed {new Date(activeTracking.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                    </div>
+                    <span className={`w-fit rounded-full px-3 py-1.5 text-xs font-bold ${statusTone(activeTracking.status)}`}>{statusLabel(activeTracking.status)}</span>
+                  </div>
+                </section>
+
+                {String(activeTracking.status).toUpperCase() !== 'CANCELLED' && <section className="rounded-2xl border border-surface-200 bg-white p-4 sm:p-5"><p className="mb-5 text-sm font-bold text-surface-900">Delivery progress</p><div className="grid grid-cols-4 gap-1">{trackingSteps(activeTracking.status).map((step, index) => { const Icon = step.icon; return <div key={step.label} className="relative text-center">{index < 3 && <div className={`absolute left-1/2 top-4 h-0.5 w-full ${step.complete ? 'bg-brand-600' : 'bg-surface-200'}`} />}<div className={`relative mx-auto flex h-8 w-8 items-center justify-center rounded-full border-2 ${step.complete || step.current ? 'border-brand-600 bg-brand-600 text-white' : 'border-surface-200 bg-white text-surface-400'}`}><Icon className="h-3.5 w-3.5" /></div><p className={`mt-2 text-[10px] font-semibold sm:text-xs ${step.complete || step.current ? 'text-brand-800' : 'text-surface-400'}`}>{step.label}</p></div>; })}</div></section>}
+
+                <section className="rounded-2xl border border-surface-200 bg-white p-4 sm:p-5"><p className="mb-3 text-sm font-bold text-surface-900">Items in this order</p><div className="divide-y divide-surface-100">{(activeTracking.items || []).map((item: any) => <div key={item.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">{item.product?.images?.[0] ? <img src={item.product.images[0]} alt={item.product?.name || 'Product'} className="h-20 w-20 shrink-0 rounded-lg border border-surface-200 object-cover" /> : <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg bg-surface-100 text-surface-400"><FiPackage /></div>}<div className="min-w-0 flex-1"><p className="font-semibold text-surface-900">{item.product?.name || 'Product'}</p><p className="mt-1 text-xs text-surface-500">{[item.size && `Size: ${item.size}`, item.color && `Color: ${item.color}`].filter(Boolean).join(' · ') || 'Standard variant'}</p><p className="mt-2 text-xs text-surface-500">Qty {item.quantity} × {formatPkr(item.price)}</p></div><p className="shrink-0 pt-1 text-sm font-bold text-surface-900">{formatPkr(item.quantity * item.price)}</p></div>)}</div></section>
+
+                <div className="grid gap-4 lg:grid-cols-2"><section className="rounded-2xl border border-surface-200 bg-white p-4 sm:p-5"><p className="mb-3 text-sm font-bold text-surface-900">Order summary</p><div className="space-y-2 text-sm text-surface-600"><p className="flex justify-between"><span>Subtotal</span><span>{formatPkr(activeTracking.subtotal)}</span></p><p className="flex justify-between"><span>Shipping</span><span>{activeTracking.deliveryCharges ? formatPkr(activeTracking.deliveryCharges) : 'Free'}</span></p>{Number(activeTracking.couponDiscount || 0) + Number(activeTracking.autoDiscount || 0) > 0 && <p className="flex justify-between text-emerald-700"><span>Discount</span><span>-{formatPkr(Number(activeTracking.couponDiscount || 0) + Number(activeTracking.autoDiscount || 0))}</span></p>}<p className="flex justify-between"><span>Tax</span><span>{formatPkr(activeTracking.tax)}</span></p><div className="mt-3 flex justify-between border-t border-surface-200 pt-3 text-base font-bold text-surface-950"><span>Total</span><span>{formatPkr(activeTracking.total)}</span></div></div></section><section className="rounded-2xl border border-surface-200 bg-white p-4 sm:p-5"><p className="mb-3 text-sm font-bold text-surface-900">Shipping details</p><p className="text-sm font-medium text-surface-800">{activeTracking.address?.fullName}</p><p className="mt-1 text-sm leading-6 text-surface-600">{activeTracking.address?.address}<br />{activeTracking.address?.city}, {activeTracking.address?.province}<br />{activeTracking.address?.phone}</p><p className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700"><FiTruck className="h-3.5 w-3.5" /> Estimated delivery: {estimatedDate(activeTracking)}</p>{activeTracking.slotBooking?.slot && <p className="mt-2 text-xs text-surface-500">Delivery slot: {activeTracking.slotBooking.slot.label}</p>}</section></div>
                 <div className="rounded-xl border border-surface-200 p-3 bg-surface-50">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-semibold text-surface-800">{activeTracking.orderNumber}</p>

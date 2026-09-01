@@ -4,7 +4,7 @@ import { OrderStatus, Prisma, ReturnType } from '@prisma/client';
 import { NotFoundError, BadRequestError } from '../../utils/errors';
 import { env } from '../../config/env';
 import logger from '../../utils/logger';
-import { sendOrderConfirmationNotification } from '../../utils/notifications';
+import { sendOrderConfirmationNotification, sendOrderStatusNotification } from '../../utils/notifications';
 
 interface AdminOrderFilters {
   status?: string;
@@ -153,6 +153,7 @@ export class OrderService {
           customerEmail: userRecord?.email || '',
           customerPhone: order.address.phone || userRecord?.phone || '',
           subtotal: order.subtotal,
+          tax: order.tax,
           deliveryCharges: order.deliveryCharges,
           total: order.total,
           paymentMethod: 'COD',
@@ -169,6 +170,7 @@ export class OrderService {
             price: it.price,
             size: it.size || undefined,
             color: it.color || undefined,
+            imageUrl: it.product.images[0],
           })),
           userId,
         }).catch((err) => logger.error('Order notification dispatch error', err));
@@ -330,6 +332,7 @@ export class OrderService {
       customerEmail: data.guestEmail,
       customerPhone: data.guestPhone,
       subtotal: order.subtotal,
+      tax: order.tax,
       deliveryCharges: order.deliveryCharges,
       total: order.total,
       paymentMethod: 'COD',
@@ -346,6 +349,7 @@ export class OrderService {
         price: it.price,
         size: it.size || undefined,
         color: it.color || undefined,
+        imageUrl: it.product.images[0],
       })),
       userId: order.userId,
     }).catch((err) => logger.error('Guest order notification error', err));
@@ -381,7 +385,7 @@ export class OrderService {
   async updateStatus(orderId: string, status: string) {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      include: { payment: true },
+      include: { payment: true, user: { select: { name: true, email: true } }, address: true, items: { include: { product: { select: { name: true, images: true } } } } },
     });
     if (!order) throw new NotFoundError('Order not found');
 
@@ -427,6 +431,27 @@ export class OrderService {
         description: `Order status has been updated to ${normalizedStatus}.`,
       },
     });
+
+    // Dispatch after the status and timeline are committed. A mail outage must
+    // never make an admin status change fail or delay its HTTP response.
+    if (previousStatus !== normalizedStatus) {
+      void sendOrderStatusNotification({
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        customerName: order.guestName || order.address.fullName || order.user.name,
+        customerEmail: order.guestEmail || order.user.email,
+        subtotal: order.subtotal,
+        tax: order.tax,
+        deliveryCharges: order.deliveryCharges,
+        total: order.total,
+        paymentMethod: order.payment?.method || 'COD',
+        status: normalizedStatus,
+        estimatedDeliveryAt: order.estimatedDeliveryAt,
+        shippingAddress: { fullName: order.address.fullName, phone: order.address.phone, address: order.address.address, city: order.address.city, province: order.address.province },
+        items: order.items.map((item) => ({ name: item.product.name, quantity: item.quantity, price: item.price, size: item.size || undefined, color: item.color || undefined, imageUrl: item.product.images[0] })),
+        userId: order.userId,
+      }).catch((error) => logger.error(`Order status email dispatch failed for ${order.orderNumber}`, error));
+    }
 
     return updated;
   }
@@ -478,6 +503,8 @@ export class OrderService {
         items: { include: { product: true } },
         address: true,
         payment: true,
+        timeline: { orderBy: { createdAt: 'asc' } },
+        slotBooking: { include: { slot: true } },
       },
     });
 
@@ -492,6 +519,8 @@ export class OrderService {
         items: { include: { product: true } },
         address: true,
         payment: true,
+        timeline: { orderBy: { createdAt: 'asc' } },
+        slotBooking: { include: { slot: true } },
       },
     });
 

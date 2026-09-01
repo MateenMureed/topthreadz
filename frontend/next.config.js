@@ -68,6 +68,25 @@ const nextConfig = {
       },
     ];
   },
+  // Keep browser API requests on the storefront origin.  The API is deployed
+  // separately in production, and mobile Safari/Chrome can reject that
+  // deployment's cross-site session cookie.  A rewrite lets the browser store
+  // the secure, host-only session cookie as a first-party storefront cookie.
+  async rewrites() {
+    const configuredApiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/+$/, '');
+    const upstream = configuredApiUrl.replace(/\/api$/, '');
+
+    // A relative URL is already same-origin and must not be rewritten back to
+    // itself. This also allows deployments that serve the API natively at /api.
+    if (!/^https?:\/\//i.test(upstream)) return [];
+
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${upstream}/api/:path*`,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

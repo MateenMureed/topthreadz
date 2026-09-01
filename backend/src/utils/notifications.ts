@@ -3,195 +3,58 @@ import logger from './logger';
 import nodemailer from 'nodemailer';
 
 export interface OrderNotificationData {
-  orderId: string;
-  orderNumber: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone?: string;
-  subtotal: number;
-  deliveryCharges: number;
-  total: number;
-  paymentMethod: string;
-  shippingAddress: {
-    fullName: string;
-    phone: string;
-    address: string;
-    city: string;
-    province: string;
-  };
-  items: Array<{
-    name: string;
-    quantity: number;
-    price: number;
-    size?: string;
-    color?: string;
-  }>;
+  orderId: string; orderNumber: string; customerName: string; customerEmail: string; customerPhone?: string;
+  subtotal: number; tax: number; deliveryCharges: number; total: number; paymentMethod: string;
+  status?: string; estimatedDeliveryAt?: Date | null;
+  shippingAddress: { fullName: string; phone: string; address: string; city: string; province: string };
+  items: Array<{ name: string; quantity: number; price: number; size?: string; color?: string; imageUrl?: string }>;
   userId?: string;
 }
 
-// Nodemailer transport setup (falls back gracefully to logger if SMTP credentials are omitted)
-const smtpConfig = {
-  host: process.env.SMTP_HOST || '',
-  port: parseInt(process.env.SMTP_PORT || '587', 10),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: process.env.SMTP_USER && process.env.SMTP_PASS ? {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  } : undefined,
+const smtpUser = process.env.GMAIL_SMTP_USER || process.env.SMTP_USER;
+const smtpPass = process.env.GMAIL_SMTP_APP_PASSWORD || process.env.SMTP_PASS;
+const transporter = smtpUser && smtpPass ? nodemailer.createTransport({ service: 'gmail', auth: { user: smtpUser, pass: smtpPass } }) : null;
+const esc = (value: unknown) => String(value ?? '').replace(/[&<>'"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]!));
+const money = (value: number) => `PKR ${Math.round(value || 0).toLocaleString('en-PK')}`;
+const trackingUrl = (orderNumber: string) => `${process.env.FRONTEND_URL || 'https://www.topthreadz.com.pk'}/orders?tracking=${encodeURIComponent(orderNumber)}`;
+const statusCopy: Record<string, { title: string; message: string }> = {
+  PENDING: { title: 'Order received', message: 'We have received your order and are preparing it for dispatch.' },
+  PAID: { title: 'Payment confirmed', message: 'Your payment has been confirmed and your order is being prepared.' },
+  SHIPPED: { title: 'Your order is on its way', message: 'Your parcel has been shipped. Use the tracking number below for the latest progress.' },
+  DELIVERED: { title: 'Order delivered', message: 'Your order has been marked as delivered. We hope you enjoy it!' },
+  CANCELLED: { title: 'Order cancelled', message: 'Your order has been cancelled. Contact support if you need help.' },
 };
 
-const transporter = smtpConfig.auth
-  ? nodemailer.createTransport(smtpConfig)
-  : null;
-
-export async function sendOrderConfirmationNotification(data: OrderNotificationData) {
-  const trackingUrl = `https://www.topthreadz.com.pk/orders?tracking=${encodeURIComponent(data.orderNumber)}`;
-  const isFreeDelivery = data.deliveryCharges === 0;
-
-  const itemsHtml = data.items
-    .map(
-      (item) => `
-      <tr style="border-bottom: 1px solid #f0f0f0;">
-        <td style="padding: 12px 8px; font-size: 14px; color: #111;">
-          <strong>${item.name}</strong>
-          ${item.size ? `<br/><span style="font-size: 12px; color: #666;">Size: ${item.size}</span>` : ''}
-          ${item.color ? `<span style="font-size: 12px; color: #666;"> | Color: ${item.color}</span>` : ''}
-        </td>
-        <td style="padding: 12px 8px; font-size: 14px; text-align: center; color: #333;">${item.quantity}</td>
-        <td style="padding: 12px 8px; font-size: 14px; text-align: right; color: #111; font-weight: 600;">
-          PKR ${(item.price * item.quantity).toLocaleString()}
-        </td>
-      </tr>
-    `
-    )
-    .join('');
-
-  const htmlEmail = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Order Confirmation - ${data.orderNumber}</title>
-    </head>
-    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f7f7f7; margin: 0; padding: 20px;">
-      <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #eaeaea;">
-        
-        <!-- Header -->
-        <div style="background-color: #0a0a0a; color: #ffffff; padding: 32px 24px; text-align: center;">
-          <h1 style="margin: 0; font-size: 24px; letter-spacing: 2px; font-weight: 900; text-transform: uppercase;">TOP THREADZ</h1>
-          <p style="margin: 6px 0 0 0; font-size: 13px; color: #d0d0d0; letter-spacing: 1px;">PREMIUM MENSWEAR PAKISTAN</p>
-        </div>
-
-        <!-- Body -->
-        <div style="padding: 32px 24px;">
-          <h2 style="font-size: 20px; color: #111; margin-top: 0; font-weight: 700;">Order Confirmed!</h2>
-          <p style="font-size: 14px; color: #555; line-height: 1.6;">
-            Assalam-o-Alaikum <strong>${data.customerName}</strong>,<br/>
-            Thank you for shopping with Top Threadz. We have received your order and are currently preparing it for dispatch.
-          </p>
-
-          <!-- Tracking Card -->
-          <div style="background-color: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; margin: 24px 0; text-align: center;">
-            <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #6b7280;">Your Unique Order & Tracking Number</span>
-            <div style="font-size: 24px; font-weight: 900; color: #111827; letter-spacing: 2px; margin: 8px 0;">${data.orderNumber}</div>
-            <p style="font-size: 12px; color: #6b7280; margin: 0 0 12px 0;">Use this number to track your package anytime.</p>
-            <a href="${trackingUrl}" style="display: inline-block; background-color: #000000; color: #ffffff; text-decoration: none; padding: 10px 24px; border-radius: 9999px; font-size: 13px; font-weight: 700; letter-spacing: 0.5px;">TRACK YOUR ORDER</a>
-          </div>
-
-          <!-- Items Table -->
-          <h3 style="font-size: 16px; color: #111; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 0;">Order Summary</h3>
-          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-            <thead>
-              <tr style="border-bottom: 1px solid #ddd; background: #fafafa;">
-                <th style="padding: 8px; text-align: left; font-size: 12px; color: #555; text-transform: uppercase;">Item</th>
-                <th style="padding: 8px; text-align: center; font-size: 12px; color: #555; text-transform: uppercase;">Qty</th>
-                <th style="padding: 8px; text-align: right; font-size: 12px; color: #555; text-transform: uppercase;">Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itemsHtml}
-            </tbody>
-          </table>
-
-          <!-- Financial Summary -->
-          <div style="background-color: #fafafa; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-            <div style="display: flex; justify-content: space-between; font-size: 14px; color: #555; margin-bottom: 6px;">
-              <span>Subtotal:</span>
-              <span style="font-weight: 600; color: #111;">PKR ${data.subtotal.toLocaleString()}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 14px; color: #555; margin-bottom: 6px;">
-              <span>Delivery Charges:</span>
-              <span style="font-weight: 600; color: ${isFreeDelivery ? '#16a34a' : '#111'};">
-                ${isFreeDelivery ? 'FREE (Orders over 10k)' : `PKR ${data.deliveryCharges.toLocaleString()}`}
-              </span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; color: #111; border-top: 1px solid #e5e7eb; padding-top: 8px; margin-top: 6px;">
-              <span>Total Amount:</span>
-              <span>PKR ${data.total.toLocaleString()}</span>
-            </div>
-            <div style="font-size: 12px; color: #6b7280; margin-top: 6px;">
-              Payment Method: <strong>${data.paymentMethod === 'COD' ? 'Cash On Delivery' : 'Online Payment'}</strong>
-            </div>
-          </div>
-
-          <!-- Shipping Details -->
-          <div style="font-size: 13px; color: #555; line-height: 1.5; border-left: 3px solid #000; padding-left: 12px;">
-            <strong style="color: #111;">Delivery Address:</strong><br/>
-            ${data.shippingAddress.fullName} (${data.shippingAddress.phone})<br/>
-            ${data.shippingAddress.address}, ${data.shippingAddress.city}, ${data.shippingAddress.province}
-          </div>
-
-          <!-- Outlet Info & Help -->
-          <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #eaeaea; font-size: 12px; color: #666; text-align: center;">
-            <p style="margin: 0 0 6px 0;"><strong>Our Outlets:</strong> Zamzama DHA Phase 5 Karachi | F-8 Markaz Islamabad</p>
-            <p style="margin: 0;">Need help? WhatsApp us at <a href="https://wa.me/923009070520" style="color: #000; font-weight: 700;">+92 300 9070520</a> or email <a href="mailto:support@topthreadz.pk" style="color: #000;">support@topthreadz.pk</a></p>
-          </div>
-        </div>
-
-        <div style="background-color: #f3f4f6; text-align: center; padding: 16px; font-size: 11px; color: #9ca3af;">
-          © ${new Date().getFullYear()} Top Threadz Pakistan. All rights reserved.
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-
-  // 1. Record notification in database if userId is present
-  if (data.userId) {
-    try {
-      await prisma.notification.create({
-        data: {
-          userId: data.userId,
-          channel: 'EMAIL',
-          subject: `Order Confirmation - ${data.orderNumber}`,
-          message: `Your Top Threadz order ${data.orderNumber} for PKR ${data.total.toLocaleString()} has been placed. Track here: ${trackingUrl}`,
-          status: 'SENT',
-          metadata: {
-            orderNumber: data.orderNumber,
-            total: data.total,
-            itemsCount: data.items.length,
-          },
-        },
-      });
-    } catch (dbErr) {
-      logger.warn('Could not persist notification record in DB', dbErr);
-    }
-  }
-
-  // 2. Dispatch email via nodemailer if configured
-  if (transporter && data.customerEmail) {
-    try {
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM || '"Top Threadz" <orders@topthreadz.com.pk>',
-        to: data.customerEmail,
-        subject: `Order Confirmation #${data.orderNumber} - Top Threadz`,
-        html: htmlEmail,
-      });
-      logger.info(`Order confirmation email sent to ${data.customerEmail} for order ${data.orderNumber}`);
-    } catch (mailErr) {
-      logger.error(`Failed to send order confirmation email to ${data.customerEmail}`, mailErr);
-    }
-  } else {
-    logger.info(`[Order Notification Triggered] Order ${data.orderNumber} created for ${data.customerName} (${data.customerEmail}). Tracking: ${trackingUrl}`);
-  }
+function estimatedDelivery(data: OrderNotificationData) {
+  const date = data.estimatedDeliveryAt || new Date(Date.now() + 5 * 86400000);
+  return new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
 }
+
+function renderEmail(data: OrderNotificationData, kind: 'confirmation' | 'status') {
+  const copy = statusCopy[data.status || 'PENDING'] || statusCopy.PENDING;
+  const title = kind === 'confirmation' ? 'Order confirmed' : copy.title;
+  const message = kind === 'confirmation' ? statusCopy.PENDING.message : copy.message;
+  const rows = data.items.map((item) => `<tr>
+    <td style="padding:14px 8px;border-bottom:1px solid #e5e7eb;vertical-align:top;width:64px;">${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="${esc(item.name)}" width="56" height="56" style="display:block;object-fit:cover;border-radius:6px;border:0;"/>` : ''}</td>
+    <td style="padding:14px 8px;border-bottom:1px solid #e5e7eb;font:14px Arial;color:#111827;"><strong>${esc(item.name)}</strong><br/><span style="color:#6b7280;font-size:12px;">${[item.size && `Size: ${esc(item.size)}`, item.color && `Colour: ${esc(item.color)}`].filter(Boolean).join(' · ')}</span></td>
+    <td style="padding:14px 8px;border-bottom:1px solid #e5e7eb;font:14px Arial;text-align:center;color:#374151;">${item.quantity}</td><td style="padding:14px 8px;border-bottom:1px solid #e5e7eb;font:14px Arial;text-align:right;color:#111827;white-space:nowrap;">${money(item.price * item.quantity)}</td></tr>`).join('');
+  return `<!doctype html><html><body style="margin:0;padding:0;background:#f3f4f6;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f6;"><tr><td align="center" style="padding:24px 12px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#ffffff;border:1px solid #e5e7eb;">
+    <tr><td align="center" style="background:#0f1f3d;padding:28px 24px;"><img src="${esc(process.env.EMAIL_LOGO_URL || 'https://www.topthreadz.com.pk/images/topthreadz-logo-light.png')}" alt="Top Threadz" width="150" style="display:block;max-width:150px;height:auto;border:0;"/><p style="margin:9px 0 0;color:#dbe3f0;font:11px Arial;letter-spacing:1.5px;">PREMIUM MENSWEAR PAKISTAN</p></td></tr>
+    <tr><td style="padding:28px 24px;font-family:Arial,sans-serif;color:#111827;"><h1 style="margin:0 0 12px;font-size:24px;">${title}</h1><p style="margin:0 0 20px;color:#4b5563;font-size:15px;line-height:1.6;">Assalam-o-Alaikum ${esc(data.customerName)},<br/>${message}</p>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc;border:1px solid #dbe3f0;"><tr><td align="center" style="padding:18px;"><p style="margin:0;color:#64748b;font:11px Arial;font-weight:bold;letter-spacing:1px;">ORDER &amp; TRACKING NUMBER</p><p style="margin:8px 0 14px;color:#0f1f3d;font:700 23px Arial;letter-spacing:1px;">${esc(data.orderNumber)}</p><a href="${trackingUrl(data.orderNumber)}" style="display:inline-block;background:#b91c2b;color:#ffffff;padding:12px 22px;font:700 13px Arial;text-decoration:none;">TRACK YOUR ORDER</a></td></tr></table>
+      <p style="margin:20px 0 8px;font:700 16px Arial;">Estimated delivery: ${esc(estimatedDelivery(data))}</p><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;"><tr><th style="text-align:left;padding:12px 8px;background:#f8fafc;font:11px Arial;color:#64748b;">PRODUCT</th><th style="background:#f8fafc;font:11px Arial;color:#64748b;">QTY</th><th style="text-align:right;padding:12px 8px;background:#f8fafc;font:11px Arial;color:#64748b;">PRICE</th></tr>${rows}</table>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:18px;background:#f8fafc;"><tr><td style="padding:16px 18px;color:#4b5563;font:14px Arial;line-height:1.8;">Subtotal<br/>Shipping<br/>Tax<br/><strong style="color:#111827;font-size:16px;">Total</strong></td><td align="right" style="padding:16px 18px;color:#111827;font:14px Arial;line-height:1.8;">${money(data.subtotal)}<br/>${data.deliveryCharges ? money(data.deliveryCharges) : 'FREE'}<br/>${money(data.tax)}<br/><strong style="font-size:16px;">${money(data.total)}</strong></td></tr></table>
+      <p style="margin:22px 0 0;padding:14px;border-left:3px solid #b91c2b;background:#fff7f7;color:#4b5563;font:13px Arial;line-height:1.5;"><strong style="color:#111827;">Shipping address</strong><br/>${esc(data.shippingAddress.fullName)} · ${esc(data.shippingAddress.phone)}<br/>${esc(data.shippingAddress.address)}, ${esc(data.shippingAddress.city)}, ${esc(data.shippingAddress.province)}</p></td></tr>
+    <tr><td align="center" style="padding:18px 24px;background:#f8fafc;color:#6b7280;font:12px Arial;">Need help? <a href="mailto:support@topthreadz.pk" style="color:#0f1f3d;">support@topthreadz.pk</a> · +92 300 9070520</td></tr></table></td></tr></table></body></html>`;
+}
+
+async function sendOrderEmail(data: OrderNotificationData, kind: 'confirmation' | 'status') {
+  const subject = kind === 'confirmation' ? `Order confirmation #${data.orderNumber} | Top Threadz` : `Order update: ${(statusCopy[data.status || 'PENDING'] || statusCopy.PENDING).title} #${data.orderNumber}`;
+  if (data.userId) prisma.notification.create({ data: { userId: data.userId, channel: 'EMAIL', subject, message: `${subject}. Track: ${trackingUrl(data.orderNumber)}`, status: transporter ? 'PENDING' : 'FAILED', metadata: { orderNumber: data.orderNumber, status: data.status, type: kind } } }).catch((error) => logger.warn('Could not persist order email notification', error));
+  if (!transporter || !data.customerEmail) { logger.warn(`Order email not sent for ${data.orderNumber}: Gmail SMTP is not configured or customer email is missing`); return; }
+  try { await transporter.sendMail({ from: process.env.SMTP_FROM || `"Top Threadz" <${smtpUser}>`, to: data.customerEmail, subject, html: renderEmail(data, kind) }); logger.info(`Order ${kind} email sent for ${data.orderNumber} to ${data.customerEmail}`); }
+  catch (error) { logger.error(`Order ${kind} email failed for ${data.orderNumber}`, error); }
+}
+
+export const sendOrderConfirmationNotification = (data: OrderNotificationData) => sendOrderEmail(data, 'confirmation');
+export const sendOrderStatusNotification = (data: OrderNotificationData) => sendOrderEmail(data, 'status');

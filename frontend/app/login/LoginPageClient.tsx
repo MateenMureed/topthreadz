@@ -32,9 +32,14 @@ export default function LoginPageClient() {
     setLoading(true);
     try {
       const res = await authService.login({ email, password });
-      setUser(res.data.user);
+      // Do not mark the client authenticated until the browser has returned
+      // the just-issued session cookie. This catches cookie-policy failures
+      // instead of leaving an admin page backed only by persisted local state.
+      const session = await authService.session();
+      const user = session.data?.user || res.data.user;
+      setUser(user);
       toast.success('Welcome back!');
-      if (res.data.user.role === 'ADMIN') {
+      if (user.role === 'ADMIN') {
         router.push('/admin');
       } else {
         router.push(redirectTo);
