@@ -4,7 +4,6 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
-import { useAuthModalStore } from '@/store/authModalStore';
 import { orderService } from '@/services/order.service';
 import { useHydration } from '@/hooks/useHydration';
 import toast from 'react-hot-toast';
@@ -53,10 +52,11 @@ function trackingSteps(status?: string) {
 function OrdersContent() {
   const hydrated = useHydration();
   const { isAuthenticated } = useAuthStore();
-  const { openModal } = useAuthModalStore();
   const queryClient = useQueryClient();
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [trackingOrderNumber, setTrackingOrderNumber] = useState('');
+  const [trackingEmail, setTrackingEmail] = useState('');
+  const [trackingSearch, setTrackingSearch] = useState<{ orderNumber: string; email: string } | null>(null);
   const [returnType, setReturnType] = useState<ReturnTypeOption>('RETURN');
   const [returnReason, setReturnReason] = useState('');
   const [partialRefundAmount, setPartialRefundAmount] = useState('');
@@ -86,10 +86,10 @@ function OrdersContent() {
   const searchParams = useSearchParams();
   const trackingParam = searchParams.get('tracking') || searchParams.get('orderNumber') || '';
 
-  const { data: searchedTrackingData, isFetching: isTrackingSearchFetching, refetch: refetchTrackingByOrderNumber } = useQuery({
-    queryKey: ['orders', 'tracking-by-number', trackingOrderNumber],
-    queryFn: () => orderService.getTrackingByOrderNumber(trackingOrderNumber),
-    enabled: Boolean(trackingOrderNumber),
+  const { data: searchedTrackingData, isFetching: isTrackingSearchFetching, isError: isTrackingSearchError } = useQuery({
+    queryKey: ['orders', 'tracking-by-number', trackingSearch],
+    queryFn: () => orderService.getTrackingByOrderNumber(trackingSearch!.orderNumber, trackingSearch!.email),
+    enabled: Boolean(trackingSearch),
   });
 
   useEffect(() => {
@@ -142,16 +142,6 @@ function OrdersContent() {
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div className="max-w-lg mx-auto px-4 py-20 text-center">
-        <h1 className="font-display text-2xl font-bold mb-4">Login Required</h1>
-        <p className="text-surface-500 mb-6">Please login to view and track your orders.</p>
-        <button type="button" onClick={() => openModal('login', '/orders')} className="btn-primary">Login</button>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center justify-between gap-3">
@@ -173,33 +163,36 @@ function OrdersContent() {
       <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6">
         <div className="space-y-4">
           <div className="card p-4">
-            <p className="font-semibold mb-3">Track by Order Number</p>
-            <div className="flex gap-2">
+            <p className="font-semibold mb-1">Track your order</p>
+            <p className="mb-3 text-xs text-surface-500">Enter the tracking number and email used at checkout.</p>
+            <div className="space-y-2">
               <input
                 className="input-field"
-                placeholder="e.g. ORD-ABC123"
+                placeholder="Tracking number (e.g. TT-ABC123)"
                 value={trackingOrderNumber}
                 onChange={(e) => setTrackingOrderNumber(e.target.value)}
               />
+              <input
+                className="input-field"
+                type="email"
+                autoComplete="email"
+                placeholder="Checkout email address"
+                value={trackingEmail}
+                onChange={(e) => setTrackingEmail(e.target.value)}
+              />
               <button
                 type="button"
-                className="btn-primary !py-2 !px-3"
-                disabled={!trackingOrderNumber.trim() || isTrackingSearchFetching}
-                onClick={async () => {
-                  try {
-                    await refetchTrackingByOrderNumber();
-                    toast.success('Tracking loaded');
-                  } catch {
-                    toast.error('Order tracking not found');
-                  }
-                }}
+                className="btn-primary w-full !py-2 !px-3"
+                disabled={!trackingOrderNumber.trim() || !/.+@.+\..+/.test(trackingEmail.trim()) || isTrackingSearchFetching}
+                onClick={() => setTrackingSearch({ orderNumber: trackingOrderNumber.trim(), email: trackingEmail.trim() })}
               >
-                <FiSearch className="w-4 h-4" />
+                <span className="inline-flex items-center gap-2"><FiSearch className="w-4 h-4" /> Track order</span>
               </button>
+              {isTrackingSearchError && <p className="text-xs text-red-600">No order matches that tracking number and email.</p>}
             </div>
           </div>
 
-          <div className="card p-4">
+          {isAuthenticated && <div className="card p-4">
             <p className="font-semibold mb-3">My Orders</p>
             {ordersLoading ? (
               <div className="space-y-2">
@@ -230,11 +223,11 @@ function OrdersContent() {
                 ))}
               </div>
             )}
-          </div>
+          </div>}
         </div>
 
         <div className="space-y-4">
-          <div className="card p-4">
+          {isAuthenticated && <div className="card p-4">
             <div className="flex items-center justify-between gap-2 mb-3">
               <p className="font-semibold">Order details</p>
               {isLiveTrackingFetching && selectedOrderId ? (
@@ -300,7 +293,7 @@ function OrdersContent() {
                 </div>
               </div>
             )}
-          </div>
+          </div>}
 
           <div className="card p-4">
             <p className="font-semibold mb-3 inline-flex items-center gap-2"><FiRotateCcw className="w-4 h-4" /> Return / Exchange Request</p>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -100,14 +100,14 @@ export default function CheckoutPage() {
     return items.length > 0 && isEmailValid && isShippingValid;
   }, [items.length, isEmailValid, isShippingValid]);
 
-  const saveEmailSection = () => {
-    if (!isEmailValid) {
-      toast.error('Please provide a valid email');
-      return;
+  // Guest checkout has no account step: once a valid email is entered, move
+  // straight to shipping while retaining the same email state and payload.
+  useEffect(() => {
+    if (emailMode === 'edit' && isEmailValid) {
+      setEmailMode('summary');
+      setActiveSection('shipping');
     }
-    setEmailMode('summary');
-    setActiveSection('shipping');
-  };
+  }, [emailMode, isEmailValid]);
 
   const saveShippingSection = () => {
     if (!isShippingValid) {
@@ -331,7 +331,6 @@ export default function CheckoutPage() {
                   <label htmlFor="checkout-email">Email address</label>
                   {checkoutEmail && !isEmailValid && <p className="checkout-field-message">Enter a valid email address.</p>}
                 </div>
-                <button type="button" onClick={saveEmailSection} className="btn-primary mt-3 px-5 py-2">Save Email</button>
               </div>
               ) : (
                 <p className="mt-3 text-black font-medium">{checkoutEmail}</p>

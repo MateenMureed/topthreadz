@@ -496,7 +496,9 @@ export class OrderService {
     });
   }
 
-  async getTrackingByOrderNumber(orderNumber: string) {
+  async getTrackingByOrderNumber(orderNumber: string, email?: string) {
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    if (!normalizedEmail) throw new BadRequestError('Checkout email is required to track an order');
     const order = await prisma.order.findUnique({
       where: { orderNumber },
       include: {
@@ -508,7 +510,11 @@ export class OrderService {
       },
     });
 
-    if (!order) throw new NotFoundError('Order not found');
+    // Guest tracking is public, but requires the two values that were sent at
+    // checkout. This prevents an order number alone from exposing addresses.
+    if (!order) throw new NotFoundError('No order matches that tracking number and email');
+    const customerEmail = (order.guestEmail || '').trim().toLowerCase();
+    if (customerEmail !== normalizedEmail) throw new NotFoundError('No order matches that tracking number and email');
     return order;
   }
 
