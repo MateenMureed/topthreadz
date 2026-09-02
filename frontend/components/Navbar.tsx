@@ -7,12 +7,18 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   FiHeart,
   FiLogOut,
+  FiMenu,
   FiSearch,
   FiShoppingBag,
   FiTruck,
   FiUser,
   FiX,
+  FiChevronRight,
+  FiShield,
+  FiHelpCircle,
 } from 'react-icons/fi';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthModalStore } from '@/store/authModalStore';
@@ -50,6 +56,7 @@ export default function Navbar() {
   const { openModal } = useAuthModalStore();
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [brands, setBrands] = useState<string[]>([]);
   const [brandPage, setBrandPage] = useState(1);
@@ -57,6 +64,14 @@ export default function Navbar() {
   const [loadingBrands, setLoadingBrands] = useState(false);
   const searchPanelRef = useRef<HTMLDivElement>(null);
   const brandsScrollRef = useRef<HTMLDivElement>(null);
+
+  const { data: categoriesResponse } = useQuery({
+    queryKey: ['categories-nav'],
+    queryFn: () => api.get('/categories').then((r) => r.data?.data || r.data || []),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const categories = Array.isArray(categoriesResponse) ? categoriesResponse : [];
 
   const fetchBrandPage = async (pageToLoad: number, reset = false) => {
     if (loadingBrands) return;
@@ -104,6 +119,11 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', onClickOutside);
   }, []);
 
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
   const isAdmin = hydrated && isAuthenticated && user?.role === 'ADMIN';
   const isAuthed = hydrated && isAuthenticated;
 
@@ -148,100 +168,119 @@ export default function Navbar() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4">
-          <div className="h-16 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-            <div />
+          <div className="h-16 grid grid-cols-[auto_1fr_auto] lg:grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
+            {/* Left Hamburger (mobile) */}
+            <div className="flex items-center">
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(true)}
+                className="lg:hidden w-10 h-10 -ml-2 rounded-xl text-surface-800 hover:bg-surface-100 transition-colors flex items-center justify-center"
+                aria-label="Open navigation menu"
+              >
+                <FiMenu className="w-5 h-5" />
+              </button>
+            </div>
 
-            <Link href="/" className="inline-flex items-center justify-center group py-1" aria-label="Top Threadz Home">
+            {/* Center Logo */}
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center group py-1 mx-auto"
+              aria-label="Top Threadz Home"
+            >
               <span className="sr-only">Top Threadz</span>
               <div className="relative h-11 sm:h-12 md:h-14 w-36 sm:w-44 md:w-52 flex items-center justify-center">
                 <Image
                   src="/images/topthreadz-logo.png"
                   alt="Top Threadz"
                   width={320}
-                  height={140}
+                  height={158}
                   priority
                   className="h-full w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                 />
               </div>
             </Link>
 
-            <div className="hidden lg:flex items-center justify-end gap-2">
-              {isAuthed && !isAdmin ? (
+            {/* Right Icons (Desktop & Mobile) */}
+            <div className="flex items-center justify-end gap-1.5 sm:gap-2">
+              <button
+                type="button"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
+                onClick={handleOpenSearch}
+                aria-label="Open search"
+              >
+                <FiSearch className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
+              </button>
+
+              <div className="hidden lg:flex items-center gap-2">
+                {isAuthed && !isAdmin ? (
+                  <Link
+                    href="/orders"
+                    className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
+                    aria-label="Track order"
+                    title="Track orders"
+                  >
+                    <FiTruck className="w-5 h-5" />
+                  </Link>
+                ) : null}
+
+                {isAuthed ? (
+                  <>
+                    {isAdmin ? (
+                      <Link
+                        href="/admin"
+                        className="h-10 rounded-xl border border-surface-300 px-4 text-sm font-semibold text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors inline-flex items-center"
+                      >
+                        Admin
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/orders"
+                        className="h-10 rounded-xl border border-surface-300 px-4 text-sm font-semibold text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors inline-flex items-center"
+                      >
+                        My Orders
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="h-10 rounded-xl border border-surface-300 px-4 text-sm font-semibold text-surface-800 hover:bg-surface-100 transition-colors inline-flex items-center gap-1.5"
+                    >
+                      <FiLogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors inline-flex items-center justify-center"
+                    onClick={() => openModal('login')}
+                    aria-label="Login"
+                  >
+                    <FiUser className="w-5 h-5" />
+                  </button>
+                )}
+
                 <Link
                   href="/orders"
                   className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
                   aria-label="Track order"
-                  title="Track orders"
+                  title="Track order"
                 >
                   <FiTruck className="w-5 h-5" />
                 </Link>
-              ) : null}
-
-              {isAuthed ? (
-                <>
-                  {isAdmin ? (
-                    <Link
-                      href="/admin"
-                      className="h-10 rounded-xl border border-surface-300 px-4 text-sm font-semibold text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors inline-flex items-center"
-                    >
-                      Admin
-                    </Link>
-                  ) : (
-                    <Link
-                      href="/orders"
-                      className="h-10 rounded-xl border border-surface-300 px-4 text-sm font-semibold text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors inline-flex items-center"
-                    >
-                      My Orders
-                    </Link>
-                  )}
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="h-10 rounded-xl border border-surface-300 px-4 text-sm font-semibold text-surface-800 hover:bg-surface-100 transition-colors inline-flex items-center gap-1.5"
-                  >
-                    <FiLogOut className="w-4 h-4" />
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors inline-flex items-center justify-center"
-                  onClick={() => openModal('login')}
-                  aria-label="Login"
+                <Link
+                  href="/products?sortBy=recommended"
+                  className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
+                  aria-label="Favourite"
                 >
-                  <FiUser className="w-5 h-5" />
-                </button>
-              )}
-
-              <button
-                type="button"
-                className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
-                onClick={handleOpenSearch}
-                aria-label="Open search"
-              >
-                <FiSearch className="w-5 h-5" />
-              </button>
-              <Link
-                href="/orders"
-                className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
-                aria-label="Track order"
-                title="Track order"
-              >
-                <FiTruck className="w-5 h-5" />
-              </Link>
-              <Link
-                href="/products?sortBy=recommended"
-                className="w-10 h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
-                aria-label="Favourite"
-              >
-                <FiHeart className="w-5 h-5" />
-              </Link>
+                  <FiHeart className="w-5 h-5" />
+                </Link>
+              </div>
 
               <button
                 type="button"
                 onClick={openCart}
-                className="relative h-9 w-11 rounded-lg border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
+                className="relative h-9 w-9 sm:h-9 sm:w-11 rounded-lg border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
                 aria-label="Cart"
               >
                 <FiShoppingBag className="w-4.5 h-4.5" />
@@ -256,6 +295,143 @@ export default function Navbar() {
         </div>
       </nav>
 
+      {/* ── MOBILE SLIDE-OUT MENU DRAWER ── */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[100] lg:hidden">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white shadow-2xl flex flex-col z-10 animate-slideIn">
+            {/* Drawer Header */}
+            <div className="p-4 border-b border-surface-200 flex items-center justify-between bg-[#0F1F3D] text-white">
+              <div className="relative h-8 w-28">
+                <Image
+                  src="/images/topthreadz-logo-light.png"
+                  alt="Top Threadz"
+                  width={160}
+                  height={50}
+                  className="h-full w-auto object-contain brightness-125"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                aria-label="Close menu"
+              >
+                <FiX className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Drawer Navigation Links */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              {/* Primary Shop Navigation */}
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-surface-400 mb-2">
+                  Collections
+                </p>
+                <div className="space-y-1">
+                  <Link
+                    href="/products"
+                    className="group relative flex items-center justify-between py-2.5 px-2 text-sm font-semibold uppercase tracking-wider text-surface-800 hover:text-[#0F1F3D] transition-colors"
+                  >
+                    <span>All Products</span>
+                    <span className="absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
+                    <FiChevronRight className="w-4 h-4 text-surface-400 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  <Link
+                    href="/products?sortBy=newest"
+                    className="group relative flex items-center justify-between py-2.5 px-2 text-sm font-semibold uppercase tracking-wider text-surface-800 hover:text-[#0F1F3D] transition-colors"
+                  >
+                    <span>New Arrivals</span>
+                    <span className="absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
+                    <FiChevronRight className="w-4 h-4 text-surface-400 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  {categories.map((cat: any) => (
+                    <Link
+                      key={cat.id || cat.slug || cat.name}
+                      href={`/products/category/${encodeURIComponent(cat.slug || cat.name)}`}
+                      className="group relative flex items-center justify-between py-2.5 px-2 text-sm font-semibold uppercase tracking-wider text-surface-800 hover:text-[#0F1F3D] transition-colors"
+                    >
+                      <span>{cat.name}</span>
+                      <span className="absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
+                      <FiChevronRight className="w-4 h-4 text-surface-400 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick Customer Links */}
+              <div className="border-t border-surface-200 pt-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-surface-400 mb-2">
+                  Customer Care
+                </p>
+                <div className="space-y-1 text-sm text-surface-700">
+                  <Link
+                    href="/orders"
+                    className="group relative flex items-center gap-2.5 py-2 px-2 hover:text-[#0F1F3D] transition-colors font-medium"
+                  >
+                    <FiTruck className="w-4 h-4 text-surface-500" />
+                    <span>Track Order</span>
+                    <span className="absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
+                  </Link>
+                  <Link
+                    href="/delivery"
+                    className="group relative flex items-center gap-2.5 py-2 px-2 hover:text-[#0F1F3D] transition-colors font-medium"
+                  >
+                    <FiShield className="w-4 h-4 text-surface-500" />
+                    <span>Delivery &amp; Shipping</span>
+                    <span className="absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
+                  </Link>
+                  <Link
+                    href="/faq"
+                    className="group relative flex items-center gap-2.5 py-2 px-2 hover:text-[#0F1F3D] transition-colors font-medium"
+                  >
+                    <FiHelpCircle className="w-4 h-4 text-surface-500" />
+                    <span>FAQs &amp; Support</span>
+                    <span className="absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Drawer Footer Account Area */}
+            <div className="p-4 border-t border-surface-200 bg-surface-50">
+              {isAuthed ? (
+                <div className="flex items-center justify-between gap-2">
+                  <Link
+                    href={isAdmin ? '/admin' : '/orders'}
+                    className="text-xs font-bold uppercase text-[#0F1F3D] hover:underline"
+                  >
+                    {isAdmin ? 'Admin Panel' : 'My Orders'}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="text-xs font-semibold text-red-600 hover:underline inline-flex items-center gap-1"
+                  >
+                    <FiLogOut className="w-3.5 h-3.5" /> Logout
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    openModal('login');
+                  }}
+                  className="w-full btn-primary h-11 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2"
+                >
+                  <FiUser className="w-4 h-4" /> Sign In / Create Account
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── SEARCH MODAL OVERLAY ── */}
       {searchOpen ? (
         <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px] pt-20 pb-24 md:pb-28 lg:pb-8 px-3 sm:px-4 md:px-6 lg:px-8">
           <div
@@ -301,9 +477,10 @@ export default function Navbar() {
                               setSearchOpen(false);
                               router.push(`/products?brand=${encodeURIComponent(brand)}`);
                             }}
-                            className="shrink-0 px-3.5 py-1.5 rounded-full border border-surface-300 hover:border-navy hover:bg-navy hover:text-white transition-all text-xs font-semibold"
+                            className="group relative shrink-0 px-3.5 py-1.5 text-xs font-semibold text-surface-800 hover:text-navy transition-colors"
                           >
-                            {brand}
+                            <span>{brand}</span>
+                            <span className="absolute bottom-0 left-3.5 right-3.5 h-[1.5px] bg-navy scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center" />
                           </button>
                         ))}
                       </div>

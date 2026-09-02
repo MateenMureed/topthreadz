@@ -7,6 +7,8 @@ import {
   FiHeadphones,
   FiCheckCircle,
   FiShield,
+  FiMenu,
+  FiChevronDown,
 } from 'react-icons/fi';
 import { useQuery } from '@tanstack/react-query';
 import { productService } from '@/services/product.service';
@@ -56,6 +58,8 @@ export default function HomePageClient({
   const products = productsResponse?.data?.products || initialProducts || [];
   const categories = categoriesResponse?.data || initialCategories || [];
   const heroBanner = heroResponse?.data?.url || initialHeroBanner;
+
+  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
 
   const [bannerText, setBannerText] = useState({
     heading: 'Shop Our Newest Collection',
@@ -108,28 +112,87 @@ export default function HomePageClient({
       {/* ─── CATEGORY SUB-HEADER BAR (AFTER HEADER, BEFORE BANNER) ─── */}
       <nav
         aria-label="Categories"
-        className="w-full bg-[#FAFAF8] border-b border-surface-200 overflow-x-auto scrollbar-none py-2.5 px-4 sm:px-6"
+        className="w-full bg-[#FAFAF8] border-b border-surface-200"
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-start sm:justify-center gap-2 sm:gap-3 text-xs sm:text-[13px] font-semibold tracking-wide">
+        {/* Mobile Hamburger Subheader Bar */}
+        <div className="sm:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileCategoriesOpen((v) => !v)}
+            className="w-full flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-wider text-surface-800 bg-[#FAFAF8] active:bg-surface-100 transition-colors"
+            aria-expanded={mobileCategoriesOpen}
+          >
+            <span className="inline-flex items-center gap-2">
+              <FiMenu className="w-4 h-4 text-[#0F1F3D]" />
+              <span className="text-[#0F1F3D]">Browse Categories</span>
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-surface-500">
+              <span>{categories.length + 2} items</span>
+              <FiChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-300 ${
+                  mobileCategoriesOpen ? 'rotate-180' : ''
+                }`}
+              />
+            </span>
+          </button>
+
+          {mobileCategoriesOpen && (
+            <div className="px-4 py-3 border-t border-surface-200/80 bg-white grid grid-cols-2 gap-x-4 gap-y-2.5 animate-fadeIn">
+              <Link
+                href="/products"
+                onClick={() => setMobileCategoriesOpen(false)}
+                className="group relative py-1.5 text-xs font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors"
+              >
+                <span className="block truncate">All Products</span>
+                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#0F1F3D] group-hover:w-full transition-all duration-300" />
+              </Link>
+              <Link
+                href="/products?sortBy=newest"
+                onClick={() => setMobileCategoriesOpen(false)}
+                className="group relative py-1.5 text-xs font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors"
+              >
+                <span className="block truncate">New Arrivals</span>
+                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#0F1F3D] group-hover:w-full transition-all duration-300" />
+              </Link>
+              {categories.map((cat: any) => (
+                <Link
+                  key={cat.id || cat.slug || cat.name}
+                  href={`/products/category/${encodeURIComponent(cat.slug || cat.name)}`}
+                  onClick={() => setMobileCategoriesOpen(false)}
+                  className="group relative py-1.5 text-xs font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors"
+                >
+                  <span className="block truncate">{cat.name}</span>
+                  <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#0F1F3D] group-hover:w-full transition-all duration-300" />
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Horizontal Subheader with Underline Hover (Not Colored) */}
+        <div className="hidden sm:flex max-w-7xl mx-auto items-center justify-center gap-1 md:gap-3 px-4 py-1 overflow-x-auto scrollbar-none">
           <Link
             href="/products"
-            className="shrink-0 px-3.5 py-1.5 rounded-full text-surface-700 hover:text-white hover:bg-[#0F1F3D] transition-colors whitespace-nowrap"
+            className="group relative py-2.5 px-3 text-xs md:text-[13px] font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors whitespace-nowrap"
           >
-            All Products
+            <span>All Products</span>
+            <span className="absolute bottom-1 left-3 right-3 h-[2px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
           </Link>
           <Link
             href="/products?sortBy=newest"
-            className="shrink-0 px-3.5 py-1.5 rounded-full text-surface-700 hover:text-white hover:bg-[#0F1F3D] transition-colors whitespace-nowrap"
+            className="group relative py-2.5 px-3 text-xs md:text-[13px] font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors whitespace-nowrap"
           >
-            New Arrivals
+            <span>New Arrivals</span>
+            <span className="absolute bottom-1 left-3 right-3 h-[2px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
           </Link>
           {categories.map((cat: any) => (
             <Link
               key={cat.id || cat.slug || cat.name}
               href={`/products/category/${encodeURIComponent(cat.slug || cat.name)}`}
-              className="shrink-0 px-3.5 py-1.5 rounded-full text-surface-700 hover:text-white hover:bg-[#0F1F3D] transition-colors whitespace-nowrap"
+              className="group relative py-2.5 px-3 text-xs md:text-[13px] font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors whitespace-nowrap"
             >
-              {cat.name}
+              <span>{cat.name}</span>
+              <span className="absolute bottom-1 left-3 right-3 h-[2px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
             </Link>
           ))}
         </div>
