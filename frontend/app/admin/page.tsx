@@ -326,26 +326,27 @@ export default function AdminPage() {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8]">
+    <div className="min-h-screen bg-[#FAFAF8] pb-[74px] lg:pb-0">
       {/* ── TOP ADMIN HEADER BAR ── */}
-      <header className="sticky top-0 z-40 bg-white border-b border-[#E5E7EB] px-4 py-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-        <div className="mx-auto max-w-[1440px] flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2 group">
-              <span className="font-display font-black text-lg tracking-wider text-[#0F1F3D]">
+      <header className="sticky top-0 z-40 bg-white border-b border-[#E5E7EB] px-3 py-2.5 sm:px-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+        <div className="mx-auto max-w-[1440px] flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Link href="/" className="flex items-center gap-2 group min-w-0">
+              <span className="font-display font-black text-base sm:text-lg tracking-wider text-[#0F1F3D] truncate">
                 TOP THREADZ
               </span>
-              <span className="rounded-md bg-[#0F1F3D] text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">
+              <span className="shrink-0 rounded-md bg-[#0F1F3D] text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">
                 Admin
               </span>
             </Link>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/"
               target="_blank"
-              className="admin-btn-secondary"
+              className="admin-btn-secondary !h-9 !px-2.5 sm:!h-[36px] sm:!px-4"
+              aria-label="View storefront"
             >
               <FiEye className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">View Storefront</span>
@@ -363,8 +364,9 @@ export default function AdminPage() {
 
             <button
               onClick={handleLogout}
-              className="admin-btn-destructive"
+              className="admin-btn-destructive !h-9 !px-2.5 sm:!h-[36px] sm:!px-4"
               title="Sign out of Admin"
+              aria-label="Logout"
             >
               <FiLogOut className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Logout</span>
@@ -374,7 +376,7 @@ export default function AdminPage() {
       </header>
 
       <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-5 px-3 py-4 lg:grid-cols-[240px_1fr] lg:px-5 lg:py-5">
-        {/* ── SIDEBAR NAV (Shopify-Style Navy with Red Active Indicator) ── */}
+        {/* ── SIDEBAR NAV (Shopify-Style Navy with Red Active Indicator) — desktop only ── */}
         <aside className="hidden h-fit rounded-[10px] bg-[#0F1F3D] p-3 shadow-md lg:sticky lg:top-16 lg:block text-white">
           <div className="px-3 py-2.5 mb-1 border-b border-white/10">
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">Navigation</p>
@@ -387,11 +389,10 @@ export default function AdminPage() {
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex w-full items-center gap-3 rounded-[8px] px-3 py-2 text-left text-[13px] font-medium transition-all duration-150 ${
-                    isActive
+                  className={`flex w-full items-center gap-3 rounded-[8px] px-3 py-2 text-left text-[13px] font-medium transition-all duration-150 ${isActive
                       ? 'bg-[#1A2F5A] text-white border-l-[3px] border-[#B91C2B] font-semibold pl-2.5 shadow-xs'
                       : 'text-white/70 hover:bg-white/10 hover:text-white'
-                  }`}
+                    }`}
                 >
                   <tab.icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-white/60'}`} />
                   <span>{tab.label}</span>
@@ -414,37 +415,19 @@ export default function AdminPage() {
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="text-xs font-semibold tracking-wide text-[#6B7280]">Admin Workspace</p>
-                <h1 className="text-xl sm:text-2xl font-bold text-[#1A1A1A]">Operations Command Center</h1>
+                <h1 className="text-lg sm:text-2xl font-bold text-[#1A1A1A]">Operations Command Center</h1>
               </div>
               <div className="flex flex-wrap gap-2 items-center">
                 <button className="admin-btn-secondary" onClick={() => toast.success('Export tools are ready for order and catalog reports.')}>
                   <FiDownload className="mr-1 inline w-3.5 h-3.5" /> Export
                 </button>
                 <button
-                  className={`admin-btn-secondary ${activeTab === 'settings' ? '!bg-[#0F1F3D] !text-white' : ''}`}
+                  className={`admin-btn-secondary hidden sm:inline-flex ${activeTab === 'settings' ? '!bg-[#0F1F3D] !text-white' : ''}`}
                   onClick={() => setActiveTab('settings')}
                 >
                   <FiSettings className="mr-1 inline w-3.5 h-3.5" /> Settings
                 </button>
               </div>
-            </div>
-            {/* Mobile Tab Switcher */}
-            <div className="mt-3 grid grid-cols-3 gap-1 rounded-lg bg-[#F3F4F6] p-1 lg:hidden">
-              {tabs.map(tab => {
-                const isActive = activeTab === tab.key;
-                return (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
-                    className={`flex h-[36px] items-center justify-center gap-1.5 rounded-[6px] px-2 py-1 text-xs font-medium transition-all ${
-                      isActive ? 'bg-white text-[#0F1F3D] shadow-xs font-semibold' : 'text-[#6B7280] hover:text-[#1A1A1A]'
-                    }`}
-                  >
-                    <tab.icon className="h-3.5 w-3.5" />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
             </div>
           </div>
 
@@ -456,6 +439,24 @@ export default function AdminPage() {
           {activeTab === 'settings' && <StoreSettingsTab />}
         </main>
       </div>
+
+      {/* ── MOBILE BOTTOM TAB BAR — app-style, thumb-reachable navigation ── */}
+      <nav className="admin-bottom-nav lg:hidden" aria-label="Admin sections">
+        {tabs.map(tab => {
+          const isActive = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`admin-bottom-nav-item ${isActive ? 'active' : ''}`}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              <tab.icon className="h-5 w-5" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 }
@@ -480,7 +481,7 @@ function HeroBannerManager() {
       .then(([bannerRes, textRes]) => {
         const bannerData = bannerRes.data?.data;
         if (bannerData?.url) setCurrentBanner(bannerData.url);
-        
+
         const textData = textRes.data?.data;
         if (textData) {
           setBannerText({
@@ -570,11 +571,11 @@ function HeroBannerManager() {
     return (
       <div className="rounded-xl border border-surface-200 bg-surface-50 p-3">
         <p className="text-xs font-semibold text-surface-600 mb-3">Active hero preview</p>
-        
+
         <div className="relative w-full overflow-hidden rounded-lg border border-surface-300 bg-black min-h-[220px] sm:min-h-[280px] md:min-h-[340px] lg:min-h-[400px] max-h-[60vh]">
-          <img 
-            src={resolveImageUrl(currentBanner)} 
-            alt="Hero Banner Preview" 
+          <img
+            src={resolveImageUrl(currentBanner)}
+            alt="Hero Banner Preview"
             className="absolute inset-0 h-full w-full object-contain object-center"
             onError={(e) => {
               console.error('Banner image failed to load:', currentBanner);
@@ -588,7 +589,7 @@ function HeroBannerManager() {
               }
             }}
           />
-          
+
           <div className="absolute inset-0 flex flex-col items-start justify-center px-6 sm:px-10 md:px-16 lg:px-20 pointer-events-none">
             <div className="pointer-events-auto">
               <span className="inline-block text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-white/80 bg-black/30 px-3 py-1 rounded-full mb-3">
@@ -602,10 +603,10 @@ function HeroBannerManager() {
               </button>
             </div>
           </div>
-          
+
           <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent pointer-events-none" />
         </div>
-        
+
         <p className="text-[10px] text-surface-400 mt-2 text-center">
           Banner scales automatically on all devices • Recommended: 1920 × 800 px
         </p>
@@ -666,7 +667,7 @@ function HeroBannerManager() {
         <p className="text-xs text-surface-500 mb-3">
           Customize the text that appears on top of your hero banner image.
         </p>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-semibold text-surface-700 block mb-1">Heading Text</label>
@@ -709,7 +710,7 @@ function HeroBannerManager() {
             />
           </div>
         </div>
-        
+
         <div className="flex justify-end mt-3">
           <button onClick={handleSaveText} className="admin-btn-secondary">
             Save Text Settings
@@ -1022,10 +1023,10 @@ function OrdersTab() {
       )}
 
       {selectedOrder && (
-        <div className="fixed inset-0 z-[70] bg-black/45 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6">
+        <div className="admin-sheet-backdrop" onClick={() => setSelectedOrder(null)}>
+          <div className="admin-sheet-panel sm:max-w-3xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-xl font-bold">Order Details • {selectedOrder.orderNumber}</h3>
+              <h3 className="font-display text-lg sm:text-xl font-bold">Order Details • {selectedOrder.orderNumber}</h3>
               <button onClick={() => setSelectedOrder(null)} className="p-2 rounded-lg hover:bg-surface-100">
                 <FiX className="w-5 h-5" />
               </button>
@@ -1411,8 +1412,8 @@ function ProductsTab() {
   const activeCategorySizes = isTwoPieceCategory
     ? TWO_PIECE_SIZE_OPTIONS
     : isUnstitchedCategory
-    ? UNSTITCHED_SIZE_OPTIONS
-    : STITCHED_SIZE_OPTIONS;
+      ? UNSTITCHED_SIZE_OPTIONS
+      : STITCHED_SIZE_OPTIONS;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1436,8 +1437,8 @@ function ProductsTab() {
     const defaultSizesForCat = isTwoPieceCategory
       ? TWO_PIECE_SIZE_OPTIONS
       : isUnstitchedCategory
-      ? UNSTITCHED_SIZE_OPTIONS
-      : STITCHED_SIZE_OPTIONS;
+        ? UNSTITCHED_SIZE_OPTIONS
+        : STITCHED_SIZE_OPTIONS;
 
     const payload = {
       name: form.name.trim(),
@@ -1672,8 +1673,8 @@ function ProductsTab() {
                         const defaultSizes = isTwoPiece
                           ? TWO_PIECE_SIZE_OPTIONS.join(', ')
                           : isUnstitched
-                          ? UNSTITCHED_SIZE_OPTIONS.join(', ')
-                          : STITCHED_SIZE_OPTIONS.join(', ');
+                            ? UNSTITCHED_SIZE_OPTIONS.join(', ')
+                            : STITCHED_SIZE_OPTIONS.join(', ');
                         setForm((prev) => ({ ...prev, category: cat, sizesText: prev.sizesText || defaultSizes }));
                       }}
                     >
@@ -1834,11 +1835,10 @@ function ProductsTab() {
                           key={size}
                           type="button"
                           onClick={() => handleToggleSize(size)}
-                          className={`px-3 py-1 rounded-[6px] text-xs font-semibold transition-all ${
-                            isSelected
+                          className={`px-3 py-1 rounded-[6px] text-xs font-semibold transition-all ${isSelected
                               ? 'bg-[#0F1F3D] text-white shadow-xs'
                               : 'bg-[#F3F4F6] text-[#374151] border border-[#D1D5DB] hover:bg-[#E5E7EB]'
-                          }`}
+                            }`}
                         >
                           {isSelected ? '✓ ' : '+ '}{size}
                         </button>
@@ -1972,9 +1972,8 @@ function ProductsTab() {
                                 <button
                                   type="button"
                                   onClick={() => setPrimaryImage(img)}
-                                  className={`admin-btn-secondary !h-7 !py-0 !px-2.5 text-xs ${
-                                    meta?.isPrimary ? '!bg-[#DCFCE7] !text-[#16A34A] !border-[#16A34A]' : ''
-                                  }`}
+                                  className={`admin-btn-secondary !h-7 !py-0 !px-2.5 text-xs ${meta?.isPrimary ? '!bg-[#DCFCE7] !text-[#16A34A] !border-[#16A34A]' : ''
+                                    }`}
                                 >
                                   <FiStar className="inline mr-1" /> {meta?.isPrimary ? 'Primary Image' : 'Set Primary'}
                                 </button>
@@ -2085,24 +2084,24 @@ function ProductsTab() {
                   <p className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">Storefront Card Preview</p>
                   <div className="rounded-[10px] overflow-hidden border border-[#E5E7EB] bg-white">
                     <div className="relative aspect-[4/5] bg-[#F9FAFB] overflow-hidden">
-                    {form.images[0] ? (
-                      <AdminImage src={form.images[0]} alt="Preview" className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-xs text-surface-500">No image selected</div>
-                    )}
-                  </div>
-                  <div className="p-3 space-y-1">
-                    <p className="font-medium line-clamp-2">{previewTitle}</p>
-                    <p className="text-xs text-surface-500">{previewCategory}</p>
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold text-surface-800">{formatPkr(previewSalePrice > 0 ? previewSalePrice : previewPrice)}</p>
-                      {previewDiscount > 0 && <span className="badge bg-red-100 text-red-600">-{previewDiscount}%</span>}
+                      {form.images[0] ? (
+                        <AdminImage src={form.images[0]} alt="Preview" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs text-surface-500">No image selected</div>
+                      )}
                     </div>
-                    <p className="text-xs text-surface-500">SKU: {form.sku || 'Auto SKU'}</p>
-                    <p className="text-xs text-surface-500">Status: {form.productStatus} • PUBLIC</p>
+                    <div className="p-3 space-y-1">
+                      <p className="font-medium line-clamp-2">{previewTitle}</p>
+                      <p className="text-xs text-surface-500">{previewCategory}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-surface-800">{formatPkr(previewSalePrice > 0 ? previewSalePrice : previewPrice)}</p>
+                        {previewDiscount > 0 && <span className="badge bg-red-100 text-red-600">-{previewDiscount}%</span>}
+                      </div>
+                      <p className="text-xs text-surface-500">SKU: {form.sku || 'Auto SKU'}</p>
+                      <p className="text-xs text-surface-500">Status: {form.productStatus} • PUBLIC</p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
                 <div className="rounded-xl border border-surface-300 bg-white p-4 text-xs text-surface-600 shadow-soft">
                   <p className="font-semibold mb-1 flex items-center gap-1"><FiInfo className="w-3.5 h-3.5" /> Publishing checklist</p>
@@ -2169,58 +2168,58 @@ function ProductsTab() {
           const imageUrl = p.images?.[0] ? resolveImageUrl(p.images[0]) : '';
           const stock = Number(p.stock || 0);
           return (
-          <div key={p.id} className="grid grid-cols-1 gap-3 border-b border-surface-100 p-4 last:border-b-0 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="relative h-16 w-14 shrink-0 overflow-hidden rounded-lg border border-surface-200 bg-surface-100">
-                <AdminImage src={imageUrl} alt={p.name || 'Product'} className="h-full w-full object-cover" />
+            <div key={p.id} className="grid grid-cols-1 gap-3 border-b border-surface-100 p-4 last:border-b-0 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="relative h-16 w-14 shrink-0 overflow-hidden rounded-lg border border-surface-200 bg-surface-100">
+                  <AdminImage src={imageUrl} alt={p.name || 'Product'} className="h-full w-full object-cover" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold text-surface-950 line-clamp-1">{p.name}</p>
+                    <span className={`badge ${productStatusBadgeClass(p.productStatus)}`}>{p.productStatus || 'DRAFT'}</span>
+                  </div>
+                  <p className="mt-1 text-sm text-surface-500 line-clamp-1">
+                    {p.brand || 'No brand'} • {p.subcategory || p.category} • SKU {p.sku || 'N/A'}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-surface-500">
+                    <span className="rounded-full bg-surface-100 px-2 py-1">PKR {p.price?.toLocaleString()}</span>
+                    <span className={`rounded-full px-2 py-1 ${stock <= 0 ? 'bg-red-50 text-red-700' : stock <= Number(p.lowStockThreshold || 5) ? 'bg-orange-50 text-orange-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                      Stock {stock}
+                    </span>
+                    {asStringArray(p.colors).slice(0, 4).map((color) => (
+                      <span key={color} className="rounded-full bg-surface-100 px-2 py-1">{color}</span>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-semibold text-surface-950 line-clamp-1">{p.name}</p>
-                  <span className={`badge ${productStatusBadgeClass(p.productStatus)}`}>{p.productStatus || 'DRAFT'}</span>
-                </div>
-                <p className="mt-1 text-sm text-surface-500 line-clamp-1">
-                  {p.brand || 'No brand'} • {p.subcategory || p.category} • SKU {p.sku || 'N/A'}
-                </p>
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-surface-500">
-                  <span className="rounded-full bg-surface-100 px-2 py-1">PKR {p.price?.toLocaleString()}</span>
-                  <span className={`rounded-full px-2 py-1 ${stock <= 0 ? 'bg-red-50 text-red-700' : stock <= Number(p.lowStockThreshold || 5) ? 'bg-orange-50 text-orange-700' : 'bg-emerald-50 text-emerald-700'}`}>
-                    Stock {stock}
-                  </span>
-                  {asStringArray(p.colors).slice(0, 4).map((color) => (
-                    <span key={color} className="rounded-full bg-surface-100 px-2 py-1">{color}</span>
-                  ))}
-                </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {p.discount > 0 && <span className="badge bg-red-100 text-red-600">-{p.discount}%</span>}
+                <button onClick={() => openDetails(p)} className="btn-secondary !py-1.5 !px-3 text-xs flex items-center gap-1">
+                  <FiEye className="w-3.5 h-3.5" /> Details
+                </button>
+                <button onClick={() => openEditInlineForm(p)} className="btn-secondary !py-1.5 !px-3 text-xs flex items-center gap-1">
+                  <FiEdit2 className="w-3.5 h-3.5" /> Edit
+                </button>
+                <button
+                  onClick={() => {
+                    const confirmed = window.confirm(`Delete "${p.name}"? This cannot be undone.`);
+                    if (confirmed) deleteProduct.mutate(p.id);
+                  }}
+                  className="btn-secondary !py-1.5 !px-3 text-xs flex items-center gap-1 !text-red-600 !border-red-200 hover:!bg-red-50"
+                >
+                  <FiTrash2 className="w-3.5 h-3.5" /> Delete
+                </button>
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              {p.discount > 0 && <span className="badge bg-red-100 text-red-600">-{p.discount}%</span>}
-              <button onClick={() => openDetails(p)} className="btn-secondary !py-1.5 !px-3 text-xs flex items-center gap-1">
-                <FiEye className="w-3.5 h-3.5" /> Details
-              </button>
-              <button onClick={() => openEditInlineForm(p)} className="btn-secondary !py-1.5 !px-3 text-xs flex items-center gap-1">
-                <FiEdit2 className="w-3.5 h-3.5" /> Edit
-              </button>
-              <button
-                onClick={() => {
-                  const confirmed = window.confirm(`Delete "${p.name}"? This cannot be undone.`);
-                  if (confirmed) deleteProduct.mutate(p.id);
-                }}
-                className="btn-secondary !py-1.5 !px-3 text-xs flex items-center gap-1 !text-red-600 !border-red-200 hover:!bg-red-50"
-              >
-                <FiTrash2 className="w-3.5 h-3.5" /> Delete
-              </button>
-            </div>
-          </div>
-        );
+          );
         })}
       </div>
 
       {isDetailsOpen && detailsProduct && (
-        <div className="fixed inset-0 z-[70] bg-black/45 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6">
+        <div className="admin-sheet-backdrop" onClick={() => setIsDetailsOpen(false)}>
+          <div className="admin-sheet-panel sm:max-w-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-xl font-bold">Product Details</h3>
+              <h3 className="font-display text-lg sm:text-xl font-bold">Product Details</h3>
               <button onClick={() => setIsDetailsOpen(false)} className="p-2 rounded-lg hover:bg-surface-100">
                 <FiX className="w-5 h-5" />
               </button>
@@ -2588,11 +2587,10 @@ function StoreSettingsTab() {
                   key={cols}
                   type="button"
                   onClick={() => setForm({ ...form, homepageGridCols: cols })}
-                  className={`h-9 w-14 rounded-full text-sm font-bold transition-all ${
-                    form.homepageGridCols === cols
+                  className={`h-9 w-14 rounded-full text-sm font-bold transition-all ${form.homepageGridCols === cols
                       ? 'bg-surface-950 text-white shadow-md'
                       : 'text-surface-600 hover:bg-surface-100 hover:text-surface-900'
-                  }`}
+                    }`}
                 >
                   {cols}
                 </button>
@@ -2987,8 +2985,8 @@ function CategoriesManager() {
 
       {/* Edit Modal */}
       {editingCategory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-surface-200">
+        <div className="admin-sheet-backdrop" onClick={() => setEditingCategory(null)}>
+          <div className="admin-sheet-panel sm:max-w-md shadow-xl border-0 sm:border sm:border-surface-200" onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-bold text-surface-950">Edit Category</h3>
               <button onClick={() => setEditingCategory(null)} className="text-surface-400 hover:text-surface-600">
@@ -3123,9 +3121,8 @@ function CategoriesManager() {
 
                 <div className="flex items-center gap-1.5 shrink-0">
                   <button
-                    className={`btn-secondary !py-1 !px-2.5 text-[11px] font-semibold ${
-                      c.isActive ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-surface-500'
-                    }`}
+                    className={`btn-secondary !py-1 !px-2.5 text-[11px] font-semibold ${c.isActive ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-surface-500'
+                      }`}
                     onClick={() => toggle.mutate(c)}
                   >
                     {c.isActive ? 'Active' : 'Inactive'}
