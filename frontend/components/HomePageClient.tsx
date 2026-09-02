@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -61,6 +61,33 @@ export default function HomePageClient({
   const categories = categoriesResponse?.data || initialCategories || [];
   const heroBanner = heroResponse?.data?.url || initialHeroBanner;
 
+  const [bannerText, setBannerText] = useState({
+    heading: 'Shop Our Newest Collection',
+    subheading: 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
+    buttonText: 'Shop Now',
+    buttonLink: '/products'
+  });
+
+  useEffect(() => {
+    const fetchBannerText = async () => {
+      try {
+        const response = await api.get('/settings/hero-banner-text');
+        const data = response.data?.data;
+        if (data) {
+          setBannerText({
+            heading: data.heading || 'Shop Our Newest Collection',
+            subheading: data.subheading || 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
+            buttonText: data.buttonText || 'Shop Now',
+            buttonLink: data.buttonLink || '/products'
+          });
+        }
+      } catch {
+        // use defaults
+      }
+    };
+    fetchBannerText();
+  }, []);
+
   const homepageHeading = settingsData?.homepageHeading || initialSettings?.homepageHeading || 'Shop Our Collection';
   const homepageSubheading = settingsData?.homepageSubheading || initialSettings?.homepageSubheading || 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION';
   const rawCols = Number(settingsData?.homepageGridCols || initialSettings?.homepageGridCols);
@@ -93,26 +120,52 @@ export default function HomePageClient({
 
   return (
     <div className="bg-white text-black">
-      {/* Hero Banner Section — Auto-adjusts seamlessly across mobile, tablet, and widescreen desktop */}
+      {/* ─── HERO BANNER – FULLY RESPONSIVE, NO CROPPING ─── */}
       {heroBanner && (
-        <section className="relative w-full overflow-hidden border-b border-surface-300 bg-surface-100" aria-label="Featured hero banner">
-          <div className="relative w-full aspect-[16/9] sm:aspect-[2/1] md:aspect-[2.4/1] lg:aspect-[2.8/1] max-h-[640px]">
-            <Link href="/products" className="block h-full w-full relative" aria-label="Explore Top Threadz collection">
-              <Image
-                src={heroBanner}
-                alt="Top Threadz Men's Luxury Fabrics Collection"
-                fill
-                priority
-                fetchPriority="high"
-                sizes="100vw"
-                className="object-cover object-center"
-              />
-            </Link>
+        <section className="relative w-full overflow-hidden bg-[#0F1F3D]" aria-label="Featured hero banner">
+          {/* Guaranteed min-height per breakpoint so the overlay text always has room,
+              regardless of the uploaded banner's aspect ratio. max-h caps it on huge screens. */}
+          <div className="relative w-full min-h-[400px] sm:min-h-[440px] md:min-h-[500px] lg:min-h-[560px] xl:min-h-[640px] max-h-[85vh]">
+            {/* object-contain: whole image always visible, never cropped, never overflows */}
+            <img
+              src={heroBanner}
+              alt="Top Threadz Men's Luxury Fabrics Collection"
+              className="absolute inset-0 h-full w-full object-contain object-center"
+              onError={(e) => {
+                console.error('Hero banner failed to load');
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            {/* Dark gradient overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent pointer-events-none" />
+            
+            {/* Text Overlay – positioned over the image, with top padding to clear the header */}
+            <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
+              <div className="w-full max-w-4xl px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 pointer-events-auto">
+                <div className="pt-10 sm:pt-12 md:pt-14 lg:pt-16 xl:pt-20">
+                  <span className="inline-block text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-white bg-black/40 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mb-3 sm:mb-4">
+                    {bannerText.subheading}
+                  </span>
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight drop-shadow-lg max-w-3xl">
+                    {bannerText.heading}
+                  </h1>
+                  <p className="mt-2 sm:mt-3 text-sm sm:text-base md:text-lg text-white/90 max-w-lg drop-shadow-md">
+                    Discover premium quality fabrics and timeless designs
+                  </p>
+                  <Link
+                    href={bannerText.buttonLink}
+                    className="inline-block mt-4 sm:mt-5 md:mt-6 px-6 sm:px-8 md:px-10 py-2.5 sm:py-3 md:py-4 bg-white text-[#0F1F3D] font-bold text-sm sm:text-base rounded-full hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 pointer-events-auto"
+                  >
+                    {bannerText.buttonText}
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
       )}
 
-      {/* Explore Collection CTA — below banner */}
+      {/* Explore Collection CTA */}
       <div className="flex items-center justify-center py-5 bg-white border-b border-surface-200">
         <a
           href="#catalog"
@@ -123,7 +176,7 @@ export default function HomePageClient({
         </a>
       </div>
 
-      {/* Shop by Category — Carousel on all screen sizes */}
+      {/* Shop by Category */}
       <section className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-10 md:py-14">
         <div className="mb-5 sm:mb-8 flex items-end justify-between gap-3">
           <div>
@@ -138,7 +191,6 @@ export default function HomePageClient({
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {/* Desktop prev/next arrows */}
             <div className="hidden sm:flex items-center gap-1">
               <button
                 type="button"
@@ -174,7 +226,6 @@ export default function HomePageClient({
           </div>
         </div>
 
-        {/* Unified Carousel — 2 cards on mobile (product-grid size), 3–4 on tablet/desktop */}
         <div className="relative">
           <div
             ref={categoryScrollRef}
@@ -187,7 +238,6 @@ export default function HomePageClient({
                 href={`/products/category/${encodeURIComponent(category.slug || category.name)}`}
                 className={[
                   'group relative block overflow-hidden rounded-xl bg-surface-100 border border-surface-200/90 shadow-soft active:scale-[0.98] transition-all duration-300 snap-start shrink-0',
-                  // Mobile: 2 per row at product-grid size | Tablet: 3 | Desktop: 4
                   'w-[calc(50vw-20px)] aspect-[4/5]',
                   'sm:w-56 sm:aspect-[4/5]',
                   'md:w-60',
@@ -219,7 +269,6 @@ export default function HomePageClient({
             ))}
           </div>
 
-          {/* Dot Indicators (all screen sizes) */}
           {categories.length > 1 && (
             <div className="flex items-center justify-center gap-1.5 mt-3">
               {categories.map((_: any, dotIdx: number) => (
@@ -252,7 +301,7 @@ export default function HomePageClient({
         )}
       </section>
 
-      {/* Product Section with Trending & Featured Filter Tabs */}
+      {/* Product Section */}
       <section id="catalog" className="w-full max-w-[1536px] mx-auto px-2 sm:px-4 md:px-6 py-8 md:py-12">
         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
@@ -267,7 +316,6 @@ export default function HomePageClient({
             </h2>
           </div>
 
-          {/* Curation Filter Tabs: All, Trending / New Arrival, Featured */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             <button
               type="button"
@@ -308,11 +356,10 @@ export default function HomePageClient({
         <ProductGrid products={displayedProducts} loading={isLoading} showGridControls={true} initialGridCols={homepageGridCols} />
       </section>
 
-      {/* Post-Catalog Feature Badges Section (Mobile-Optimized Grid) */}
+      {/* Feature Badges */}
       <section className="bg-surface-100/80 border-t border-surface-200 py-8 sm:py-10">
         <div className="w-full max-w-[1536px] mx-auto px-3 sm:px-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
-            {/* Fast Delivery */}
             <div className="flex items-center gap-3.5 sm:gap-4 p-4 sm:p-5 bg-white rounded-2xl shadow-soft border border-surface-200/90 transition-all hover:shadow-md">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-surface-950 text-white rounded-xl flex items-center justify-center shrink-0 shadow-xs">
                 <FiTruck className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -323,18 +370,16 @@ export default function HomePageClient({
               </div>
             </div>
 
-            {/* Support */}
             <div className="flex items-center gap-3.5 sm:gap-4 p-4 sm:p-5 bg-white rounded-2xl shadow-soft border border-surface-200/90 transition-all hover:shadow-md">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-surface-950 text-white rounded-xl flex items-center justify-center shrink-0 shadow-xs">
                 <FiHeadphones className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <div>
                 <h3 className="font-display font-bold text-xs sm:text-base text-surface-950 leading-tight">Support</h3>
-                <p className="text-[10px] sm:text-xs text-surface-600 mt-0.5 leading-snug">We’re here 24/7 to help with any inquiries.</p>
+                <p className="text-[10px] sm:text-xs text-surface-600 mt-0.5 leading-snug">We're here 24/7 to help with any inquiries.</p>
               </div>
             </div>
 
-            {/* Premium Quality */}
             <div className="flex items-center gap-3.5 sm:gap-4 p-4 sm:p-5 bg-white rounded-2xl shadow-soft border border-surface-200/90 transition-all hover:shadow-md">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-surface-950 text-white rounded-xl flex items-center justify-center shrink-0 shadow-xs">
                 <FiCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -345,7 +390,6 @@ export default function HomePageClient({
               </div>
             </div>
 
-            {/* Easy Returns */}
             <div className="flex items-center gap-3.5 sm:gap-4 p-4 sm:p-5 bg-white rounded-2xl shadow-soft border border-surface-200/90 transition-all hover:shadow-md">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-surface-950 text-white rounded-xl flex items-center justify-center shrink-0 shadow-xs">
                 <FiShield className="w-5 h-5 sm:w-6 sm:h-6 text-white" />

@@ -26,7 +26,7 @@ export default function Footer() {
     retry: false,
   });
 
-  const phoneNumber = settings?.phoneNumber || '+92 300 9070520';
+  const phoneNumber = settings?.phoneNumber || '+923009070520';
   const email = settings?.email || 'support@topthreadz.pk';
   const operatingDays =
     settings?.operatingDays || 'Mon – Sat: 11:00 AM – 10:30 PM | Sun: 2:00 PM – 10:00 PM';

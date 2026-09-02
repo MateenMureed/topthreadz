@@ -26,7 +26,7 @@ export default function TermsOfServicePage() {
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-surface-950">Terms of Service</h1>
-            <p className="text-xs text-surface-500 mt-1">Top Threadz • MensWear.pk</p>
+            <p className="text-xs text-surface-500 mt-1">Top Threadz</p>
           </div>
         </div>
 

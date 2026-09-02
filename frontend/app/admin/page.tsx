@@ -464,13 +464,32 @@ function HeroBannerManager() {
   const [currentBanner, setCurrentBanner] = useState('');
   const [directUrl, setDirectUrl] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [bannerText, setBannerText] = useState({
+    heading: 'Shop Our Newest Collection',
+    subheading: 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
+    buttonText: 'Shop Now',
+    buttonLink: '/products'
+  });
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    api.get('/settings/hero-banner')
-      .then(res => {
-        const data = res.data?.data;
-        if (data?.url) setCurrentBanner(data.url);
+    Promise.all([
+      api.get('/settings/hero-banner'),
+      api.get('/settings/hero-banner-text')
+    ])
+      .then(([bannerRes, textRes]) => {
+        const bannerData = bannerRes.data?.data;
+        if (bannerData?.url) setCurrentBanner(bannerData.url);
+        
+        const textData = textRes.data?.data;
+        if (textData) {
+          setBannerText({
+            heading: textData.heading || 'Shop Our Newest Collection',
+            subheading: textData.subheading || 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
+            buttonText: textData.buttonText || 'Shop Now',
+            buttonLink: textData.buttonLink || '/products'
+          });
+        }
       })
       .catch(() => { /* ignore */ });
   }, []);
@@ -536,58 +555,170 @@ function HeroBannerManager() {
     toast.success('Hero banner removed');
   };
 
+  const handleSaveText = async () => {
+    try {
+      await api.post('/settings/hero-banner-text', bannerText);
+      toast.success('Banner text updated successfully!');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to update banner text');
+    }
+  };
+
+  const renderBannerPreview = () => {
+    if (!currentBanner) return null;
+
+    return (
+      <div className="rounded-xl border border-surface-200 bg-surface-50 p-3">
+        <p className="text-xs font-semibold text-surface-600 mb-3">Active hero preview</p>
+        
+        <div className="relative w-full overflow-hidden rounded-lg border border-surface-300 bg-black min-h-[220px] sm:min-h-[280px] md:min-h-[340px] lg:min-h-[400px] max-h-[60vh]">
+          <img 
+            src={resolveImageUrl(currentBanner)} 
+            alt="Hero Banner Preview" 
+            className="absolute inset-0 h-full w-full object-contain object-center"
+            onError={(e) => {
+              console.error('Banner image failed to load:', currentBanner);
+              e.currentTarget.style.display = 'none';
+              const parent = e.currentTarget.parentElement;
+              if (parent) {
+                const fallback = document.createElement('div');
+                fallback.className = 'absolute inset-0 flex items-center justify-center text-white text-sm';
+                fallback.textContent = '⚠️ Image failed to load. Please check the URL or upload a new image.';
+                parent.appendChild(fallback);
+              }
+            }}
+          />
+          
+          <div className="absolute inset-0 flex flex-col items-start justify-center px-6 sm:px-10 md:px-16 lg:px-20 pointer-events-none">
+            <div className="pointer-events-auto">
+              <span className="inline-block text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-white/80 bg-black/30 px-3 py-1 rounded-full mb-3">
+                {bannerText.subheading || 'NEWEST COLLECTION'}
+              </span>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight max-w-2xl drop-shadow-lg">
+                {bannerText.heading || 'Shop Our Newest Collection'}
+              </h1>
+              <button className="mt-4 sm:mt-6 px-6 sm:px-8 py-2.5 sm:py-3 bg-white text-[#0F1F3D] font-semibold text-sm sm:text-base rounded-full hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
+                {bannerText.buttonText || 'Shop Now'}
+              </button>
+            </div>
+          </div>
+          
+          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent pointer-events-none" />
+        </div>
+        
+        <p className="text-[10px] text-surface-400 mt-2 text-center">
+          Banner scales automatically on all devices • Recommended: 1920 × 800 px
+        </p>
+      </div>
+    );
+  };
+
   return (
-      <div className="rounded-2xl border border-surface-300 bg-white p-3 sm:p-4 lg:p-5 shadow-soft space-y-4">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div>
-          <h3 className="font-display text-lg font-bold text-surface-950">Homepage Hero Banner</h3>
-          <p className="text-xs text-surface-500">
-            Upload an image file or paste a direct image URL. Recommended size: <strong>1920 × 800 px</strong> (or 16:9 / 21:9 wide format). The banner auto-adjusts across mobile, tablet, and desktop screens.
-          </p>
+    <div className="rounded-2xl border border-surface-300 bg-white p-3 sm:p-4 lg:p-5 shadow-soft space-y-6">
+      {/* Banner Image Section */}
+      <div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <h3 className="font-display text-lg font-bold text-surface-950">Homepage Hero Banner</h3>
+            <p className="text-xs text-surface-500">
+              Upload an image file or paste a direct image URL. Recommended size: <strong>1920 × 800 px</strong> (or 16:9 / 21:9 wide format).
+            </p>
+          </div>
+          {currentBanner && (
+            <button onClick={handleClear} className="btn-secondary !py-1.5 !px-3 text-xs text-red-600 border-red-200 hover:bg-red-50">
+              Remove Banner
+            </button>
+          )}
         </div>
-        {currentBanner && (
-          <button onClick={handleClear} className="btn-secondary !py-1.5 !px-3 text-xs text-red-600 border-red-200 hover:bg-red-50">
-            Remove Banner
-          </button>
-        )}
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div>
-          <label className="text-xs font-semibold text-surface-700 block mb-1">Upload image file</label>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            className="input-field w-full file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-100 file:text-surface-700"
-          />
-        </div>
-        <div>
-          <label className="text-xs font-semibold text-surface-700 block mb-1">Or use an image URL</label>
-          <input
-            type="url"
-            placeholder="Paste image URL (e.g. https://...)"
-            value={directUrl}
-            onChange={(e) => setDirectUrl(e.target.value)}
-            className="input-field w-full"
-          />
-        </div>
-      </div>
-
-      <div className="flex justify-stretch sm:justify-end">
-        <button onClick={handleUpload} disabled={uploading} className="btn-primary min-h-11 w-full sm:w-auto !py-2.5 !px-6 text-sm disabled:opacity-60">
-          {uploading ? 'Updating Banner…' : 'Save Hero Banner'}
-        </button>
-      </div>
-
-      {currentBanner && (
-        <div className="rounded-xl border border-surface-200 bg-surface-50 p-3">
-          <p className="text-xs font-semibold text-surface-600 mb-3">Active hero preview</p>
-          <div className="relative aspect-[16/7] w-full overflow-hidden rounded-lg border border-surface-300 bg-black">
-            <img src={currentBanner} alt="Hero Banner Preview" className="h-full w-full object-cover" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+          <div>
+            <label className="text-xs font-semibold text-surface-700 block mb-1">Upload image file</label>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="input-field w-full file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-100 file:text-surface-700"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-surface-700 block mb-1">Or use an image URL</label>
+            <input
+              type="url"
+              placeholder="Paste image URL (e.g. https://...)"
+              value={directUrl}
+              onChange={(e) => setDirectUrl(e.target.value)}
+              className="input-field w-full"
+            />
           </div>
         </div>
-      )}
+
+        <div className="flex justify-stretch sm:justify-end mt-3">
+          <button onClick={handleUpload} disabled={uploading} className="btn-primary min-h-11 w-full sm:w-auto !py-2.5 !px-6 text-sm disabled:opacity-60">
+            {uploading ? 'Updating Banner…' : 'Save Hero Banner'}
+          </button>
+        </div>
+      </div>
+
+      {/* Banner Text Overlay Settings */}
+      <div className="border-t border-surface-200 pt-4">
+        <h4 className="text-sm font-semibold text-surface-950 mb-3">Banner Text Overlay</h4>
+        <p className="text-xs text-surface-500 mb-3">
+          Customize the text that appears on top of your hero banner image.
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-semibold text-surface-700 block mb-1">Heading Text</label>
+            <input
+              type="text"
+              value={bannerText.heading}
+              onChange={(e) => setBannerText(prev => ({ ...prev, heading: e.target.value }))}
+              placeholder="e.g. Shop Our Newest Collection"
+              className="input-field w-full"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-surface-700 block mb-1">Subheading Text</label>
+            <input
+              type="text"
+              value={bannerText.subheading}
+              onChange={(e) => setBannerText(prev => ({ ...prev, subheading: e.target.value }))}
+              placeholder="e.g. PREMIUM WASH & WEAR"
+              className="input-field w-full"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-surface-700 block mb-1">Button Text</label>
+            <input
+              type="text"
+              value={bannerText.buttonText}
+              onChange={(e) => setBannerText(prev => ({ ...prev, buttonText: e.target.value }))}
+              placeholder="e.g. Shop Now"
+              className="input-field w-full"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-surface-700 block mb-1">Button Link</label>
+            <input
+              type="text"
+              value={bannerText.buttonLink}
+              onChange={(e) => setBannerText(prev => ({ ...prev, buttonLink: e.target.value }))}
+              placeholder="e.g. /products"
+              className="input-field w-full"
+            />
+          </div>
+        </div>
+        
+        <div className="flex justify-end mt-3">
+          <button onClick={handleSaveText} className="admin-btn-secondary">
+            Save Text Settings
+          </button>
+        </div>
+      </div>
+
+      {/* Banner Preview with Overlay */}
+      {renderBannerPreview()}
     </div>
   );
 }
