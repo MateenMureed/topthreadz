@@ -120,49 +120,26 @@ export default function HomePageClient({
 
   return (
     <div className="bg-white text-black">
-      {/* ─── HERO BANNER – FULLY RESPONSIVE, NO CROPPING ─── */}
+      {/* ─── HERO BANNER – IMAGE ONLY, LINKS TO PRODUCTS, NO OVERLAY ─── */}
       {heroBanner && (
-        <section className="relative w-full overflow-hidden bg-[#0F1F3D]" aria-label="Featured hero banner">
-          {/* Guaranteed min-height per breakpoint so the overlay text always has room,
-              regardless of the uploaded banner's aspect ratio. max-h caps it on huge screens. */}
-          <div className="relative w-full min-h-[400px] sm:min-h-[440px] md:min-h-[500px] lg:min-h-[560px] xl:min-h-[640px] max-h-[85vh]">
-            {/* object-contain: whole image always visible, never cropped, never overflows */}
-            <img
-              src={heroBanner}
-              alt="Top Threadz Men's Luxury Fabrics Collection"
-              className="absolute inset-0 h-full w-full object-contain object-center"
-              onError={(e) => {
-                console.error('Hero banner failed to load');
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-            {/* Dark gradient overlay for text readability */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent pointer-events-none" />
-            
-            {/* Text Overlay – positioned over the image, with top padding to clear the header */}
-            <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
-              <div className="w-full max-w-4xl px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 pointer-events-auto">
-                <div className="pt-10 sm:pt-12 md:pt-14 lg:pt-16 xl:pt-20">
-                  <span className="inline-block text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-white bg-black/40 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mb-3 sm:mb-4">
-                    {bannerText.subheading}
-                  </span>
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight drop-shadow-lg max-w-3xl">
-                    {bannerText.heading}
-                  </h1>
-                  <p className="mt-2 sm:mt-3 text-sm sm:text-base md:text-lg text-white/90 max-w-lg drop-shadow-md">
-                    Discover premium quality fabrics and timeless designs
-                  </p>
-                  <Link
-                    href={bannerText.buttonLink}
-                    className="inline-block mt-4 sm:mt-5 md:mt-6 px-6 sm:px-8 md:px-10 py-2.5 sm:py-3 md:py-4 bg-white text-[#0F1F3D] font-bold text-sm sm:text-base rounded-full hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 pointer-events-auto"
-                  >
-                    {bannerText.buttonText}
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <Link
+          href={bannerText.buttonLink || '/products'}
+          className="block relative w-full overflow-hidden"
+          aria-label="Shop our newest collection"
+        >
+          {/* No forced min-height and no object-fit box — the image just
+              scales to full width at its own natural height, so there is
+              never any background showing around/behind it on any device. */}
+          <img
+            src={heroBanner}
+            alt="Top Threadz Men's Luxury Fabrics Collection"
+            className="w-full h-auto"
+            onError={(e) => {
+              console.error('Hero banner failed to load');
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        </Link>
       )}
 
       {/* Explore Collection CTA */}
