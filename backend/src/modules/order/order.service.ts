@@ -497,18 +497,26 @@ export class OrderService {
   }
 
   async getTrackingByReference(reference: string) {
-    const lookup = String(reference || '').trim();
-    if (!lookup) throw new BadRequestError('Enter a tracking number or checkout email');
-    const isEmail = /.+@.+\..+/.test(lookup);
+    const rawLookup = String(reference || '').trim();
+    if (!rawLookup) throw new BadRequestError('Enter a tracking number or checkout email');
+    const cleanLookup = rawLookup.replace(/^#/, '').trim();
+    const isEmail = /.+@.+\..+/.test(cleanLookup);
+
     const order = await prisma.order.findFirst({
       where: isEmail
         ? {
             OR: [
-              { guestEmail: { equals: lookup, mode: 'insensitive' } },
-              { user: { email: { equals: lookup, mode: 'insensitive' } } },
+              { guestEmail: { equals: cleanLookup, mode: 'insensitive' } },
+              { user: { email: { equals: cleanLookup, mode: 'insensitive' } } },
             ],
           }
-        : { orderNumber: { equals: lookup, mode: 'insensitive' } },
+        : {
+            OR: [
+              { orderNumber: { equals: cleanLookup, mode: 'insensitive' } },
+              { orderNumber: { equals: rawLookup, mode: 'insensitive' } },
+              { id: { equals: cleanLookup } },
+            ],
+          },
       include: {
         items: { include: { product: true } },
         address: true,

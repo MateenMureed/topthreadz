@@ -42,7 +42,7 @@ export const env = {
   UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL || '',
   UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN || '',
 
-  TAX_RATE: parseFloat(process.env.TAX_RATE || '0.17'), // 17% GST Pakistan
+  TAX_RATE: parseFloat(process.env.TAX_RATE || '0'), // 0% tax
   DELIVERY_CHARGE: parseFloat(process.env.DELIVERY_CHARGE || '200'), // PKR 200
   FREE_DELIVERY_THRESHOLD: parseFloat(process.env.FREE_DELIVERY_THRESHOLD || '5000'), // PKR 5000
 

@@ -181,6 +181,32 @@ interface ProductDetailClientProps {
   productId: string;
 }
 
+export function FormattedCareInstructions({ content }: { content?: string }) {
+  if (!content) return null;
+
+  const cleaned = decodeHtmlEntities(content)
+    .replace(/<[^>]+>/g, '\n')
+    .trim();
+
+  const items = cleaned
+    .split(/\r?\n|•|;/)
+    .map((s) => s.trim().replace(/^[-*•\d.)\s]+/, ''))
+    .filter((s) => s.length > 0);
+
+  if (items.length === 0) return null;
+
+  return (
+    <ul className="pt-2 space-y-2 text-xs sm:text-sm text-surface-700">
+      {items.map((item, idx) => (
+        <li key={idx} className="flex items-start gap-2.5 leading-relaxed">
+          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[#0F1F3D] shrink-0" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function ProductDetailClient({ initialProduct, productId }: ProductDetailClientProps) {
   const id = productId;
   const [selectedSize, setSelectedSize] = useState('');
@@ -564,9 +590,7 @@ export default function ProductDetailClient({ initialProduct, productId }: Produ
                 <span>{careExpanded ? '−' : '+'}</span>
               </button>
               {careExpanded && (
-                <p className="pt-2 text-xs sm:text-sm text-surface-600 leading-relaxed">
-                  {product.careInstructions}
-                </p>
+                <FormattedCareInstructions content={product.careInstructions} />
               )}
             </div>
           )}
