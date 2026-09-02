@@ -11,9 +11,40 @@ export interface OrderNotificationData {
   userId?: string;
 }
 
-const smtpUser = process.env.GMAIL_SMTP_USER || process.env.SMTP_USER;
-const smtpPass = process.env.GMAIL_SMTP_APP_PASSWORD || process.env.SMTP_PASS;
-const transporter = smtpUser && smtpPass ? nodemailer.createTransport({ service: 'gmail', auth: { user: smtpUser, pass: smtpPass } }) : null;
+const brevoConfig = {
+  host: process.env.BREVO_SMTP_HOST,
+  port: Number(process.env.BREVO_SMTP_PORT || 587),
+  user: process.env.BREVO_SMTP_USER,
+  pass: process.env.BREVO_SMTP_PASS,
+  from: process.env.MAIL_FROM,
+  fromName: process.env.MAIL_FROM_NAME,
+};
+
+const missingBrevoConfig = () => [
+  !brevoConfig.host && 'BREVO_SMTP_HOST',
+  !brevoConfig.user && 'BREVO_SMTP_USER',
+  !brevoConfig.pass && 'BREVO_SMTP_PASS',
+  !brevoConfig.from && 'MAIL_FROM',
+  !brevoConfig.fromName && 'MAIL_FROM_NAME',
+].filter(Boolean) as string[];
+
+const missingConfig = missingBrevoConfig();
+if (missingConfig.length) logger.error(`Brevo SMTP configuration is missing: ${missingConfig.join(', ')}`);
+
+const transporter = missingConfig.length === 0
+  ? nodemailer.createTransport({
+    host: brevoConfig.host,
+    port: brevoConfig.port,
+    secure: false,
+    auth: { user: brevoConfig.user, pass: brevoConfig.pass },
+  })
+  : null;
+
+/** Safely verifies the configured Brevo SMTP connection for deployment checks. */
+export async function verifyBrevoSmtpConnection() {
+  if (!transporter) throw new Error('Brevo SMTP configuration is missing');
+  await transporter.verify();
+}
 const esc = (value: unknown) => String(value ?? '').replace(/[&<>'"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]!));
 const money = (value: number) => `PKR ${Math.round(value || 0).toLocaleString('en-PK')}`;
 const trackingUrl = (orderNumber: string) => `${process.env.FRONTEND_URL || 'https://www.topthreadz.com.pk'}/orders?tracking=${encodeURIComponent(orderNumber)}`;
@@ -51,8 +82,8 @@ function renderEmail(data: OrderNotificationData, kind: 'confirmation' | 'status
 async function sendOrderEmail(data: OrderNotificationData, kind: 'confirmation' | 'status') {
   const subject = kind === 'confirmation' ? `Order confirmation #${data.orderNumber} | Top Threadz` : `Order update: ${(statusCopy[data.status || 'PENDING'] || statusCopy.PENDING).title} #${data.orderNumber}`;
   if (data.userId) prisma.notification.create({ data: { userId: data.userId, channel: 'EMAIL', subject, message: `${subject}. Track: ${trackingUrl(data.orderNumber)}`, status: transporter ? 'PENDING' : 'FAILED', metadata: { orderNumber: data.orderNumber, status: data.status, type: kind } } }).catch((error) => logger.warn('Could not persist order email notification', error));
-  if (!transporter || !data.customerEmail) { logger.warn(`Order email not sent for ${data.orderNumber}: Gmail SMTP is not configured or customer email is missing`); return; }
-  try { await transporter.sendMail({ from: process.env.SMTP_FROM || `"Top Threadz" <${smtpUser}>`, to: data.customerEmail, subject, html: renderEmail(data, kind) }); logger.info(`Order ${kind} email sent for ${data.orderNumber} to ${data.customerEmail}`); }
+  if (!transporter || !data.customerEmail) { logger.warn(`Order email not sent for ${data.orderNumber}: Brevo SMTP is not configured or customer email is missing`); return; }
+  try { await transporter.sendMail({ from: `"${brevoConfig.fromName}" <${brevoConfig.from}>`, to: data.customerEmail, subject, html: renderEmail(data, kind) }); logger.info(`Order ${kind} email sent for ${data.orderNumber} to ${data.customerEmail}`); }
   catch (error) { logger.error(`Order ${kind} email failed for ${data.orderNumber}`, error); }
 }
 
