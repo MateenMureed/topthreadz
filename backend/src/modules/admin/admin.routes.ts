@@ -7,6 +7,7 @@ const router = Router();
 
 // ── Public: settings & hero banner (no auth needed) ──────────────────
 router.get('/settings/hero-banner', adminController.getHeroBanner.bind(adminController));
+router.get('/settings/hero-banner-text', adminController.getHeroBannerText.bind(adminController));
 router.get('/hero-banners', adminController.listHeroBanners.bind(adminController));
 router.get('/settings/store', adminController.getStoreSettings.bind(adminController));
 
@@ -38,6 +39,7 @@ router.post('/maintenance/cleanup-legacy-data', adminController.cleanupLegacyDat
 // Hero Banner & Store Settings (admin upload/update)
 router.post('/settings/hero-banner', upload.single('image'), adminController.uploadHeroBanner.bind(adminController));
 router.delete('/settings/hero-banner', adminController.deleteHeroBanner.bind(adminController));
+router.post('/settings/hero-banner-text', adminController.updateHeroBannerText.bind(adminController));
 router.post('/hero-banners', upload.single('image'), adminController.createHeroBanner.bind(adminController));
 router.get('/hero-banners/manage', adminController.listAdminHeroBanners.bind(adminController));
 router.patch('/hero-banners/:id', upload.single('image'), adminController.updateHeroBanner.bind(adminController));

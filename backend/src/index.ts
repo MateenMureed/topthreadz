@@ -100,6 +100,8 @@ app.use('/api/experience', experienceRoutes);
 app.get('/api/settings/hero-banner', adminController.getHeroBanner.bind(adminController));
 app.post('/api/settings/hero-banner', authenticateAdmin, authorize('ADMIN'), upload.single('image'), adminController.uploadHeroBanner.bind(adminController));
 app.delete('/api/settings/hero-banner', authenticateAdmin, authorize('ADMIN'), adminController.deleteHeroBanner.bind(adminController));
+app.get('/api/settings/hero-banner-text', adminController.getHeroBannerText.bind(adminController));
+app.post('/api/settings/hero-banner-text', authenticateAdmin, authorize('ADMIN'), adminController.updateHeroBannerText.bind(adminController));
 
 app.get('/api/settings/store', adminController.getStoreSettings.bind(adminController));
 app.put('/api/settings/store', authenticateAdmin, authorize('ADMIN'), adminController.updateStoreSettings.bind(adminController));

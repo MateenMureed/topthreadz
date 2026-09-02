@@ -26,153 +26,171 @@ export default function Footer() {
     retry: false,
   });
 
-  const phoneNumber = settings?.phoneNumber || '+923009070520';
+  const phoneNumber = settings?.phoneNumber || '+92 300 9070520';
   const email = settings?.email || 'support@topthreadz.pk';
   const operatingDays =
     settings?.operatingDays || 'Mon – Sat: 11:00 AM – 10:30 PM | Sun: 2:00 PM – 10:00 PM';
 
   if (pathname?.startsWith('/admin')) return null;
 
+  const linkClass =
+    'group/link relative inline-flex items-center gap-1.5 text-white/60 transition-colors duration-200 hover:text-white focus-visible:outline-none focus-visible:text-white';
+
+  const underline = (
+    <span className="pointer-events-none absolute -bottom-0.5 left-0 h-px w-0 bg-gradient-to-r from-[#D4A84B] to-[#E8C86A] transition-all duration-300 group-hover/link:w-full" />
+  );
+
   return (
-    <footer className="relative bg-surface-950 text-white overflow-hidden border-t border-white/10">
-      {/* Decorative subtle ambient background */}
+    <footer className="relative overflow-hidden bg-gradient-to-b from-[#0F1F3D] to-[#081020] text-white">
+      {/* Thread-line accent — a single gold hairline, evoking a stitched seam */}
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-[#D4A84B]/70 to-transparent" />
+
+      {/* Ambient glow */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-24 right-[-6rem] h-64 w-64 rounded-full bg-white/[0.03] blur-3xl"
+        className="pointer-events-none absolute -top-32 right-[-8rem] h-80 w-80 rounded-full bg-[#D4A84B]/[0.06] blur-[100px]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-40 left-[-6rem] h-72 w-72 rounded-full bg-white/[0.03] blur-[100px]"
       />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Main Compact Footer Grid */}
-        <div className="py-8 sm:py-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 border-b border-white/10">
+        {/* Main Footer Grid */}
+        <div className="grid grid-cols-1 gap-10 border-b border-white/10 py-12 sm:py-14 lg:grid-cols-[1.3fr_0.8fr_0.8fr_1fr] lg:gap-8">
           {/* Brand Info & Outlets */}
-          <div className="space-y-3">
-            <Link href="/" className="inline-flex items-center gap-2.5 group">
-              <div className="relative h-8 w-24 flex items-center">
+          <div className="relative space-y-4 lg:pr-8">
+            {/* Vertical gold divider, desktop only */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute right-0 top-1 hidden h-[calc(100%-0.25rem)] w-px bg-gradient-to-b from-transparent via-[#D4A84B]/25 to-transparent lg:block"
+            />
+
+            <Link href="/" className="hover-lift inline-flex items-center gap-2.5">
+              <div className="relative h-9 w-28">
                 <Image
                   src="/images/topthreadz-logo-light.png"
                   alt="Top Threadz"
-                  width={120}
-                  height={40}
+                  width={140}
+                  height={44}
                   className="h-full w-auto object-contain brightness-125"
                 />
               </div>
             </Link>
-            <p className="text-xs text-white/60 leading-relaxed">
-              Official store for premium unstitched men&apos;s fabric in Pakistan. Exceptional quality, soft finish, and timeless luxury menswear.
+
+            <p className="max-w-sm text-[13px] leading-relaxed text-white/55">
+              Official store for premium unstitched men&apos;s fabric in Pakistan — exceptional
+              quality, soft finish, and timeless luxury menswear.
             </p>
-            <div className="pt-2 border-t border-white/10 text-xs text-white/80">
-              <p className="font-bold text-white flex items-center gap-1.5 mb-1 text-xs tracking-wide">
-                <FiMapPin className="text-white/60 shrink-0" /> Karachi Flagship Outlet:
+
+            <div className="max-w-sm space-y-2 border-t border-white/10 pt-4">
+              <p className="flex items-center gap-2 font-display text-[11px] font-semibold uppercase tracking-[0.14em] text-[#E8C86A]">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#D4A84B]/40 bg-[#D4A84B]/10">
+                  <FiMapPin className="h-3 w-3 text-[#E8C86A]" />
+                </span>
+                Karachi Flagship Outlet
               </p>
-              <p className="text-white/60 text-xs leading-relaxed">
-                topthreadz, R28V+R3W, Street 2, DHA Phase 5 Zamzama Commercial Area Defence V Karachi, 75600
+              <p className="pl-8 text-[12px] leading-relaxed text-white/50">
+                topthreadz, R28V+R3W, Street 2, DHA Phase 5 Zamzama Commercial Area Defence V
+                Karachi, 75600
               </p>
               <a
                 href="https://maps.google.com/?q=R28V%2BR3W,+Street+2,+DHA+Phase+5+Zamzama+Commercial+Area+Defence+V+Karachi,+75600,+Pakistan"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-white/80 hover:text-white underline mt-1 inline-block"
+                className="tap-scale ml-8 inline-flex items-center gap-1 text-[12px] font-semibold text-[#E8C86A] transition-colors hover:text-white focus-visible:outline-none"
               >
-                View on Google Maps →
+                View on Google Maps
+                <FiArrowUpRight className="h-3.5 w-3.5" />
               </a>
             </div>
           </div>
 
           {/* Quick Links / Shop */}
-          <div>
-            <h2 className="text-sm font-semibold tracking-wide text-white/60 mb-3">
+          <nav aria-label="Shop">
+            <h2 className="mb-4 font-display text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
               Shop
             </h2>
-            <ul className="space-y-2 text-xs">
+            <ul className="space-y-3 text-[13px]">
               <li>
-                <Link
-                  href="/products"
-                  className="text-white/70 hover:text-white transition-colors inline-flex items-center gap-1"
-                >
-                  All Products <FiArrowUpRight className="h-3 w-3 opacity-60" />
+                <Link href="/products" className={linkClass}>
+                  All Products <FiArrowUpRight className="h-3 w-3 opacity-50" />
+                  {underline}
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/products?sortBy=newest"
-                  className="text-white/70 hover:text-white transition-colors"
-                >
+                <Link href="/products?sortBy=newest" className={linkClass}>
                   New Arrivals
+                  {underline}
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/orders"
-                  className="text-white/70 hover:text-white transition-colors"
-                >
+                <Link href="/orders" className={linkClass}>
                   Track Order
+                  {underline}
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/faq"
-                  className="text-white/70 hover:text-white transition-colors"
-                >
+                <Link href="/faq" className={linkClass}>
                   FAQs
+                  {underline}
                 </Link>
               </li>
             </ul>
-          </div>
+          </nav>
 
           {/* Policies */}
-          <div>
-            <h2 className="text-sm font-semibold tracking-wide text-white/60 mb-3">
+          <nav aria-label="Policies">
+            <h2 className="mb-4 font-display text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
               Policies
             </h2>
-            <ul className="space-y-2 text-xs">
+            <ul className="space-y-3 text-[13px]">
               <li>
-                <Link
-                  href="/delivery"
-                  className="text-white/70 hover:text-white transition-colors inline-flex items-center gap-1.5"
-                >
-                  <FiTruck className="h-3.5 w-3.5 text-white/40" /> Delivery Policy (Free over 10k)
+                <Link href="/delivery" className={linkClass}>
+                  <FiTruck className="h-3.5 w-3.5 shrink-0 text-white/35" />
+                  <span>Delivery Policy</span>
+                  {underline}
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/returns"
-                  className="text-white/70 hover:text-white transition-colors inline-flex items-center gap-1.5"
-                >
-                  <FiRefreshCw className="h-3.5 w-3.5 text-white/40" /> Exchanges & Returns
+                <Link href="/returns" className={linkClass}>
+                  <FiRefreshCw className="h-3.5 w-3.5 shrink-0 text-white/35" />
+                  <span>Exchanges &amp; Returns</span>
+                  {underline}
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/privacy"
-                  className="text-white/70 hover:text-white transition-colors inline-flex items-center gap-1.5"
-                >
-                  <FiShield className="h-3.5 w-3.5 text-white/40" /> Privacy Policy
+                <Link href="/privacy" className={linkClass}>
+                  <FiShield className="h-3.5 w-3.5 shrink-0 text-white/35" />
+                  <span>Privacy Policy</span>
+                  {underline}
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/terms"
-                  className="text-white/70 hover:text-white transition-colors inline-flex items-center gap-1.5"
-                >
-                  <FiFileText className="h-3.5 w-3.5 text-white/40" /> Terms of Service
+                <Link href="/terms" className={linkClass}>
+                  <FiFileText className="h-3.5 w-3.5 shrink-0 text-white/35" />
+                  <span>Terms of Service</span>
+                  {underline}
                 </Link>
               </li>
             </ul>
-          </div>
+          </nav>
 
           {/* Contact & Outlets */}
           <div>
-            <h2 className="text-sm font-semibold tracking-wide text-white/60 mb-3">
-              Contact & Outlets
+            <h2 className="mb-4 font-display text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+              Contact &amp; Outlets
             </h2>
-            <ul className="space-y-2.5 text-xs text-white/70">
+            <ul className="space-y-3.5 text-[13px] text-white/60">
               {phoneNumber && (
                 <li>
                   <a
                     href={`tel:${phoneNumber.replace(/\s+/g, '')}`}
-                    className="hover:text-white transition-colors inline-flex items-center gap-2"
+                    className="group/link inline-flex items-center gap-2.5 transition-colors hover:text-white focus-visible:outline-none"
                   >
-                    <FiPhone className="h-3.5 w-3.5 text-white/40 shrink-0" />
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] transition-colors group-hover/link:border-[#D4A84B]/40 group-hover/link:bg-[#D4A84B]/10">
+                      <FiPhone className="h-3.5 w-3.5 text-white/50 group-hover/link:text-[#E8C86A]" />
+                    </span>
                     <span>{phoneNumber}</span>
                   </a>
                 </li>
@@ -180,29 +198,39 @@ export default function Footer() {
               <li>
                 <a
                   href={`mailto:${email}`}
-                  className="hover:text-white transition-colors inline-flex items-center gap-2 break-all"
+                  className="group/link inline-flex items-center gap-2.5 break-all transition-colors hover:text-white focus-visible:outline-none"
                 >
-                  <FiMail className="h-3.5 w-3.5 text-white/40 shrink-0" />
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] transition-colors group-hover/link:border-[#D4A84B]/40 group-hover/link:bg-[#D4A84B]/10">
+                    <FiMail className="h-3.5 w-3.5 text-white/50 group-hover/link:text-[#E8C86A]" />
+                  </span>
                   <span>{email}</span>
                 </a>
               </li>
-              <li className="inline-flex items-center gap-2 text-white/60">
-                <FiClock className="h-3.5 w-3.5 text-white/40 shrink-0" />
+              <li className="inline-flex items-center gap-2.5 text-white/50">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04]">
+                  <FiClock className="h-3.5 w-3.5 text-white/40" />
+                </span>
                 <span>{operatingDays}</span>
               </li>
-              <li className="pt-2 border-t border-white/10 text-xs text-white/50">
-                <strong className="text-white/70">Flagship Store:</strong> Zamzama DHA Phase 5 Karachi.
+              <li className="ml-9 border-t border-white/10 pt-3 text-[12px] text-white/40">
+                <strong className="font-medium text-white/60">Flagship Store:</strong> Zamzama
+                DHA Phase 5, Karachi.
               </li>
             </ul>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
+        <div className="flex flex-col items-center justify-between gap-3 py-5 text-[12px] text-white/35 sm:flex-row">
           <p>© {new Date().getFullYear()} Top Threadz. All rights reserved.</p>
-          <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
-            <Link href="/faq" className="hover:text-white transition-colors">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-[12px]">
+            <Link
+              href="/faq"
+              className="group/link relative inline-flex items-center gap-1.5 text-white/40 transition-colors hover:text-white focus-visible:outline-none focus-visible:text-white"
+            >
+              <FiHelpCircle className="h-3.5 w-3.5" />
               FAQ
+              {underline}
             </Link>
           </div>
         </div>

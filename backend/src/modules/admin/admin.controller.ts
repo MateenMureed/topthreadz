@@ -5,6 +5,13 @@ import { isCloudinaryConfigured, uploadToCloudinary, deleteFromCloudinary } from
 import prisma from '../../utils/prisma';
 import logger from '../../utils/logger';
 
+const DEFAULT_HERO_BANNER_TEXT = {
+  heading: 'Shop Our Newest Collection',
+  subheading: 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
+  buttonText: 'Shop Now',
+  buttonLink: '/products',
+};
+
 export class AdminController {
   async getDashboard(_req: AuthRequest, res: Response, next: NextFunction) {
     try {
@@ -93,6 +100,32 @@ export class AdminController {
     try {
       const setting = await prisma.siteSetting.findUnique({ where: { key: 'hero_banner' } });
       res.json({ success: true, data: setting ? JSON.parse(setting.value) : null });
+    } catch (error) { next(error); }
+  }
+
+  async getHeroBannerText(_req: Request, res: Response, next: NextFunction) {
+    try {
+      const setting = await prisma.siteSetting.findUnique({ where: { key: 'hero_banner_text' } });
+      const savedText = setting ? JSON.parse(setting.value) : {};
+      res.json({ success: true, data: { ...DEFAULT_HERO_BANNER_TEXT, ...savedText } });
+    } catch (error) { next(error); }
+  }
+
+  async updateHeroBannerText(req: Request, res: Response, next: NextFunction) {
+    try {
+      const body = req.body || {};
+      const data = {
+        heading: typeof body.heading === 'string' && body.heading.trim() ? body.heading.trim() : DEFAULT_HERO_BANNER_TEXT.heading,
+        subheading: typeof body.subheading === 'string' && body.subheading.trim() ? body.subheading.trim() : DEFAULT_HERO_BANNER_TEXT.subheading,
+        buttonText: typeof body.buttonText === 'string' && body.buttonText.trim() ? body.buttonText.trim() : DEFAULT_HERO_BANNER_TEXT.buttonText,
+        buttonLink: typeof body.buttonLink === 'string' && body.buttonLink.startsWith('/') ? body.buttonLink.trim() : DEFAULT_HERO_BANNER_TEXT.buttonLink,
+      };
+      await prisma.siteSetting.upsert({
+        where: { key: 'hero_banner_text' },
+        update: { value: JSON.stringify(data) },
+        create: { key: 'hero_banner_text', value: JSON.stringify(data) },
+      });
+      res.json({ success: true, data });
     } catch (error) { next(error); }
   }
 

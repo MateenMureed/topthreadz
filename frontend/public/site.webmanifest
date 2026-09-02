@@ -1,0 +1,26 @@
+{
+  "name": "Top Threadz",
+  "short_name": "Top Threadz",
+  "description": "Official Top Threadz Store. Premium unstitched men's fabric in Pakistan.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#0F1F3D",
+  "icons": [
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-full-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
