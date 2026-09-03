@@ -36,7 +36,7 @@ export default function Breadcrumbs() {
     },
   });
 
-  if (isHome) {
+  if (isHome || normalizedPathname.startsWith('/admin')) {
     return null;
   }
 
