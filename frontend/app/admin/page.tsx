@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import './admin.css';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/auth.service';
@@ -196,9 +197,9 @@ const COLOR_PRESET_OPTIONS = [
   'Cream',
 ];
 
-const STITCHED_SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL'];
-const TWO_PIECE_SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL', 'Standard Fit'];
-const UNSTITCHED_SIZE_OPTIONS = ['4.5 Meters', '7 Meters', '4 Meters', '5 Meters', 'Standard (4.5M)'];
+const STITCHED_SIZE_OPTIONS = ['4.5m', '7m','Standard'];
+const TWO_PIECE_SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL', 'Standard'];
+const UNSTITCHED_SIZE_OPTIONS = ['4.5m', '7m','Standard'];
 
 interface ImageMeta {
   url: string;

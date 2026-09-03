@@ -1,14 +1,12 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   FiTruck,
   FiHeadphones,
   FiCheckCircle,
   FiShield,
-  FiMenu,
-  FiChevronDown,
 } from 'react-icons/fi';
 import { useQuery } from '@tanstack/react-query';
 import { productService } from '@/services/product.service';
@@ -16,8 +14,8 @@ import api from '@/services/api';
 import ProductGrid from '@/components/ProductGrid';
 
 interface HomePageClientProps {
-  initialCategories: any[];
-  initialProducts: any[];
+  initialCategories?: any[];
+  initialProducts?: any[];
   initialHeroBanner?: string;
   initialSettings?: any;
 }
@@ -25,16 +23,8 @@ interface HomePageClientProps {
 export default function HomePageClient({
   initialCategories = [],
   initialProducts = [],
-  initialHeroBanner,
   initialSettings,
 }: HomePageClientProps) {
-  const { data: heroResponse } = useQuery({
-    queryKey: ['home', 'hero-banner'],
-    queryFn: () => api.get('/settings/hero-banner').then((response) => response.data),
-    initialData: initialHeroBanner ? { data: { url: initialHeroBanner } } : undefined,
-    retry: false,
-  });
-
   const { data: settingsData } = useQuery({
     queryKey: ['store-settings'],
     queryFn: () => api.get('/settings/store').then((res) => res.data?.data),
@@ -57,36 +47,6 @@ export default function HomePageClient({
 
   const products = productsResponse?.data?.products || initialProducts || [];
   const categories = categoriesResponse?.data || initialCategories || [];
-  const heroBanner = heroResponse?.data?.url || initialHeroBanner;
-
-  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
-
-  const [bannerText, setBannerText] = useState({
-    heading: 'Shop Our Newest Collection',
-    subheading: 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
-    buttonText: 'Shop Now',
-    buttonLink: '/products',
-  });
-
-  useEffect(() => {
-    const fetchBannerText = async () => {
-      try {
-        const response = await api.get('/settings/hero-banner-text');
-        const data = response.data?.data;
-        if (data) {
-          setBannerText({
-            heading: data.heading || 'Shop Our Newest Collection',
-            subheading: data.subheading || 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
-            buttonText: data.buttonText || 'Shop Now',
-            buttonLink: data.buttonLink || '/products',
-          });
-        }
-      } catch {
-        // use defaults
-      }
-    };
-    fetchBannerText();
-  }, []);
 
   const homepageHeading = settingsData?.homepageHeading || initialSettings?.homepageHeading || 'Shop Our Collection';
   const homepageSubheading = settingsData?.homepageSubheading || initialSettings?.homepageSubheading || 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION';
@@ -109,120 +69,12 @@ export default function HomePageClient({
 
   return (
     <div className="bg-white text-black">
-      {/* ─── CATEGORY SUB-HEADER BAR (AFTER HEADER, BEFORE BANNER) ─── */}
-      <nav
-        aria-label="Categories"
-        className="w-full bg-[#FAFAF8] border-b border-surface-200"
-      >
-        {/* Mobile Hamburger Subheader Bar */}
-        <div className="sm:hidden">
-          <button
-            type="button"
-            onClick={() => setMobileCategoriesOpen((v) => !v)}
-            className="w-full flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-wider text-surface-800 bg-[#FAFAF8] active:bg-surface-100 transition-colors"
-            aria-expanded={mobileCategoriesOpen}
-          >
-            <span className="inline-flex items-center gap-2">
-              <FiMenu className="w-4 h-4 text-[#0F1F3D]" />
-              <span className="text-[#0F1F3D]">Browse Categories</span>
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-surface-500">
-              <span>{categories.length + 2} items</span>
-              <FiChevronDown
-                className={`w-3.5 h-3.5 transition-transform duration-300 ${
-                  mobileCategoriesOpen ? 'rotate-180' : ''
-                }`}
-              />
-            </span>
-          </button>
-
-          {mobileCategoriesOpen && (
-            <div className="px-4 py-3 border-t border-surface-200/80 bg-white grid grid-cols-2 gap-x-4 gap-y-2.5 animate-fadeIn">
-              <Link
-                href="/products"
-                onClick={() => setMobileCategoriesOpen(false)}
-                className="group relative py-1.5 text-xs font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors"
-              >
-                <span className="block truncate">All Products</span>
-                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#0F1F3D] group-hover:w-full transition-all duration-300" />
-              </Link>
-              <Link
-                href="/products?sortBy=newest"
-                onClick={() => setMobileCategoriesOpen(false)}
-                className="group relative py-1.5 text-xs font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors"
-              >
-                <span className="block truncate">New Arrivals</span>
-                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#0F1F3D] group-hover:w-full transition-all duration-300" />
-              </Link>
-              {categories.map((cat: any) => (
-                <Link
-                  key={cat.id || cat.slug || cat.name}
-                  href={`/products/category/${encodeURIComponent(cat.slug || cat.name)}`}
-                  onClick={() => setMobileCategoriesOpen(false)}
-                  className="group relative py-1.5 text-xs font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors"
-                >
-                  <span className="block truncate">{cat.name}</span>
-                  <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#0F1F3D] group-hover:w-full transition-all duration-300" />
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Desktop Horizontal Subheader with Underline Hover (Not Colored) */}
-        <div className="hidden sm:flex max-w-7xl mx-auto items-center justify-center gap-1 md:gap-3 px-4 py-1 overflow-x-auto scrollbar-none">
-          <Link
-            href="/products"
-            className="group relative py-2.5 px-3 text-xs md:text-[13px] font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors whitespace-nowrap"
-          >
-            <span>All Products</span>
-            <span className="absolute bottom-1 left-3 right-3 h-[2px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
-          </Link>
-          <Link
-            href="/products?sortBy=newest"
-            className="group relative py-2.5 px-3 text-xs md:text-[13px] font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors whitespace-nowrap"
-          >
-            <span>New Arrivals</span>
-            <span className="absolute bottom-1 left-3 right-3 h-[2px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
-          </Link>
-          {categories.map((cat: any) => (
-            <Link
-              key={cat.id || cat.slug || cat.name}
-              href={`/products/category/${encodeURIComponent(cat.slug || cat.name)}`}
-              className="group relative py-2.5 px-3 text-xs md:text-[13px] font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors whitespace-nowrap"
-            >
-              <span>{cat.name}</span>
-              <span className="absolute bottom-1 left-3 right-3 h-[2px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
-            </Link>
-          ))}
-        </div>
-      </nav>
-
-      {/* ─── HERO BANNER – IMAGE ONLY, LINKS TO PRODUCTS ─── */}
-      {heroBanner && (
-        <Link
-          href={bannerText.buttonLink || '/products'}
-          className="block relative w-full overflow-hidden"
-          aria-label="Shop our newest collection"
-        >
-          <img
-            src={heroBanner}
-            alt="Top Threadz Men's Luxury Fabrics Collection"
-            className="w-full h-auto"
-            onError={(e) => {
-              console.error('Hero banner failed to load');
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-        </Link>
-      )}
-
       {/* ─── PRODUCT CATALOG SECTION ─── */}
       <section id="catalog" className="w-full max-w-[1536px] mx-auto px-2 sm:px-4 md:px-6 py-8 md:py-12">
         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-surface-500 shrink-0">
+              <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-surface-700 shrink-0">
                 {homepageSubheading}
               </span>
               <div className="h-px flex-1 bg-surface-200 hidden sm:block" />

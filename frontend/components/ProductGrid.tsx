@@ -120,7 +120,7 @@ export default function ProductGrid({
       <div className="w-14 h-14 rounded-full bg-surface-200/80 flex items-center justify-center text-surface-700 mb-4 shadow-inner">
         <FiPackage className="w-6 h-6" />
       </div>
-      <span className="text-xs font-bold tracking-[0.16em] text-surface-500 mb-1">
+      <span className="text-xs font-bold tracking-[0.16em] text-surface-700 mb-1">
         TOP THREADZ COLLECTION
       </span>
       <h3 className="font-display text-lg font-bold text-surface-900 mb-2">

@@ -26,39 +26,39 @@ export default function MobileNav() {
         <Link
           href="/"
           className={`flex-1 flex flex-col items-center justify-center h-full rounded-full transition-all ${
-            pathname === '/' ? 'text-surface-950 font-bold' : 'text-surface-500 hover:text-surface-800'
+            pathname === '/' ? 'text-surface-950 font-bold' : 'text-surface-700 hover:text-surface-950'
           }`}
         >
           <FiHome className={`w-4 h-4 ${pathname === '/' ? 'stroke-[2.5]' : 'stroke-2'}`} />
-          <span className="text-[9px] font-medium tracking-tight mt-0.5">Home</span>
+          <span className="text-[9px] font-semibold tracking-tight mt-0.5">Home</span>
         </Link>
 
         {/* 2. Shop / Catalog */}
         <Link
           href="/products"
           className={`flex-1 flex flex-col items-center justify-center h-full rounded-full transition-all ${
-            pathname.startsWith('/products') ? 'text-surface-950 font-bold' : 'text-surface-500 hover:text-surface-800'
+            pathname.startsWith('/products') ? 'text-surface-950 font-bold' : 'text-surface-700 hover:text-surface-950'
           }`}
         >
           <FiSearch className={`w-4 h-4 ${pathname.startsWith('/products') ? 'stroke-[2.5]' : 'stroke-2'}`} />
-          <span className="text-[9px] font-medium tracking-tight mt-0.5">Shop</span>
+          <span className="text-[9px] font-semibold tracking-tight mt-0.5">Shop</span>
         </Link>
 
         {/* 3. Wishlist / FAQ */}
         <Link
           href="/faq"
           className={`flex-1 flex flex-col items-center justify-center h-full rounded-full transition-all ${
-            pathname === '/faq' ? 'text-surface-950 font-bold' : 'text-surface-500 hover:text-surface-800'
+            pathname === '/faq' ? 'text-surface-950 font-bold' : 'text-surface-700 hover:text-surface-950'
           }`}
         >
           <FiHeart className={`w-4 h-4 ${pathname === '/faq' ? 'stroke-[2.5]' : 'stroke-2'}`} />
-          <span className="text-[9px] font-medium tracking-tight mt-0.5">FAQs</span>
+          <span className="text-[9px] font-semibold tracking-tight mt-0.5">FAQs</span>
         </Link>
 
         {/* 4. Cart */}
         <button
           onClick={openCart}
-          className="relative flex-1 flex flex-col items-center justify-center h-full rounded-full text-surface-500 hover:text-surface-800 transition-all"
+          className="relative flex-1 flex flex-col items-center justify-center h-full rounded-full text-surface-700 hover:text-surface-950 transition-all"
         >
           <div className="relative">
             <FiShoppingBag className="w-4 h-4 stroke-2" />
@@ -68,7 +68,7 @@ export default function MobileNav() {
               </span>
             )}
           </div>
-          <span className="text-[9px] font-medium tracking-tight mt-0.5">Cart</span>
+          <span className="text-[9px] font-semibold tracking-tight mt-0.5">Cart</span>
         </button>
 
         {/* 5. Account / Login */}
@@ -76,20 +76,20 @@ export default function MobileNav() {
           <Link
             href={user?.role === 'ADMIN' ? '/admin' : '/orders'}
             className={`flex-1 flex flex-col items-center justify-center h-full rounded-full transition-all ${
-              pathname.includes('/orders') || pathname.includes('/admin') ? 'text-surface-950 font-bold' : 'text-surface-500 hover:text-surface-800'
+              pathname.includes('/orders') || pathname.includes('/admin') ? 'text-surface-950 font-bold' : 'text-surface-700 hover:text-surface-950'
             }`}
           >
             <FiUser className={`w-4 h-4 ${pathname.includes('/orders') || pathname.includes('/admin') ? 'stroke-[2.5]' : 'stroke-2'}`} />
-            <span className="text-[9px] font-medium tracking-tight mt-0.5">Account</span>
+            <span className="text-[9px] font-semibold tracking-tight mt-0.5">Account</span>
           </Link>
         ) : (
           <button
             type="button"
             onClick={() => openModal('login')}
-            className="flex-1 flex flex-col items-center justify-center h-full rounded-full text-surface-500 hover:text-surface-800 transition-all"
+            className="flex-1 flex flex-col items-center justify-center h-full rounded-full text-surface-700 hover:text-surface-950 transition-all"
           >
             <FiLogIn className="w-4 h-4 stroke-2" />
-            <span className="text-[9px] font-medium tracking-tight mt-0.5">Login</span>
+            <span className="text-[9px] font-semibold tracking-tight mt-0.5">Login</span>
           </button>
         )}
       </div>

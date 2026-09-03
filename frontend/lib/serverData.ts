@@ -70,3 +70,8 @@ export async function fetchServerHeroBanners() {
 export async function fetchServerStoreSettings() {
   return fetchServerData<any>('/settings/store', 120);
 }
+
+export async function fetchServerHeroBannerText() {
+  const data = await fetchServerData<any>('/settings/hero-banner-text', 120);
+  return data || null;
+}

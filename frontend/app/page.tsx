@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
 import HomePageClient from '@/components/HomePageClient';
+import CategorySubnav from '@/components/CategorySubnav';
+import HeroBanner from '@/components/HeroBanner';
 import {
   fetchServerCategories,
   fetchServerProducts,
   fetchServerHeroBanner,
+  fetchServerHeroBannerText,
   fetchServerStoreSettings,
 } from '@/lib/serverData';
 
@@ -132,10 +135,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [categories, products, heroBanner, settings] = await Promise.all([
+  const [categories, products, heroBanner, heroBannerText, settings] = await Promise.all([
     fetchServerCategories(),
     fetchServerProducts({ limit: 50, sortBy: 'newest' }),
     fetchServerHeroBanner(),
+    fetchServerHeroBannerText(),
     fetchServerStoreSettings(),
   ]);
 
@@ -411,6 +415,11 @@ export default async function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homeStructuredData) }}
+      />
+      <CategorySubnav categories={categories} />
+      <HeroBanner
+        heroBanner={heroBanner}
+        buttonLink={heroBannerText?.buttonLink || '/products'}
       />
       <HomePageClient
         initialCategories={categories}

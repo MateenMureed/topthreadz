@@ -75,18 +75,18 @@ export default function Breadcrumbs() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 pt-4 pb-2">
-      <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-sm text-surface-500">
+      <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-sm text-surface-700">
         {crumbs.map((crumb, index) => {
           const isLast = index === crumbs.length - 1;
 
           return (
             <div key={`${crumb.label}-${index}`} className="flex items-center gap-2">
               {crumb.href && !isLast ? (
-                <Link href={crumb.href} className="hover:text-surface-800 transition-colors">
+                <Link href={crumb.href} className="hover:text-surface-950 transition-colors">
                   {crumb.label}
                 </Link>
               ) : (
-                <span className={isLast ? 'font-semibold text-surface-800' : ''}>{crumb.label}</span>
+                <span className={isLast ? 'font-semibold text-surface-950' : ''}>{crumb.label}</span>
               )}
               {!isLast ? <FiChevronRight className="w-4 h-4" /> : null}
             </div>

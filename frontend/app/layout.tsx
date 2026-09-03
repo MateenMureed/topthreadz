@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
+import { Inter, Outfit, Plus_Jakarta_Sans } from 'next/font/google';
 import { Providers } from '@/lib/providers';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -9,6 +10,27 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import AuthRouteHandler from '@/components/AuthRouteHandler';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import './globals.css';
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+  weight: ['300', '400', '500', '600', '700'],
+});
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-outfit',
+  weight: ['400', '500', '600', '700', '800'],
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-plus-jakarta-sans',
+  weight: ['400', '500', '600', '700'],
+});
 
 const CartDrawer = dynamic(() => import('@/components/CartDrawer'));
 const AuthModal = dynamic(() => import('@/components/AuthModal'));
@@ -161,8 +183,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html lang="en" className="scroll-smooth light" style={{ colorScheme: 'light' }}>
-      <body className="min-h-screen flex flex-col bg-[#fafafa] text-surface-900">
+    <html
+      lang="en"
+      className={`scroll-smooth light ${inter.variable} ${outfit.variable} ${plusJakartaSans.variable}`}
+      style={{ colorScheme: 'light' }}
+    >
+      <body className={`${inter.className} min-h-screen flex flex-col bg-[#fafafa] text-surface-900`}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(zamzamaStoreJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
@@ -171,7 +197,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <AuthRouteHandler />
           </Suspense>
           <Navbar />
-          <main className="flex-1 pt-16 pb-24 lg:pb-0">
+          <main className="flex-1 pt-[108px] pb-24 lg:pb-0">
             <Suspense fallback={null}>
               <Breadcrumbs />
             </Suspense>

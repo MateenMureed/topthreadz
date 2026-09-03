@@ -1,0 +1,341 @@
+/* ============================================================
+   SHOPIFY-STYLE ADMIN UI & WORKSPACE COMPONENT STYLES
+   Isolated to /admin routes to keep global customer CSS lean
+   ============================================================ */
+
+.admin-input {
+  height: 40px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #1A1A1A;
+  background-color: #FFFFFF;
+  transition: all 150ms ease;
+  width: 100%;
+}
+
+.admin-input:focus {
+  border-color: #0F1F3D;
+  box-shadow: 0 0 0 3px rgba(15, 31, 61, 0.1);
+  outline: none;
+}
+
+.admin-input.error {
+  border-color: #B91C2B;
+}
+
+.admin-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.admin-btn-primary {
+  height: 36px;
+  background-color: #0F1F3D;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 8px 16px;
+  border: none;
+  transition: all 150ms ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.admin-btn-primary:hover:not(:disabled) {
+  background-color: #1A2F5A;
+}
+
+.admin-btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.admin-btn-destructive {
+  height: 36px;
+  background-color: #B91C2B;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 8px 16px;
+  border: none;
+  transition: all 150ms ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.admin-btn-destructive:hover:not(:disabled) {
+  background-color: #8F1620;
+}
+
+.admin-btn-destructive:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.admin-btn-secondary {
+  height: 36px;
+  background-color: #FFFFFF;
+  border: 1px solid #D1D5DB;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 8px 16px;
+  transition: all 150ms ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.admin-btn-secondary:hover:not(:disabled) {
+  background-color: #F9FAFB;
+  border-color: #9CA3AF;
+}
+
+.admin-btn-secondary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.admin-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  padding: 20px;
+}
+
+@media (min-width: 640px) {
+  .admin-card {
+    padding: 24px;
+  }
+}
+
+.admin-workspace input[type="text"],
+.admin-workspace input[type="number"],
+.admin-workspace input[type="email"],
+.admin-workspace input[type="password"],
+.admin-workspace input[type="search"],
+.admin-workspace input[type="tel"],
+.admin-workspace input[type="url"],
+.admin-workspace select,
+.admin-workspace textarea {
+  height: 40px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #1A1A1A;
+  background-color: #FFFFFF;
+  transition: all 150ms ease;
+}
+
+.admin-workspace textarea {
+  height: auto;
+  min-height: 80px;
+}
+
+.admin-workspace input:focus,
+.admin-workspace select:focus,
+.admin-workspace textarea:focus {
+  border-color: #0F1F3D !important;
+  box-shadow: 0 0 0 3px rgba(15, 31, 61, 0.1) !important;
+  outline: none !important;
+}
+
+.admin-workspace label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.admin-workspace table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-workspace thead tr,
+.admin-workspace th {
+  background-color: #F9FAFB !important;
+  font-size: 12px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: #6B7280 !important;
+  font-weight: 600 !important;
+  padding: 10px 14px !important;
+  border-bottom: 1px solid #E5E7EB !important;
+}
+
+.admin-workspace tbody tr {
+  min-height: 48px;
+  border-bottom: 1px solid #E5E7EB;
+  transition: background-color 150ms ease;
+}
+
+.admin-workspace tbody tr:hover {
+  background-color: #F9FAFB;
+}
+
+.admin-workspace tbody td {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #1A1A1A;
+  vertical-align: middle;
+}
+
+.admin-compact-form .input-field {
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: 8px;
+}
+
+.admin-compact-form textarea.input-field {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.admin-ai-btn {
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
+  background-color: #FFFFFF;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+  transition: background-color 150ms;
+}
+
+.admin-ai-btn:hover {
+  background-color: #F3F4F6;
+}
+
+/* ADMIN MOBILE NAVIGATION — fixed bottom tab bar (app-style) */
+.admin-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background-color: #0F1F3D;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+}
+
+.admin-bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 2px;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.admin-bottom-nav-item span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-bottom-nav-item.active {
+  color: #FFFFFF;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.admin-bottom-nav-item.active svg {
+  color: #E8C86A;
+}
+
+/* ADMIN MODAL / SHEET — centered dialog on desktop, full-width bottom sheet on mobile */
+.admin-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background-color: rgba(15, 31, 61, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.admin-sheet-panel {
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  background-color: #FFFFFF;
+  border-radius: 20px 20px 0 0;
+  padding: 20px;
+  animation: sheetSlideUp 220ms ease-out;
+}
+
+.admin-sheet-panel::before {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 4px;
+  border-radius: 9999px;
+  background-color: #E5E7EB;
+  margin: 0 auto 14px;
+}
+
+@media (min-width: 640px) {
+  .admin-sheet-backdrop {
+    align-items: center;
+    padding: 16px;
+  }
+
+  .admin-sheet-panel {
+    max-height: 90vh;
+    border-radius: 16px;
+    padding: 24px;
+    animation: none;
+  }
+
+  .admin-sheet-panel::before {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-btn-primary,
+  .admin-btn-secondary,
+  .admin-btn-destructive {
+    min-height: 44px;
+  }
+
+  .admin-input,
+  .admin-workspace input[type="text"],
+  .admin-workspace input[type="number"],
+  .admin-workspace input[type="email"],
+  .admin-workspace input[type="password"],
+  .admin-workspace input[type="search"],
+  .admin-workspace input[type="tel"],
+  .admin-workspace input[type="url"],
+  .admin-workspace select {
+    min-height: 44px;
+  }
+}
