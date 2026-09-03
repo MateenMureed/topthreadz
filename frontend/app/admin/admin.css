@@ -240,6 +240,13 @@
   padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
 }
 
+/* Hide on desktop — matches Tailwind's lg breakpoint (1024px) */
+@media (min-width: 1024px) {
+  .admin-bottom-nav {
+    display: none;
+  }
+}
+
 .admin-bottom-nav-item {
   display: flex;
   flex-direction: column;
