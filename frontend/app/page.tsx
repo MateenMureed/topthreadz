@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import HomePageClient from '@/components/HomePageClient';
-import CategorySubnav from '@/components/CategorySubnav';
 import HeroBanner from '@/components/HeroBanner';
 import {
   fetchServerCategories,
@@ -416,7 +415,6 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homeStructuredData) }}
       />
-      <CategorySubnav categories={categories} />
       <HeroBanner
         heroBanner={heroBanner}
         buttonLink={heroBannerText?.buttonLink || '/products'}

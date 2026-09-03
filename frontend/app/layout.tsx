@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MobileNav from '@/components/MobileNav';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import CategorySubnav from '@/components/CategorySubnav';
 import AuthRouteHandler from '@/components/AuthRouteHandler';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import './globals.css';
@@ -197,6 +198,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <AuthRouteHandler />
           </Suspense>
           <Navbar />
+          <CategorySubnav />
           <main className="flex-1 pt-[108px] pb-24 lg:pb-0">
             <Suspense fallback={null}>
               <Breadcrumbs />

@@ -1,102 +1,76 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { FiMenu, FiChevronDown } from 'react-icons/fi';
+import { usePathname } from 'next/navigation';
+import api from '@/services/api';
 
-interface CategorySubnavProps {
-  categories?: any[];
-}
+export default function CategorySubnav() {
+  const pathname = usePathname();
+  const [categories, setCategories] = useState<any[]>([]);
 
-export default function CategorySubnav({ categories = [] }: CategorySubnavProps) {
-  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
+  useEffect(() => {
+    api
+      .get('/categories')
+      .then((res) => {
+        const data = res.data?.data || res.data;
+        if (Array.isArray(data)) setCategories(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Don't render on admin pages
+  if (pathname?.startsWith('/admin')) return null;
 
   return (
     <nav
       aria-label="Categories"
-      className="w-full bg-[#FAFAF8] border-b border-surface-200"
+      className="fixed top-16 left-0 right-0 z-40 w-full bg-white border-b border-surface-200 shadow-sm"
     >
-      {/* Mobile Hamburger Subheader Bar */}
-      <div className="sm:hidden">
-        <button
-          type="button"
-          onClick={() => setMobileCategoriesOpen((v) => !v)}
-          className="w-full flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-wider text-surface-800 bg-[#FAFAF8] active:bg-surface-100 transition-colors"
-          aria-expanded={mobileCategoriesOpen}
-        >
-          <span className="inline-flex items-center gap-2">
-            <FiMenu className="w-4 h-4 text-[#0F1F3D]" />
-            <span className="text-[#0F1F3D]">Browse Categories</span>
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-surface-700">
-            <span>{categories.length + 2} items</span>
-            <FiChevronDown
-              className={`w-3.5 h-3.5 transition-transform duration-300 ${
-                mobileCategoriesOpen ? 'rotate-180' : ''
-              }`}
-            />
-          </span>
-        </button>
-
-        {mobileCategoriesOpen && (
-          <div className="px-4 py-3 border-t border-surface-200/80 bg-white grid grid-cols-2 gap-x-4 gap-y-2.5 animate-fadeIn">
-            <Link
-              href="/products"
-              onClick={() => setMobileCategoriesOpen(false)}
-              className="group relative py-1.5 text-xs font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors"
-            >
-              <span className="block truncate">All Products</span>
-              <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#0F1F3D] group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/products?sortBy=newest"
-              onClick={() => setMobileCategoriesOpen(false)}
-              className="group relative py-1.5 text-xs font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors"
-            >
-              <span className="block truncate">New Arrivals</span>
-              <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#0F1F3D] group-hover:w-full transition-all duration-300" />
-            </Link>
-            {categories.map((cat: any) => (
-              <Link
-                key={cat.id || cat.slug || cat.name}
-                href={`/products/category/${encodeURIComponent(cat.slug || cat.name)}`}
-                onClick={() => setMobileCategoriesOpen(false)}
-                className="group relative py-1.5 text-xs font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors"
-              >
-                <span className="block truncate">{cat.name}</span>
-                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#0F1F3D] group-hover:w-full transition-all duration-300" />
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Desktop Horizontal Subheader with Underline Hover */}
-      <div className="hidden sm:flex max-w-7xl mx-auto items-center justify-center gap-1 md:gap-3 px-4 py-1 overflow-x-auto scrollbar-none">
+      {/* Single horizontal scrollable row — no extra hamburger, works on all screen sizes */}
+      <div className="max-w-7xl mx-auto flex items-center gap-0.5 sm:gap-1 px-2 sm:px-4 overflow-x-auto scrollbar-none">
         <Link
           href="/products"
-          className="group relative py-2.5 px-3 text-xs md:text-[13px] font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors whitespace-nowrap"
+          className={`group relative flex-shrink-0 py-2.5 px-2.5 sm:px-3 text-[11px] sm:text-xs md:text-[13px] font-semibold uppercase tracking-wider transition-colors whitespace-nowrap ${
+            pathname === '/products'
+              ? 'text-surface-950'
+              : 'text-surface-700 hover:text-surface-950'
+          }`}
         >
-          <span>All Products</span>
-          <span className="absolute bottom-1 left-3 right-3 h-[2px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
+          <span>All</span>
+          <span
+            className={`absolute bottom-1 left-2.5 right-2.5 sm:left-3 sm:right-3 h-[2px] bg-[#0F1F3D] transition-transform duration-300 origin-center ${
+              pathname === '/products' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+            }`}
+          />
         </Link>
         <Link
           href="/products?sortBy=newest"
-          className="group relative py-2.5 px-3 text-xs md:text-[13px] font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors whitespace-nowrap"
+          className="group relative flex-shrink-0 py-2.5 px-2.5 sm:px-3 text-[11px] sm:text-xs md:text-[13px] font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors whitespace-nowrap"
         >
           <span>New Arrivals</span>
-          <span className="absolute bottom-1 left-3 right-3 h-[2px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
+          <span className="absolute bottom-1 left-2.5 right-2.5 sm:left-3 sm:right-3 h-[2px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
         </Link>
-        {categories.map((cat: any) => (
-          <Link
-            key={cat.id || cat.slug || cat.name}
-            href={`/products/category/${encodeURIComponent(cat.slug || cat.name)}`}
-            className="group relative py-2.5 px-3 text-xs md:text-[13px] font-semibold uppercase tracking-wider text-surface-700 hover:text-surface-950 transition-colors whitespace-nowrap"
-          >
-            <span>{cat.name}</span>
-            <span className="absolute bottom-1 left-3 right-3 h-[2px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
-          </Link>
-        ))}
+        {categories.map((cat: any) => {
+          const href = `/products/category/${encodeURIComponent(cat.slug || cat.name)}`;
+          const isActive = pathname === href || pathname?.startsWith(href + '/');
+          return (
+            <Link
+              key={cat.id || cat.slug || cat.name}
+              href={href}
+              className={`group relative flex-shrink-0 py-2.5 px-2.5 sm:px-3 text-[11px] sm:text-xs md:text-[13px] font-semibold uppercase tracking-wider transition-colors whitespace-nowrap ${
+                isActive ? 'text-surface-950' : 'text-surface-700 hover:text-surface-950'
+              }`}
+            >
+              <span>{cat.name}</span>
+              <span
+                className={`absolute bottom-1 left-2.5 right-2.5 sm:left-3 sm:right-3 h-[2px] bg-[#0F1F3D] transition-transform duration-300 origin-center ${
+                  isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                }`}
+              />
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );
