@@ -1,5 +1,48 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
+
+// In-memory fallback in case native AsyncStorage module is unavailable (e.g. web or unlinked dev preview)
+class StorageHelper {
+  private memory = new Map<string, string>();
+
+  async getItem(key: string): Promise<string | null> {
+    try {
+      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+        return localStorage.getItem(key);
+      }
+      return await AsyncStorage.getItem(key);
+    } catch {
+      return this.memory.get(key) || null;
+    }
+  }
+
+  async setItem(key: string, value: string): Promise<void> {
+    try {
+      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+        localStorage.setItem(key, value);
+        return;
+      }
+      await AsyncStorage.setItem(key, value);
+    } catch {
+      this.memory.set(key, value);
+    }
+  }
+
+  async removeItem(key: string): Promise<void> {
+    try {
+      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+        localStorage.removeItem(key);
+        return;
+      }
+      await AsyncStorage.removeItem(key);
+    } catch {
+      this.memory.delete(key);
+    }
+  }
+}
+
+export const safeStorage = new StorageHelper();
 
 // Default API URL pointing to production backend
 export const DEFAULT_API_URL = 'https://topthreadz-d94j.vercel.app/api';
@@ -10,12 +53,12 @@ class ApiService {
 
   async init() {
     try {
-      const savedUrl = await AsyncStorage.getItem('topthreadz_api_url');
+      const savedUrl = await safeStorage.getItem('topthreadz_api_url');
       if (savedUrl) this.baseUrl = savedUrl.trim().replace(/\/+$/, '');
-      const savedToken = await AsyncStorage.getItem('topthreadz_admin_token');
+      const savedToken = await safeStorage.getItem('topthreadz_admin_token');
       if (savedToken) this.token = savedToken;
     } catch (e) {
-      console.warn('Failed to load initial settings from AsyncStorage', e);
+      console.warn('Failed to load initial settings from storage', e);
     }
   }
 
@@ -27,7 +70,7 @@ class ApiService {
     let clean = newUrl.trim().replace(/\/+$/, '');
     if (!clean.endsWith('/api')) clean += '/api';
     this.baseUrl = clean;
-    await AsyncStorage.setItem('topthreadz_api_url', clean);
+    await safeStorage.setItem('topthreadz_api_url', clean);
   }
 
   getToken(): string | null {
@@ -37,9 +80,9 @@ class ApiService {
   async setToken(token: string | null) {
     this.token = token;
     if (token) {
-      await AsyncStorage.setItem('topthreadz_admin_token', token);
+      await safeStorage.setItem('topthreadz_admin_token', token);
     } else {
-      await AsyncStorage.removeItem('topthreadz_admin_token');
+      await safeStorage.removeItem('topthreadz_admin_token');
     }
   }
 

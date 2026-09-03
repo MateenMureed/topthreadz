@@ -3,7 +3,6 @@ import {
   StyleSheet,
   Text,
   View,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   ScrollView,
@@ -16,8 +15,8 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { api, DEFAULT_API_URL } from './src/api';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { api, safeStorage, DEFAULT_API_URL } from './src/api';
 
 type Tab = 'dashboard' | 'orders' | 'products' | 'customers' | 'payments' | 'settings';
 
@@ -26,7 +25,7 @@ function formatPkr(amount?: number | string): string {
   return `PKR ${num.toLocaleString('en-PK')}`;
 }
 
-export default function App() {
+function AdminMain() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
@@ -275,6 +274,14 @@ export default function App() {
         />
       </View>
     </SafeAreaView>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <AdminMain />
+    </SafeAreaProvider>
   );
 }
 
