@@ -1,17 +1,20 @@
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-// In-memory fallback in case native AsyncStorage module is unavailable (e.g. web or unlinked dev preview)
+// Robust cross-platform storage helper utilizing Expo's official SecureStore with web & memory fallbacks
 class StorageHelper {
   private memory = new Map<string, string>();
 
   async getItem(key: string): Promise<string | null> {
     try {
-      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
-        return localStorage.getItem(key);
+      if (Platform.OS === 'web') {
+        if (typeof localStorage !== 'undefined') {
+          return localStorage.getItem(key);
+        }
+        return this.memory.get(key) || null;
       }
-      return await AsyncStorage.getItem(key);
+      return await SecureStore.getItemAsync(key);
     } catch {
       return this.memory.get(key) || null;
     }
@@ -19,11 +22,15 @@ class StorageHelper {
 
   async setItem(key: string, value: string): Promise<void> {
     try {
-      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
-        localStorage.setItem(key, value);
+      if (Platform.OS === 'web') {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(key, value);
+        } else {
+          this.memory.set(key, value);
+        }
         return;
       }
-      await AsyncStorage.setItem(key, value);
+      await SecureStore.setItemAsync(key, value);
     } catch {
       this.memory.set(key, value);
     }
@@ -31,11 +38,15 @@ class StorageHelper {
 
   async removeItem(key: string): Promise<void> {
     try {
-      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
-        localStorage.removeItem(key);
+      if (Platform.OS === 'web') {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(key);
+        } else {
+          this.memory.delete(key);
+        }
         return;
       }
-      await AsyncStorage.removeItem(key);
+      await SecureStore.deleteItemAsync(key);
     } catch {
       this.memory.delete(key);
     }
