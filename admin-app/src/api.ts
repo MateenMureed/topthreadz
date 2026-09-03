@@ -2,9 +2,26 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-// Robust cross-platform storage helper utilizing Expo's official SecureStore with web & memory fallbacks
+// Safe Storage helper with hardware SecureStore + graceful in-memory & web fallbacks
 class StorageHelper {
   private memory = new Map<string, string>();
+  private secureStoreChecked = false;
+  private secureStoreAvailable = false;
+
+  private async isSecureAvailable(): Promise<boolean> {
+    if (this.secureStoreChecked) return this.secureStoreAvailable;
+    try {
+      if (Platform.OS === 'web') {
+        this.secureStoreAvailable = false;
+      } else {
+        this.secureStoreAvailable = await SecureStore.isAvailableAsync();
+      }
+    } catch {
+      this.secureStoreAvailable = false;
+    }
+    this.secureStoreChecked = true;
+    return this.secureStoreAvailable;
+  }
 
   async getItem(key: string): Promise<string | null> {
     try {
@@ -14,7 +31,11 @@ class StorageHelper {
         }
         return this.memory.get(key) || null;
       }
-      return await SecureStore.getItemAsync(key);
+      const available = await this.isSecureAvailable();
+      if (available) {
+        return await SecureStore.getItemAsync(key);
+      }
+      return this.memory.get(key) || null;
     } catch {
       return this.memory.get(key) || null;
     }
@@ -30,7 +51,12 @@ class StorageHelper {
         }
         return;
       }
-      await SecureStore.setItemAsync(key, value);
+      const available = await this.isSecureAvailable();
+      if (available) {
+        await SecureStore.setItemAsync(key, value);
+      } else {
+        this.memory.set(key, value);
+      }
     } catch {
       this.memory.set(key, value);
     }
@@ -46,7 +72,12 @@ class StorageHelper {
         }
         return;
       }
-      await SecureStore.deleteItemAsync(key);
+      const available = await this.isSecureAvailable();
+      if (available) {
+        await SecureStore.deleteItemAsync(key);
+      } else {
+        this.memory.delete(key);
+      }
     } catch {
       this.memory.delete(key);
     }
@@ -68,8 +99,8 @@ class ApiService {
       if (savedUrl) this.baseUrl = savedUrl.trim().replace(/\/+$/, '');
       const savedToken = await safeStorage.getItem('topthreadz_admin_token');
       if (savedToken) this.token = savedToken;
-    } catch (e) {
-      console.warn('Failed to load initial settings from storage', e);
+    } catch {
+      // Graceful fallback to default in-memory settings
     }
   }
 
