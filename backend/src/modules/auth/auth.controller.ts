@@ -67,13 +67,14 @@ export class AuthController {
       const session = await sessionService.create(result.user.id, isAdmin, req);
       sessionService.setCookies(res, session.token, session.csrfSecret, isAdmin);
 
-      res.json({
-        success: true,
-        data: {
-          user: result.user,
-          csrfToken: session.csrfSecret,
-        },
-      });
+        res.json({
+          success: true,
+          data: {
+            user: result.user,
+            token: session.token,
+            csrfToken: session.csrfSecret,
+          },
+        });
     } catch (error) {
       next(error);
     }

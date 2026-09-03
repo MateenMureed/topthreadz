@@ -7,6 +7,8 @@ const EXEMPT = new Set(['/api/auth/login', '/api/auth/signup', '/api/auth/forgot
 
 export async function csrfProtection(req: Request, _res: Response, next: NextFunction): Promise<void> {
   if (SAFE.has(req.method) || EXEMPT.has(req.path)) return next();
+  // Native mobile applications sending Bearer authorization headers are not subject to browser CSRF
+  if (req.headers.authorization?.startsWith('Bearer ')) return next();
   const token = req.cookies?.[sessionCookies.ADMIN_COOKIE] || req.cookies?.[sessionCookies.USER_COOKIE];
   if (!token) return next(); // Auth middleware will reject a protected endpoint.
   const provided = req.get('X-CSRF-Token');

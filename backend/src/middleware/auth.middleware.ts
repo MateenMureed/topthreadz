@@ -12,13 +12,13 @@ export interface AuthRequest extends Request {
 
 async function authenticateWithSession(req: AuthRequest, next: NextFunction, adminOnly: boolean): Promise<void> {
   try {
-    const adminToken = req.cookies?.[sessionCookies.ADMIN_COOKIE];
-    const userToken = req.cookies?.[sessionCookies.USER_COOKIE];
+    const authHeader = req.headers.authorization;
+    const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : undefined;
+    const adminToken = req.cookies?.[sessionCookies.ADMIN_COOKIE] || bearerToken;
+    const userToken = req.cookies?.[sessionCookies.USER_COOKIE] || bearerToken;
     const token = adminOnly ? adminToken : (adminToken || userToken);
-    // An unauthenticated request is normal for /auth/csrf before login.
-    // Reject it cleanly instead of passing undefined into the token hash.
     if (!token) throw new UnauthorizedError('Authentication required');
-    const session = await sessionService.findValid(token, adminOnly || Boolean(adminToken));
+    const session = await sessionService.findValid(token, adminOnly);
     if (!session) throw new UnauthorizedError('Authentication required');
     req.user = { userId: session.user.id, role: session.user.role };
     (req as AuthRequest & { session: typeof session }).session = session;

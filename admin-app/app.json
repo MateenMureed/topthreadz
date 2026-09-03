@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Top Threadz Admin",
+    "slug": "topthreadz-admin",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#0F1F3D"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "pk.com.topthreadz.admin",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#0F1F3D",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
