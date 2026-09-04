@@ -1,90 +1,26 @@
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
-import { Platform } from 'react-native';
 
-// Safe Storage helper with hardware SecureStore + graceful in-memory & web fallbacks
-class StorageHelper {
-  private memory = new Map<string, string>();
-  private secureStoreChecked = false;
-  private secureStoreAvailable = false;
+// ---------------------------------------------------------------------------
+// Pure in-memory storage — works in Expo Go without any native modules.
+// Token persists for the lifetime of the JS process (session).
+// ---------------------------------------------------------------------------
+class MemoryStorage {
+  private store = new Map<string, string>();
 
-  private async isSecureAvailable(): Promise<boolean> {
-    if (this.secureStoreChecked) return this.secureStoreAvailable;
-    try {
-      if (Platform.OS === 'web') {
-        this.secureStoreAvailable = false;
-      } else {
-        this.secureStoreAvailable = await SecureStore.isAvailableAsync();
-      }
-    } catch {
-      this.secureStoreAvailable = false;
-    }
-    this.secureStoreChecked = true;
-    return this.secureStoreAvailable;
+  getItem(key: string): string | null {
+    return this.store.get(key) ?? null;
   }
 
-  async getItem(key: string): Promise<string | null> {
-    try {
-      if (Platform.OS === 'web') {
-        if (typeof localStorage !== 'undefined') {
-          return localStorage.getItem(key);
-        }
-        return this.memory.get(key) || null;
-      }
-      const available = await this.isSecureAvailable();
-      if (available) {
-        return await SecureStore.getItemAsync(key);
-      }
-      return this.memory.get(key) || null;
-    } catch {
-      return this.memory.get(key) || null;
-    }
+  setItem(key: string, value: string): void {
+    this.store.set(key, value);
   }
 
-  async setItem(key: string, value: string): Promise<void> {
-    try {
-      if (Platform.OS === 'web') {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem(key, value);
-        } else {
-          this.memory.set(key, value);
-        }
-        return;
-      }
-      const available = await this.isSecureAvailable();
-      if (available) {
-        await SecureStore.setItemAsync(key, value);
-      } else {
-        this.memory.set(key, value);
-      }
-    } catch {
-      this.memory.set(key, value);
-    }
-  }
-
-  async removeItem(key: string): Promise<void> {
-    try {
-      if (Platform.OS === 'web') {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem(key);
-        } else {
-          this.memory.delete(key);
-        }
-        return;
-      }
-      const available = await this.isSecureAvailable();
-      if (available) {
-        await SecureStore.deleteItemAsync(key);
-      } else {
-        this.memory.delete(key);
-      }
-    } catch {
-      this.memory.delete(key);
-    }
+  removeItem(key: string): void {
+    this.store.delete(key);
   }
 }
 
-export const safeStorage = new StorageHelper();
+export const safeStorage = new MemoryStorage();
 
 // Default API URL pointing to production backend
 export const DEFAULT_API_URL = 'https://topthreadz-d94j.vercel.app/api';
@@ -93,38 +29,35 @@ class ApiService {
   private baseUrl: string = DEFAULT_API_URL;
   private token: string | null = null;
 
+  /** Call once on app boot — reads from in-memory store (no-op on fresh start). */
   async init() {
-    try {
-      const savedUrl = await safeStorage.getItem('topthreadz_api_url');
-      if (savedUrl) this.baseUrl = savedUrl.trim().replace(/\/+$/, '');
-      const savedToken = await safeStorage.getItem('topthreadz_admin_token');
-      if (savedToken) this.token = savedToken;
-    } catch {
-      // Graceful fallback to default in-memory settings
-    }
+    const savedUrl = safeStorage.getItem('topthreadz_api_url');
+    if (savedUrl) this.baseUrl = savedUrl.trim().replace(/\/+$/, '');
+    const savedToken = safeStorage.getItem('topthreadz_admin_token');
+    if (savedToken) this.token = savedToken;
   }
 
   getBaseUrl(): string {
     return this.baseUrl;
   }
 
-  async setBaseUrl(newUrl: string) {
+  setBaseUrl(newUrl: string) {
     let clean = newUrl.trim().replace(/\/+$/, '');
     if (!clean.endsWith('/api')) clean += '/api';
     this.baseUrl = clean;
-    await safeStorage.setItem('topthreadz_api_url', clean);
+    safeStorage.setItem('topthreadz_api_url', clean);
   }
 
   getToken(): string | null {
     return this.token;
   }
 
-  async setToken(token: string | null) {
+  setToken(token: string | null) {
     this.token = token;
     if (token) {
-      await safeStorage.setItem('topthreadz_admin_token', token);
+      safeStorage.setItem('topthreadz_admin_token', token);
     } else {
-      await safeStorage.removeItem('topthreadz_admin_token');
+      safeStorage.removeItem('topthreadz_admin_token');
     }
   }
 
@@ -151,6 +84,22 @@ class ApiService {
   async post(endpoint: string, data?: any) {
     const client = this.getClient();
     const res = await client.post(endpoint, data);
+    return res.data;
+  }
+
+  async postFormData(endpoint: string, formData: FormData) {
+    const headers: Record<string, string> = {
+      'Content-Type': 'multipart/form-data',
+    };
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+    const client = axios.create({
+      baseURL: this.baseUrl,
+      headers,
+      timeout: 60000,
+    });
+    const res = await client.post(endpoint, formData);
     return res.data;
   }
 

@@ -1,5 +1,5 @@
 import prisma from '../../utils/prisma';
-import { NotFoundError } from '../../utils/errors';
+import { NotFoundError, ConflictError } from '../../utils/errors';
 import { CreateProductInput, UpdateProductInput } from './product.schema';
 import { Prisma } from '@prisma/client';
 import { deleteFromCloudinary } from '../../config/cloudinary';
@@ -240,6 +240,14 @@ export class ProductService {
   async delete(id: string) {
     const product = await prisma.product.findUnique({ where: { id } });
     if (!product) throw new NotFoundError('Product not found');
+
+    const orderItemCount = await prisma.orderItem.count({ where: { productId: id } });
+    if (orderItemCount > 0) {
+      throw new ConflictError(
+        `This product cannot be deleted because it is part of ${orderItemCount} order${orderItemCount > 1 ? 's' : ''}. Delete the related order${orderItemCount > 1 ? 's' : ''} first, then try again.`
+      );
+    }
+
     await prisma.product.delete({ where: { id } });
     await this.removeDeletedCloudinaryImages(product.imageMeta, []);
     return { message: 'Product deleted' };

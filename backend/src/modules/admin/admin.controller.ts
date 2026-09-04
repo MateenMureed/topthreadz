@@ -65,6 +65,13 @@ export class AdminController {
     } catch (error) { next(error); }
   }
 
+  async deleteOrder(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await adminService.deleteOrder(req.params.id as string, req.user!.userId);
+      res.json({ success: true, data: result });
+    } catch (error) { next(error); }
+  }
+
   async getPendingPayments(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const page = parseInt(req.query.page as string) || 1;

@@ -159,7 +159,7 @@ const emptyProductForm: ProductFormState = {
   name: '',
   description: '',
   subcategory: 'Traditional',
-  brand: '',
+  brand: 'Top Threadz',
   slug: '',
   price: '',
   sku: '',
@@ -178,7 +178,11 @@ const emptyProductForm: ProductFormState = {
   images: [],
 };
 
-const BRAND_OPTIONS = ['J.', 'Gul Ahmed', 'Alkaram Studio', 'Sapphire', 'Khaadi', 'Nishat Linen', 'Bonanza Satrangi', 'Sana Safinaz', 'Limelight', 'Ethnic'];
+const BRAND_OPTIONS = ['Top Threadz'];
+
+const CATEGORY_OPTIONS = ['Unstitched', 'Stitched', 'Two Piece', 'Three Piece'];
+
+const COLLECTION_OPTIONS = ['All Season', 'Summer Collection', 'Winter Collection'];
 
 const COLOR_PRESET_OPTIONS = [
   'Black',
@@ -197,9 +201,20 @@ const COLOR_PRESET_OPTIONS = [
   'Cream',
 ];
 
-const STITCHED_SIZE_OPTIONS = ['4.5m', '7m','Standard'];
-const TWO_PIECE_SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL', 'Standard'];
-const UNSTITCHED_SIZE_OPTIONS = ['4.5m', '7m','Standard'];
+const LETTER_SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL'];
+const KIDS_SIZE_OPTIONS = ['2-3Y', '3-4Y', '4-5Y', '5-6Y', '6-7Y', '7-8Y', '8-9Y', '9-10Y', '10-11Y', '11-12Y', '12-13Y', '13-14Y'];
+const STITCHED_SIZE_OPTIONS = LETTER_SIZE_OPTIONS;
+const TWO_PIECE_SIZE_OPTIONS = LETTER_SIZE_OPTIONS;
+const THREE_PIECE_SIZE_OPTIONS = LETTER_SIZE_OPTIONS;
+const UNSTITCHED_SIZE_OPTIONS = ['Standard'];
+
+function categorySizeOptions(category: string): string[] {
+  if (/unstitched/i.test(category)) return UNSTITCHED_SIZE_OPTIONS;
+  if (/two\s*piece|2\s*piece/i.test(category)) return TWO_PIECE_SIZE_OPTIONS;
+  if (/three\s*piece|3\s*piece/i.test(category)) return THREE_PIECE_SIZE_OPTIONS;
+  if (/kid|child|boy/i.test(category)) return KIDS_SIZE_OPTIONS;
+  return STITCHED_SIZE_OPTIONS;
+}
 
 interface ImageMeta {
   url: string;
@@ -887,6 +902,16 @@ function OrdersTab() {
     },
   });
 
+  const deleteOrder = useMutation({
+    mutationFn: (id: string) => api.delete(`/admin/orders/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+      setSelectedOrder(null);
+      toast.success('Order deleted');
+    },
+  });
+
   if (isLoading) return <div className="space-y-3">{Array(5).fill(0).map((_, i) => <div key={i} className="h-16 skeleton rounded-xl" />)}</div>;
 
   const orders = data?.data?.orders || [];
@@ -1013,9 +1038,20 @@ function OrdersTab() {
                   ))}
                 </select>
               </div>
-              <div className="text-right">
-                <button onClick={() => setSelectedOrder(order)} className="btn-secondary !rounded-lg !px-3 !py-2 text-xs">
+              <div className="flex items-center justify-end gap-2">
+                <button onClick={() => setSelectedOrder(order)} className="btn-secondary !rounded-full !px-3 !py-1.5 text-xs">
                   View
+                </button>
+                <button
+                  onClick={() => {
+                    if (window.confirm(`Permanently delete order ${order.orderNumber}? This action cannot be undone.`)) {
+                      deleteOrder.mutate(order.id);
+                    }
+                  }}
+                  className="rounded-full border border-red-200 bg-red-50 p-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors"
+                  title="Delete Order"
+                >
+                  <FiTrash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -1028,9 +1064,22 @@ function OrdersTab() {
           <div className="admin-sheet-panel sm:max-w-3xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display text-lg sm:text-xl font-bold">Order Details • {selectedOrder.orderNumber}</h3>
-              <button onClick={() => setSelectedOrder(null)} className="p-2 rounded-lg hover:bg-surface-100">
-                <FiX className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (window.confirm(`Are you sure you want to permanently delete order ${selectedOrder.orderNumber}?`)) {
+                      deleteOrder.mutate(selectedOrder.id);
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors"
+                >
+                  <FiTrash2 className="w-3.5 h-3.5" />
+                  <span>Delete Order</span>
+                </button>
+                <button onClick={() => setSelectedOrder(null)} className="p-2 rounded-full hover:bg-surface-100">
+                  <FiX className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-sm">
@@ -1108,9 +1157,43 @@ function ProductsTab() {
   const { data: categoryResponse } = useQuery({ queryKey: ['admin-categories'], queryFn: () => api.get('/categories').then(r => r.data) });
   const categories = Array.isArray(categoryResponse?.data) ? categoryResponse.data : [];
 
+  // Session-only options appended via "+ Add" pills (not persisted to DB)
+  const [extraCategoryOptions, setExtraCategoryOptions] = useState<string[]>([]);
+  const [extraCollectionOptions, setExtraCollectionOptions] = useState<string[]>([]);
+  const [extraBrandOptions, setExtraBrandOptions] = useState<string[]>([]);
+  const [newCategoryInput, setNewCategoryInput] = useState('');
+  const [newCollectionInput, setNewCollectionInput] = useState('');
+  const [newBrandInput, setNewBrandInput] = useState('');
+
   const colorList = splitCsv(form.colorsText);
-  const subcategoryOptions = ['Summer Collection', 'Winter Collection', 'Wedding', 'Formal', 'Semi-Formal', 'Casual', 'Office Wear', 'Festive Wear', 'Jummah Collection', 'Traditional'];
-  const collectionOptions = ['Summer Collection', 'Winter Collection', 'Eid Collection', 'Azaadi Sale', 'Wedding Collection', 'Festive Collection', 'Jummah Special', 'New Arrivals', 'Clearance Sale'];
+  const subcategoryOptions = ['Traditional', 'Formal', 'Casual', 'Party Wear', 'Wedding', 'Embroidered', 'Printed', 'Plain'];
+  const collectionOptions = Array.from(new Set([...COLLECTION_OPTIONS, ...extraCollectionOptions]));
+  const brandOptions = Array.from(new Set([...BRAND_OPTIONS, ...extraBrandOptions, ...(form.brand ? [form.brand] : [])]));
+  const categoryPillOptions = Array.from(new Set([...CATEGORY_OPTIONS, ...extraCategoryOptions, ...(form.category && !CATEGORY_OPTIONS.includes(form.category) ? [form.category] : [])]));
+
+  const addSessionCategory = () => {
+    const value = newCategoryInput.trim();
+    if (!value) return;
+    setExtraCategoryOptions((prev) => Array.from(new Set([...prev, value])));
+    setForm((prev) => ({ ...prev, category: value, sizesText: categorySizeOptions(value).join(', ') }));
+    setNewCategoryInput('');
+  };
+
+  const addSessionCollection = () => {
+    const value = newCollectionInput.trim();
+    if (!value) return;
+    setExtraCollectionOptions((prev) => Array.from(new Set([...prev, value])));
+    setForm((prev) => ({ ...prev, collection: value }));
+    setNewCollectionInput('');
+  };
+
+  const addSessionBrand = () => {
+    const value = newBrandInput.trim();
+    if (!value) return;
+    setExtraBrandOptions((prev) => Array.from(new Set([...prev, value])));
+    setForm((prev) => ({ ...prev, brand: value }));
+    setNewBrandInput('');
+  };
 
   const previewPrice = Number(form.price || 0);
   const previewDiscount = Number(form.discount || 0);
@@ -1341,8 +1424,8 @@ function ProductsTab() {
       category: product.category || 'Unstitched',
       name: product.name || '',
       description: product.description || '',
-      subcategory: subcategoryOptions.includes(product.subcategory) ? product.subcategory : fallbackSubcategory,
-      brand: product.brand || '',
+      subcategory: product.subcategory || fallbackSubcategory,
+      brand: product.brand || 'Top Threadz',
       slug: product.slug || '',
       price: String(product.price ?? ''),
       sku: product.sku || '',
@@ -1408,13 +1491,8 @@ function ProductsTab() {
     setForm((prev) => ({ ...prev, sizesText: nextSizes.join(', ') }));
   };
 
-  const isTwoPieceCategory = /two\s*piece|2\s*piece/i.test(form.category);
   const isUnstitchedCategory = /unstitched/i.test(form.category);
-  const activeCategorySizes = isTwoPieceCategory
-    ? TWO_PIECE_SIZE_OPTIONS
-    : isUnstitchedCategory
-      ? UNSTITCHED_SIZE_OPTIONS
-      : STITCHED_SIZE_OPTIONS;
+  const activeCategorySizes = categorySizeOptions(form.category);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1435,11 +1513,7 @@ function ProductsTab() {
     if (form.featured) generatedTags.push('featured');
     if (form.trending) generatedTags.push('trending');
 
-    const defaultSizesForCat = isTwoPieceCategory
-      ? TWO_PIECE_SIZE_OPTIONS
-      : isUnstitchedCategory
-        ? UNSTITCHED_SIZE_OPTIONS
-        : STITCHED_SIZE_OPTIONS;
+    const defaultSizesForCat = categorySizeOptions(form.category);
 
     const payload = {
       name: form.name.trim(),
@@ -1447,7 +1521,7 @@ function ProductsTab() {
       description: form.description.trim(),
       category: form.category || 'Unstitched',
       subcategory: form.subcategory.trim() || undefined,
-      brand: 'Top Threadz',
+      brand: form.brand.trim() || 'Top Threadz',
       price: regularPrice,
       discount: discountPercent,
       stock: Number(form.stock || 0),
@@ -1664,48 +1738,126 @@ function ProductsTab() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="admin-label">Category *</label>
-                    <select
-                      className="admin-input"
-                      value={form.category}
-                      onChange={(e) => {
-                        const cat = e.target.value;
-                        const isTwoPiece = /two\s*piece|2\s*piece/i.test(cat);
-                        const isUnstitched = /unstitched/i.test(cat);
-                        const defaultSizes = isTwoPiece
-                          ? TWO_PIECE_SIZE_OPTIONS.join(', ')
-                          : isUnstitched
-                            ? UNSTITCHED_SIZE_OPTIONS.join(', ')
-                            : STITCHED_SIZE_OPTIONS.join(', ');
-                        setForm((prev) => ({ ...prev, category: cat, sizesText: prev.sizesText || defaultSizes }));
-                      }}
-                    >
-                      <option value="Unstitched">Unstitched</option>
-                      <option value="Stitched">Stitched</option>
-                      <option value="Two Piece">Two Piece</option>
-                      <option value="Kurta">Kurta</option>
-                      <option value="Boski">Boski</option>
-                      <option value="Kids">Kids</option>
-                      {categories.map((c: any) => (
-                        !['Unstitched', 'Stitched', 'Two Piece', 'Kurta', 'Boski', 'Kids'].includes(c.name) ? (
-                          <option key={c.id} value={c.name}>{c.name}</option>
-                        ) : null
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {categoryPillOptions.map((cat) => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => {
+                            setForm((prev) => ({ ...prev, category: cat, sizesText: categorySizeOptions(cat).join(', ') }));
+                          }}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${form.category === cat
+                            ? 'bg-[#0F1F3D] text-white shadow-xs'
+                            : 'bg-[#F3F4F6] text-[#374151] border border-[#D1D5DB] hover:bg-[#E5E7EB]'
+                          }`}
+                        >
+                          {cat}
+                        </button>
                       ))}
-                    </select>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        className="admin-input flex-1"
+                        placeholder="Add a new category (session-only)"
+                        value={newCategoryInput}
+                        onChange={(e) => setNewCategoryInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addSessionCategory();
+                          }
+                        }}
+                      />
+                      <button type="button" onClick={addSessionCategory} className="admin-btn-primary shrink-0">
+                        + Add
+                      </button>
+                    </div>
                     {formErrors.category && <p className="text-xs text-[#B91C2B] mt-1">{formErrors.category}</p>}
                   </div>
 
                   <div>
                     <label className="admin-label">Collection / Season</label>
-                    <select
-                      className="admin-input"
-                      value={form.collection}
-                      onChange={(e) => setForm((prev) => ({ ...prev, collection: e.target.value }))}
-                    >
-                      <option value="">No Collection</option>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => setForm((prev) => ({ ...prev, collection: '' }))}
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${form.collection === ''
+                          ? 'bg-[#0F1F3D] text-white shadow-xs'
+                          : 'bg-[#F3F4F6] text-[#374151] border border-[#D1D5DB] hover:bg-[#E5E7EB]'
+                        }`}
+                      >
+                        No Collection
+                      </button>
                       {collectionOptions.map((c) => (
-                        <option key={c} value={c}>{c}</option>
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setForm((prev) => ({ ...prev, collection: c }))}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${form.collection === c
+                            ? 'bg-[#0F1F3D] text-white shadow-xs'
+                            : 'bg-[#F3F4F6] text-[#374151] border border-[#D1D5DB] hover:bg-[#E5E7EB]'
+                          }`}
+                        >
+                          {c}
+                        </button>
                       ))}
-                    </select>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        className="admin-input flex-1"
+                        placeholder="Add a new collection (session-only)"
+                        value={newCollectionInput}
+                        onChange={(e) => setNewCollectionInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addSessionCollection();
+                          }
+                        }}
+                      />
+                      <button type="button" onClick={addSessionCollection} className="admin-btn-primary shrink-0">
+                        + Add
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="admin-label">Brand</label>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {brandOptions.map((b) => (
+                        <button
+                          key={b}
+                          type="button"
+                          onClick={() => setForm((prev) => ({ ...prev, brand: b }))}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${form.brand === b
+                            ? 'bg-[#0F1F3D] text-white shadow-xs'
+                            : 'bg-[#F3F4F6] text-[#374151] border border-[#D1D5DB] hover:bg-[#E5E7EB]'
+                          }`}
+                        >
+                          {b}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        className="admin-input flex-1"
+                        placeholder="Add a new brand (session-only)"
+                        value={newBrandInput}
+                        onChange={(e) => setNewBrandInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addSessionBrand();
+                          }
+                        }}
+                      />
+                      <button type="button" onClick={addSessionBrand} className="admin-btn-primary shrink-0">
+                        + Add
+                      </button>
+                    </div>
                   </div>
 
                   <div>
@@ -1823,7 +1975,7 @@ function ProductsTab() {
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-1.5">
                     <label className="admin-label !mb-0">
-                      Available Sizes ({isTwoPieceCategory ? 'Two Piece Sizes' : isUnstitchedCategory ? 'Fabric Lengths' : 'Garment Sizes'})
+                      Available Sizes ({isUnstitchedCategory ? 'Fabric Lengths' : /kid|child|boy/i.test(form.category) ? 'Kids Age Sizes' : 'Garment Sizes'})
                     </label>
                     <span className="text-xs text-[#6B7280]">Click chip to toggle</span>
                   </div>
@@ -1851,7 +2003,7 @@ function ProductsTab() {
                     className="admin-input"
                     value={form.sizesText}
                     onChange={(e) => setForm((prev) => ({ ...prev, sizesText: e.target.value }))}
-                    placeholder="e.g. S, M, L, XL or 4.5 Meters, 7 Meters"
+                    placeholder="e.g. S, M, L, XL, Standard, 2-3Y"
                   />
                 </div>
 

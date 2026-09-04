@@ -25,6 +25,7 @@ router.post('/users/:id/unlock', adminController.unlockUser.bind(adminController
 // Orders
 router.get('/orders', adminController.getOrders.bind(adminController));
 router.patch('/orders/:id/status', adminController.updateOrderStatus.bind(adminController));
+router.delete('/orders/:id', adminController.deleteOrder.bind(adminController));
 
 // Payments
 router.get('/payments/pending', adminController.getPendingPayments.bind(adminController));

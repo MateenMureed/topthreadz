@@ -25,13 +25,20 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
   }
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    logger.error(`Prisma known error ${err.code} on ${req.method} ${req.originalUrl}`);
     if (err.code === 'P2002') {
       res.status(409).json({ success: false, error: 'Duplicate value conflict' });
       return;
     }
     if (err.code === 'P2025') {
       res.status(404).json({ success: false, error: 'Requested record not found' });
+      return;
+    }
+    if (err.code === 'P2003') {
+      logger.warn(`Foreign key constraint blocked delete on ${req.method} ${req.originalUrl}`);
+      res.status(409).json({
+        success: false,
+        error: 'This record is linked to other data (e.g. orders) and cannot be deleted. Remove the linked records first, then try again.',
+      });
       return;
     }
   }

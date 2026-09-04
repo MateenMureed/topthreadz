@@ -69,6 +69,29 @@ export class AdminService {
     return order;
   }
 
+  async deleteOrder(orderId: string, adminId: string) {
+    const existing = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!existing) {
+      throw new NotFoundError('Order not found');
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.orderDeliverySlot.deleteMany({ where: { orderId } }).catch(() => {});
+      await tx.orderTimeline.deleteMany({ where: { orderId } }).catch(() => {});
+      await tx.refund.deleteMany({ where: { orderId } }).catch(() => {});
+      await tx.returnRequest.deleteMany({ where: { orderId } }).catch(() => {});
+      await tx.referralEvent.deleteMany({ where: { orderId } }).catch(() => {});
+      await tx.couponRedemption.deleteMany({ where: { orderId } }).catch(() => {});
+      await tx.loyaltyPointLedger.deleteMany({ where: { orderId } }).catch(() => {});
+      await tx.payment.deleteMany({ where: { orderId } }).catch(() => {});
+      await tx.orderItem.deleteMany({ where: { orderId } }).catch(() => {});
+      await tx.order.delete({ where: { id: orderId } });
+    });
+
+    await this.createAuditLog(adminId, 'DELETE_ORDER', 'Order', orderId, { orderNumber: existing.orderNumber }, null);
+    return { success: true, deletedOrderNumber: existing.orderNumber };
+  }
+
   // ============ PAYMENTS ============
   async verifyPayment(paymentId: string, adminId: string, approved: boolean) {
     const result = await paymentService.adminVerifyPayment(paymentId, adminId, approved);
