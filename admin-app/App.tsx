@@ -90,11 +90,13 @@ const LIGHT_PALETTE: ThemePalette = {
 const DARK_PALETTE: ThemePalette = {
   mode: 'dark',
   isDark: true,
-  background: '#070E1A',
-  container: '#0A1120',
-  surface: '#131C30',
-  field: '#0D1526',
-  chip: '#1B2941',
+  // Samsung One UI layered strategy: darkest page canvas, primary navy cards,
+  // distinctly lighter sub-cards, and darkest inset wells inside sub-cards.
+  background: '#070E1A', // page canvas
+  surface: '#0E1730', // main cards (primary dark navy)
+  container: '#121A30', // inset wells: inputs, unselected chips inside sub-cards
+  field: '#1A2540', // sub-cards (distinctly lighter than main cards)
+  chip: '#243352', // loose chips, badges, meta pills (lightest interactive tier)
   border: '#2A3A55',
   borderStrong: '#3B4D6B',
   hairline: 'rgba(255, 255, 255, 0.08)',
@@ -802,7 +804,7 @@ function HeroBannerModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
-      <SafeAreaView style={styles.bannerModalContainer}>
+      <SafeAreaView style={[styles.bannerModalContainer, themed.bannerModalContainer]}>
         <StatusBar barStyle="light-content" backgroundColor="#0F1F3D" />
 
         {/* Top Header */}
@@ -865,7 +867,7 @@ function HeroBannerModal({
                   <Text style={styles.bannerHeadingText} numberOfLines={2}>
                     {bannerText.heading || 'Shop Our Newest Collection'}
                   </Text>
-                  <View style={styles.bannerCtaPill}>
+                  <View style={[styles.bannerCtaPill, themed.bannerCtaPill]}>
                     <Text style={styles.bannerCtaText}>{bannerText.buttonText || 'Shop Now'} →</Text>
                   </View>
                 </View>
@@ -885,30 +887,30 @@ function HeroBannerModal({
 
               <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
                 <TouchableOpacity
-                  style={styles.bigPhotoUploadTile}
+                  style={[styles.bigPhotoUploadTile, themed.bigPhotoUploadTile]}
                   onPress={pickBannerImage}
                   disabled={uploading}
                   activeOpacity={0.8}
                 >
                   <Text style={{ fontSize: 32, marginBottom: 6 }}>🖼️</Text>
-                  <Text style={styles.bigPhotoTileTitle}>Choose Gallery</Text>
+                  <Text style={[styles.bigPhotoTileTitle, themed.bigPhotoTileTitle]}>Choose Gallery</Text>
                   <Text style={styles.bigPhotoTileSub}>Select 16:9 photo</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.bigPhotoUploadTile}
+                  style={[styles.bigPhotoUploadTile, themed.bigPhotoUploadTile]}
                   onPress={takeBannerPhoto}
                   disabled={uploading}
                   activeOpacity={0.8}
                 >
                   <Text style={{ fontSize: 32, marginBottom: 6 }}>📸</Text>
-                  <Text style={styles.bigPhotoTileTitle}>Camera Snap</Text>
+                  <Text style={[styles.bigPhotoTileTitle, themed.bigPhotoTileTitle]}>Camera Snap</Text>
                   <Text style={styles.bigPhotoTileSub}>Instant banner photo</Text>
                 </TouchableOpacity>
               </View>
 
               {uploading && (
-                <View style={styles.uploadingNoticeBox}>
+                <View style={[styles.uploadingNoticeBox, themed.uploadingNoticeBox]}>
                   <ActivityIndicator size="small" color="#0F1F3D" />
                   <Text style={styles.uploadingNoticeText}>Optimizing & uploading banner to Cloudinary...</Text>
                 </View>
@@ -1113,7 +1115,7 @@ function DashboardView({ onNavigate }: { onNavigate: (t: Tab) => void }) {
           <Text style={[styles.miniCardLabel, themed.miniCardLabel]}>Orders</Text>
         </View>
         <View style={[styles.miniCardRounded, themed.miniCardRounded]}>
-          <Text style={[styles.miniCardValue, { color: '#B91C2B' }]}>{s.pendingOrders || 0}</Text>
+          <Text style={[[styles.miniCardValue, { color: '#B91C2B' }], themed.miniCardValue]}>{s.pendingOrders || 0}</Text>
           <Text style={[styles.miniCardLabel, themed.miniCardLabel]}>Pending</Text>
         </View>
         <View style={[styles.miniCardRounded, themed.miniCardRounded]}>
@@ -1192,9 +1194,9 @@ function DashboardView({ onNavigate }: { onNavigate: (t: Tab) => void }) {
             </View>
           </View>
         ) : (
-          <View style={styles.heroBannerEmptyBox}>
+          <View style={[styles.heroBannerEmptyBox, themed.heroBannerEmptyBox]}>
             <Text style={{ fontSize: 32 }}>🖼️</Text>
-            <Text style={styles.heroBannerEmptyTitle}>No Hero Banner Configured</Text>
+            <Text style={[styles.heroBannerEmptyTitle, themed.heroBannerEmptyTitle]}>No Hero Banner Configured</Text>
             <Text style={styles.heroBannerEmptySub}>
               Attract storefront visitors with high-resolution fabric photography & seasonal announcements.
             </Text>
@@ -1210,7 +1212,7 @@ function DashboardView({ onNavigate }: { onNavigate: (t: Tab) => void }) {
       </View>
 
       {/* Quick Management Shortcuts with Large Rounded Corners */}
-      <Text style={[styles.sectionTitle, { marginTop: 10, marginBottom: 12 }]}>Quick Management</Text>
+      <Text style={[[styles.sectionTitle, { marginTop: 10, marginBottom: 12 }], themed.sectionTitle]}>Quick Management</Text>
       <View style={styles.quickActionsGrid}>
         <TouchableOpacity style={[styles.quickActionBtnRounded, themed.quickActionBtnRounded]} onPress={() => onNavigate('orders')} activeOpacity={0.8}>
           <Text style={styles.quickActionIcon}>📦</Text>
@@ -1325,15 +1327,15 @@ function OrdersView() {
   return (
     <View style={styles.flex1}>
       {/* Status Filter Badges */}
-      <View style={styles.filterScrollWrapper}>
+      <View style={[styles.filterScrollWrapper, themed.filterScrollWrapper]}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterBar}>
           {['ALL', 'PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map((st) => (
             <TouchableOpacity
               key={st}
-              style={[styles.filterChip, statusFilter === st && styles.filterChipActive]}
+              style={[[styles.filterChip, statusFilter === st && [styles.filterChipActive, themed.filterChipActive]], themed.filterChip]}
               onPress={() => setStatusFilter(st)}
             >
-              <Text style={[styles.filterChipText, statusFilter === st && styles.filterChipTextActive]}>
+              <Text style={[[styles.filterChipText, statusFilter === st && [styles.filterChipTextActive, themed.filterChipTextActive]], themed.filterChipText]}>
                 {st}
               </Text>
             </TouchableOpacity>
@@ -1353,10 +1355,10 @@ function OrdersView() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadOrders(); }} />}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
-            <View style={styles.emptyView}>
+            <View style={[styles.emptyView, themed.emptyView]}>
               <Text style={styles.emptyIcon}>📦</Text>
-              <Text style={styles.emptyTitle}>No orders found</Text>
-              <Text style={styles.emptySubtitle}>There are no orders matching this filter.</Text>
+              <Text style={[styles.emptyTitle, themed.emptyTitle]}>No orders found</Text>
+              <Text style={[styles.emptySubtitle, themed.emptySubtitle]}>There are no orders matching this filter.</Text>
             </View>
           }
           renderItem={({ item }) => (
@@ -1368,7 +1370,7 @@ function OrdersView() {
               <View style={styles.orderCardHeader}>
                 <Text style={[styles.orderNumber, themed.orderNumber]}>{item.orderNumber}</Text>
                 <View style={[styles.statusBadge, getStatusStyle(item.status)]}>
-                  <Text style={styles.statusBadgeText}>{item.status}</Text>
+                  <Text style={[styles.statusBadgeText, themed.statusBadgeText]}>{item.status}</Text>
                 </View>
               </View>
 
@@ -1383,7 +1385,7 @@ function OrdersView() {
                 <Text style={[styles.orderTotal, themed.orderTotal]}>{formatPkr(item.total)}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <TouchableOpacity
-                    style={styles.orderDeleteMiniPill}
+                    style={[styles.orderDeleteMiniPill, themed.orderDeleteMiniPill]}
                     onPress={() => deleteOrder(item.id, item.orderNumber)}
                     activeOpacity={0.8}
                   >
@@ -1410,13 +1412,13 @@ function OrdersView() {
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <TouchableOpacity
-                  style={styles.orderDeleteMiniPill}
+                  style={[styles.orderDeleteMiniPill, themed.orderDeleteMiniPill]}
                   onPress={() => deleteOrder(selectedOrder.id, selectedOrder.orderNumber)}
                   activeOpacity={0.8}
                 >
                   <Text style={styles.orderDeleteMiniPillText}>🗑️ Delete</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setSelectedOrder(null)} style={styles.modalCloseCircle}>
+                <TouchableOpacity onPress={() => setSelectedOrder(null)} style={[styles.modalCloseCircle, themed.modalCloseCircle]}>
                   <Text style={styles.modalCloseText}>✕</Text>
                 </TouchableOpacity>
               </View>
@@ -1425,21 +1427,21 @@ function OrdersView() {
             <ScrollView style={styles.modalScroll}>
               <View style={[styles.modalSection, themed.modalSection]}>
                 <Text style={[styles.modalSectionTitle, themed.modalSectionTitle]}>Total & Payment</Text>
-                <Text style={styles.modalValueHigh}>{formatPkr(selectedOrder?.total)}</Text>
-                <Text style={styles.modalText}>
+                <Text style={[styles.modalValueHigh, themed.modalValueHigh]}>{formatPkr(selectedOrder?.total)}</Text>
+                <Text style={[styles.modalText, themed.modalText]}>
                   Method: {selectedOrder?.payment?.method || 'Cash on Delivery / Safepay'}
                 </Text>
-                <Text style={styles.modalText}>
+                <Text style={[styles.modalText, themed.modalText]}>
                   Payment Status: {selectedOrder?.payment?.status || 'UNPAID'}
                 </Text>
               </View>
 
               <View style={[styles.modalSection, themed.modalSection]}>
                 <Text style={[styles.modalSectionTitle, themed.modalSectionTitle]}>Delivery Address</Text>
-                <Text style={styles.modalText}>Recipient: {selectedOrder?.address?.fullName || selectedOrder?.user?.name}</Text>
-                <Text style={styles.modalText}>Phone: {selectedOrder?.address?.phone || selectedOrder?.user?.phone || 'N/A'}</Text>
-                <Text style={styles.modalText}>Address: {selectedOrder?.address?.address || 'N/A'}</Text>
-                <Text style={styles.modalText}>City: {selectedOrder?.address?.city || ''} ({selectedOrder?.address?.province || ''})</Text>
+                <Text style={[styles.modalText, themed.modalText]}>Recipient: {selectedOrder?.address?.fullName || selectedOrder?.user?.name}</Text>
+                <Text style={[styles.modalText, themed.modalText]}>Phone: {selectedOrder?.address?.phone || selectedOrder?.user?.phone || 'N/A'}</Text>
+                <Text style={[styles.modalText, themed.modalText]}>Address: {selectedOrder?.address?.address || 'N/A'}</Text>
+                <Text style={[styles.modalText, themed.modalText]}>City: {selectedOrder?.address?.city || ''} ({selectedOrder?.address?.province || ''})</Text>
               </View>
 
               <View style={[styles.modalSection, themed.modalSection]}>
@@ -1456,12 +1458,12 @@ function OrdersView() {
                         </View>
                       )}
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.itemName} numberOfLines={1}>{it.product?.name || 'Fabric Item'}</Text>
-                        <Text style={styles.itemSub}>
+                        <Text style={[styles.itemName, themed.itemName]} numberOfLines={1}>{it.product?.name || 'Fabric Item'}</Text>
+                        <Text style={[styles.itemSub, themed.itemSub]}>
                           Qty: {it.quantity} {it.size ? `• Size: ${it.size}` : ''} {it.color ? `• Color: ${it.color}` : ''}
                         </Text>
                       </View>
-                      <Text style={styles.itemPrice}>{formatPkr(it.price * it.quantity)}</Text>
+                      <Text style={[styles.itemPrice, themed.itemPrice]}>{formatPkr(it.price * it.quantity)}</Text>
                     </View>
                   );
                 })}
@@ -1473,17 +1475,17 @@ function OrdersView() {
                   {['PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map((st) => (
                     <TouchableOpacity
                       key={st}
-                      style={[
+                      style={[[
                         styles.statusBtn,
-                        selectedOrder?.status === st && styles.statusBtnCurrent,
-                      ]}
+                        selectedOrder?.status === st && [styles.statusBtnCurrent, themed.statusBtnCurrent],
+                      ], themed.statusBtn]}
                       onPress={() => updateOrderStatus(selectedOrder.id, st)}
                     >
                       <Text
-                        style={[
+                        style={[[
                           styles.statusBtnText,
-                          selectedOrder?.status === st && styles.statusBtnTextCurrent,
-                        ]}
+                          selectedOrder?.status === st && [styles.statusBtnTextCurrent, themed.statusBtnTextCurrent],
+                        ], themed.statusBtnText]}
                       >
                         {st}
                       </Text>
@@ -1597,6 +1599,98 @@ function ProductsView() {
   const taxonomyQuery = taxonomySearch.trim().toLowerCase();
   const matchTaxonomy = (label: string) => !taxonomyQuery || label.toLowerCase().includes(taxonomyQuery);
 
+  // ── AI SEO Engine state (mirrors web admin contract) ──────────────────
+  const [seoGenerating, setSeoGenerating] = useState<string | null>(null);
+  const [seoTitle, setSeoTitle] = useState('');
+  const [metaDescription, setMetaDescription] = useState('');
+  const [metaKeywordsText, setMetaKeywordsText] = useState('');
+  const [shortDescription, setShortDescription] = useState('');
+  const [highlightsText, setHighlightsText] = useState('');
+  const [aiGenerated, setAiGenerated] = useState(false);
+  const [seoScore, setSeoScore] = useState<number | null>(null);
+  const [seoSuggestions, setSeoSuggestions] = useState<string[]>([]);
+  const [seoSlug, setSeoSlug] = useState('');
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+
+  const buildSeoRequest = () => ({
+    ...(editingProduct ? { id: editingProduct.id } : {}),
+    name: name.trim() || 'Untitled Product',
+    category: category || undefined,
+    subcategory: subcategory || undefined,
+    collection: collection || undefined,
+    brand: brand || undefined,
+    colors: colorsText.split(',').map((c) => c.trim()).filter(Boolean).length
+      ? colorsText.split(',').map((c) => c.trim()).filter(Boolean)
+      : undefined,
+    price: Number(price) > 0 ? Number(price) : undefined,
+    discount: Number(discount || 0) > 0 ? Number(discount) : undefined,
+    description: description.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').trim() || undefined,
+    shortDescription: shortDescription || undefined,
+    tags: tagsText.split(',').map((t) => t.trim()).filter(Boolean).length
+      ? tagsText.split(',').map((t) => t.trim()).filter(Boolean)
+      : undefined,
+    sizes: sizesText.split(',').map((s) => s.trim()).filter(Boolean).length
+      ? sizesText.split(',').map((s) => s.trim()).filter(Boolean)
+      : undefined,
+    careInstructions: careInstructions || undefined,
+    slug: seoSlug || undefined,
+  });
+
+  const applySeoResult = (data: any, sections: string[]) => {
+    const wants = (s: string) => sections.includes(s);
+    if (wants('description')) {
+      if (data.description) setDescription(data.description);
+      if (data.shortDescription) setShortDescription(data.shortDescription);
+      if (Array.isArray(data.highlights)) setHighlightsText(data.highlights.join(', '));
+    }
+    if (wants('seo')) {
+      if (data.slug) { setSeoSlug(data.slug); setSlugManuallyEdited(true); }
+    }
+    if (wants('meta')) {
+      if (data.seoTitle) setSeoTitle(data.seoTitle);
+      if (data.metaDescription) setMetaDescription(data.metaDescription);
+    }
+    if (wants('keywords')) {
+      if (Array.isArray(data.keywords)) {
+        setMetaKeywordsText(data.keywords.join(', '));
+        if (Array.isArray(data.tags) && data.tags.length) {
+          const current = tagsText.split(',').map((t) => t.trim()).filter(Boolean);
+          setTagsText(Array.from(new Set([...current, ...data.tags])).join(', '));
+        }
+      }
+    }
+    if (data.score) {
+      setSeoScore(data.score.score);
+      setSeoSuggestions(data.score.suggestions || []);
+    }
+    setAiGenerated(true);
+  };
+
+  const runSeoGeneration = async (sections: string[], label: string) => {
+    if (!name.trim()) {
+      Alert.alert('Product Title Needed', 'Enter a product title before generating SEO content.');
+      return;
+    }
+    setSeoGenerating(label);
+    try {
+      const res = await api.post('/products/generate-seo', { ...buildSeoRequest(), sections });
+      applySeoResult(res?.data, sections);
+      Alert.alert('AI Generated', `${label} ready — review before saving.`);
+    } catch (e: any) {
+      const status = Number(e?.response?.status);
+      const msg = e?.response?.data?.error || e?.response?.data?.message || e?.message || 'AI generation failed.';
+      if (status === 429) {
+        Alert.alert('Rate Limited', 'Too many AI requests — wait a moment and try again.');
+      } else if (status === 503 || status === 502 || status === 504) {
+        Alert.alert('AI Unavailable', msg + '\n\nYour product data is safe — nothing was changed.');
+      } else {
+        Alert.alert('Generation Failed', msg);
+      }
+    } finally {
+      setSeoGenerating(null);
+    }
+  };
+
   const categoryPills = Array.from(new Set([
     ...CATEGORY_OPTIONS,
     ...extraCategories,
@@ -1679,6 +1773,17 @@ function ProductsView() {
     setImages([]);
     setDirectUrl('');
     setCustomColor('');
+    // AI SEO state
+    setSeoTitle('');
+    setMetaDescription('');
+    setMetaKeywordsText('');
+    setShortDescription('');
+    setHighlightsText('');
+    setAiGenerated(false);
+    setSeoScore(null);
+    setSeoSuggestions([]);
+    setSeoSlug('');
+    setSlugManuallyEdited(false);
   };
 
   const openEditModal = (p: any) => {
@@ -1704,6 +1809,17 @@ function ProductsView() {
     setTrending(Boolean(p.trending));
     setProductStatus(p.productStatus || 'PUBLISHED');
     setImages(Array.isArray(p.images) ? p.images : []);
+    // AI SEO fields
+    setSeoTitle(p.metaTitle || '');
+    setMetaDescription(p.metaDescription || '');
+    setMetaKeywordsText(Array.isArray(p.metaKeywords) ? p.metaKeywords.join(', ') : '');
+    setShortDescription(p.shortDescription || '');
+    setHighlightsText(Array.isArray(p.highlights) ? p.highlights.join(', ') : '');
+    setAiGenerated(Boolean(p.aiGenerated));
+    setSeoScore(null);
+    setSeoSuggestions([]);
+    setSeoSlug(p.slug || '');
+    setSlugManuallyEdited(true);
     setShowFormModal(true);
   };
 
@@ -1826,6 +1942,7 @@ function ProductsView() {
 
       const payload = {
         name: name.trim(),
+        ...(seoSlug.trim() ? { slug: seoSlug.trim() } : {}),
         price: regPrice,
         discount: disc,
         stock: Number(stock || 0),
@@ -1847,6 +1964,13 @@ function ProductsView() {
         productStatus,
         gender: 'MALE',
         visibility: 'PUBLIC',
+        // AI SEO fields (optional pass-through)
+        ...(seoTitle.trim() ? { metaTitle: seoTitle.trim() } : {}),
+        ...(metaDescription.trim() ? { metaDescription: metaDescription.trim() } : {}),
+        ...(metaKeywordsText.trim() ? { metaKeywords: metaKeywordsText.split(',').map((k) => k.trim()).filter(Boolean) } : {}),
+        ...(shortDescription.trim() ? { shortDescription: shortDescription.trim() } : {}),
+        ...(highlightsText.trim() ? { highlights: highlightsText.split(',').map((h) => h.trim()).filter(Boolean) } : {}),
+        ...(aiGenerated ? { aiGenerated: true, aiGeneratedAt: new Date().toISOString() } : {}),
       };
 
       if (editingProduct) {
@@ -1972,18 +2096,18 @@ function ProductsView() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.oneUiFilterScrollWrapper}>
+      <View style={[styles.oneUiFilterScrollWrapper, themed.oneUiFilterScrollWrapper]}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.oneUiFilterBar}>
           {['ALL', ...CATEGORY_OPTIONS].map((cat) => {
             const isActive = categoryFilter.toLowerCase() === cat.toLowerCase();
             return (
               <TouchableOpacity
                 key={cat}
-                style={[styles.oneUiFilterPill, isActive && styles.oneUiFilterPillActive]}
+                style={[[styles.oneUiFilterPill, isActive && [styles.oneUiFilterPillActive, themed.oneUiFilterPillActive]], themed.oneUiFilterPill]}
                 onPress={() => setCategoryFilter(cat)}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.oneUiFilterPillText, isActive && styles.oneUiFilterPillTextActive]}>
+                <Text style={[[styles.oneUiFilterPillText, isActive && [styles.oneUiFilterPillTextActive, themed.oneUiFilterPillTextActive]], themed.oneUiFilterPillText]}>
                   {cat}
                 </Text>
               </TouchableOpacity>
@@ -2006,10 +2130,10 @@ function ProductsView() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadProducts(); }} />}
           contentContainerStyle={[styles.listContent, { paddingBottom: 110, paddingHorizontal: 0 }]}
           ListEmptyComponent={
-            <View style={styles.emptyView}>
+            <View style={[styles.emptyView, themed.emptyView]}>
               <Text style={styles.emptyIcon}>👕</Text>
-              <Text style={styles.emptyTitle}>No products found</Text>
-              <Text style={styles.emptySubtitle}>Tap "+ Add" to create your first fabric listing.</Text>
+              <Text style={[styles.emptyTitle, themed.emptyTitle]}>No products found</Text>
+              <Text style={[styles.emptySubtitle, themed.emptySubtitle]}>Tap "+ Add" to create your first fabric listing.</Text>
             </View>
           }
           renderItem={({ item }) => {
@@ -2033,7 +2157,7 @@ function ProductsView() {
                   {firstImg ? (
                     <Image source={{ uri: firstImg }} style={styles.galleryGridContainImg} resizeMode="contain" />
                   ) : (
-                    <View style={styles.productNoImageHero}>
+                    <View style={[styles.productNoImageHero, themed.productNoImageHero]}>
                       <Text style={{ fontSize: 28, color: '#9CA3AF' }}>👕</Text>
                       <Text style={{ fontSize: 10, color: '#9CA3AF', fontWeight: '700', marginTop: 2 }}>No Photo</Text>
                     </View>
@@ -2071,14 +2195,14 @@ function ProductsView() {
                   <View style={styles.galleryPriceRow}>
                     <Text style={[styles.galleryPriceBold, themed.galleryPriceBold]}>{formatPkr(effectivePrice)}</Text>
                     {Number(item.discount) > 0 && (
-                      <Text style={styles.galleryOrigPrice}>{formatPkr(item.price)}</Text>
+                      <Text style={[styles.galleryOrigPrice, themed.galleryOrigPrice]}>{formatPkr(item.price)}</Text>
                     )}
                   </View>
 
-                  <View style={[
+                  <View style={[[
                     styles.galleryStockBadge,
                     { backgroundColor: !inStock ? '#FEE2E2' : isLowStock ? '#FEF3C7' : '#DEF7EC' }
-                  ]}>
+                  ], themed.galleryStockBadge]}>
                     <Text style={[
                       styles.galleryStockBadgeText,
                       { color: !inStock ? '#991B1B' : isLowStock ? '#92400E' : '#03543F' }
@@ -2094,7 +2218,7 @@ function ProductsView() {
       )}
 
       <Modal visible={!!selectedProductDetail} animationType="slide" transparent={false} onRequestClose={() => setSelectedProductDetail(null)}>
-        <SafeAreaView style={styles.productDetailModalContainer}>
+        <SafeAreaView style={[styles.productDetailModalContainer, themed.productDetailModalContainer]}>
           <StatusBar barStyle="light-content" backgroundColor="#0F1F3D" />
 
           <View style={styles.productDetailHeaderBar}>
@@ -2127,7 +2251,7 @@ function ProductsView() {
             contentContainerStyle={{ paddingBottom: 130 }}
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.detailPhotoHeroWrapper}>
+            <View style={[styles.detailPhotoHeroWrapper, themed.detailPhotoHeroWrapper]}>
               {selectedProductDetail?.images && selectedProductDetail.images.length > 0 ? (
                 <Image
                   source={{ uri: resolveImageUrl(selectedProductDetail.images[detailActivePhotoIdx] || selectedProductDetail.images[0]) }}
@@ -2135,7 +2259,7 @@ function ProductsView() {
                   resizeMode="contain"
                 />
               ) : (
-                <View style={styles.detailHeroNoImage}>
+                <View style={[styles.detailHeroNoImage, themed.detailHeroNoImage]}>
                   <Text style={{ fontSize: 54 }}>👕</Text>
                   <Text style={{ color: '#9CA3AF', fontSize: 13, marginTop: 6, fontWeight: '700' }}>No Photo Available</Text>
                 </View>
@@ -2162,7 +2286,7 @@ function ProductsView() {
                 {selectedProductDetail.images.map((img: string, idx: number) => (
                   <TouchableOpacity
                     key={idx}
-                    style={[styles.detailThumbWrap, detailActivePhotoIdx === idx && styles.detailThumbWrapActive]}
+                    style={[[styles.detailThumbWrap, detailActivePhotoIdx === idx && [styles.detailThumbWrapActive, themed.detailThumbWrapActive]], themed.detailThumbWrap]}
                     onPress={() => setDetailActivePhotoIdx(idx)}
                     activeOpacity={0.8}
                   >
@@ -2172,12 +2296,12 @@ function ProductsView() {
               </ScrollView>
             )}
 
-            <View style={styles.detailContentCard}>
-              <Text style={styles.detailBrandEyebrow}>
+            <View style={[styles.detailContentCard, themed.detailContentCard]}>
+              <Text style={[styles.detailBrandEyebrow, themed.detailBrandEyebrow]}>
                 {selectedProductDetail?.brand || 'TOP THREADZ'} • {selectedProductDetail?.category || 'Fabric'} {selectedProductDetail?.subcategory ? `• ${selectedProductDetail.subcategory}` : ''}
               </Text>
 
-              <Text style={styles.detailTitleText}>
+              <Text style={[styles.detailTitleText, themed.detailTitleText]}>
                 {selectedProductDetail?.name}
               </Text>
 
@@ -2215,11 +2339,11 @@ function ProductsView() {
 
               {Array.isArray(selectedProductDetail?.sizes) && selectedProductDetail.sizes.length > 0 && (
                 <View style={styles.detailSectionBlock}>
-                  <Text style={styles.detailSectionLabel}>Available Length / Sizes</Text>
+                  <Text style={[styles.detailSectionLabel, themed.detailSectionLabel]}>Available Length / Sizes</Text>
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
                     {selectedProductDetail.sizes.map((sz: string, idx: number) => (
-                      <View key={idx} style={styles.detailSizeChip}>
-                        <Text style={styles.detailSizeChipText}>{sz}</Text>
+                      <View key={idx} style={[styles.detailSizeChip, themed.detailSizeChip]}>
+                        <Text style={[styles.detailSizeChipText, themed.detailSizeChipText]}>{sz}</Text>
                       </View>
                     ))}
                   </View>
@@ -2228,11 +2352,11 @@ function ProductsView() {
 
               {Array.isArray(selectedProductDetail?.colors) && selectedProductDetail.colors.length > 0 && (
                 <View style={styles.detailSectionBlock}>
-                  <Text style={styles.detailSectionLabel}>Available Colors</Text>
+                  <Text style={[styles.detailSectionLabel, themed.detailSectionLabel]}>Available Colors</Text>
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
                     {selectedProductDetail.colors.map((c: string, idx: number) => (
-                      <View key={idx} style={styles.detailColorChip}>
-                        <Text style={styles.detailColorChipText}>{c}</Text>
+                      <View key={idx} style={[styles.detailColorChip, themed.detailColorChip]}>
+                        <Text style={[styles.detailColorChipText, themed.detailColorChipText]}>{c}</Text>
                       </View>
                     ))}
                   </View>
@@ -2240,16 +2364,16 @@ function ProductsView() {
               )}
 
               <View style={styles.detailSectionBlock}>
-                <Text style={styles.detailSectionLabel}>Fabric Description</Text>
-                <Text style={styles.detailDescriptionBody}>
+                <Text style={[styles.detailSectionLabel, themed.detailSectionLabel]}>Fabric Description</Text>
+                <Text style={[styles.detailDescriptionBody, themed.detailDescriptionBody]}>
                   {selectedProductDetail?.description || 'No description provided.'}
                 </Text>
               </View>
 
               {selectedProductDetail?.careInstructions ? (
                 <View style={styles.detailSectionBlock}>
-                  <Text style={styles.detailSectionLabel}>Fabric Care Instructions</Text>
-                  <Text style={styles.detailCareBody}>
+                  <Text style={[styles.detailSectionLabel, themed.detailSectionLabel]}>Fabric Care Instructions</Text>
+                  <Text style={[styles.detailCareBody, themed.detailCareBody]}>
                     🧼 {selectedProductDetail.careInstructions}
                   </Text>
                 </View>
@@ -2257,12 +2381,12 @@ function ProductsView() {
 
               <View style={styles.detailHighlightsRow}>
                 {selectedProductDetail?.featured ? (
-                  <View style={styles.highlightPillGold}>
+                  <View style={[styles.highlightPillGold, themed.highlightPillGold]}>
                     <Text style={styles.highlightPillGoldText}>⭐ Featured on Homepage</Text>
                   </View>
                 ) : null}
                 {selectedProductDetail?.trending ? (
-                  <View style={styles.highlightPillCrimson}>
+                  <View style={[styles.highlightPillCrimson, themed.highlightPillCrimson]}>
                     <Text style={styles.highlightPillCrimsonText}>🔥 Trending Collection</Text>
                   </View>
                 ) : null}
@@ -2270,9 +2394,9 @@ function ProductsView() {
             </View>
           </ScrollView>
 
-          <View style={styles.oneUiStickyBottomBar}>
+          <View style={[styles.oneUiStickyBottomBar, themed.oneUiStickyBottomBar]}>
             <TouchableOpacity
-              style={styles.detailBottomDeleteBtn}
+              style={[styles.detailBottomDeleteBtn, themed.detailBottomDeleteBtn]}
               onPress={() => {
                 const p = selectedProductDetail;
                 setSelectedProductDetail(null);
@@ -2299,7 +2423,7 @@ function ProductsView() {
       </Modal>
 
       <Modal visible={showFormModal} animationType="slide" transparent={false} onRequestClose={() => setShowFormModal(false)}>
-        <SafeAreaView style={styles.premiumModalContainer}>
+        <SafeAreaView style={[styles.premiumModalContainer, themed.premiumModalContainer]}>
           <StatusBar barStyle="light-content" backgroundColor="#0F1F3D" />
 
           <View style={styles.premiumModalHeader}>
@@ -2343,19 +2467,24 @@ function ProductsView() {
             )}
           </View>
 
-          <View style={styles.stepperBarWrapper}>
+          <View style={[styles.stepperBarWrapper, themed.stepperBarWrapper]}>
             {WIZARD_STEPS.map((s) => {
               const isActive = currentStep === s.key;
               const isPassed = currentStep > s.key;
               return (
                 <TouchableOpacity
                   key={s.key}
-                  style={[styles.stepCapsule, isActive && styles.stepCapsuleActive, isPassed && styles.stepCapsulePassed]}
+                  style={[styles.stepCapsule, themed.stepCapsule, isActive && styles.stepCapsuleActive, isPassed && [styles.stepCapsulePassed, themed.stepCapsulePassed]]}
                   onPress={() => setCurrentStep(s.key)}
                   activeOpacity={0.75}
                 >
                   <Text style={styles.stepCapsuleIcon}>{isPassed ? '✓' : s.icon}</Text>
-                  <Text style={[styles.stepCapsuleText, (isActive || isPassed) && styles.stepCapsuleTextActive]}>
+                  <Text style={[
+                    styles.stepCapsuleText,
+                    themed.stepCapsuleText,
+                    isActive && styles.stepCapsuleTextActive,
+                    isPassed && !isActive && [styles.stepCapsuleTextPassed, themed.stepCapsuleTextPassed],
+                  ]}>
                     {s.title}
                   </Text>
                 </TouchableOpacity>
@@ -2384,7 +2513,7 @@ function ProductsView() {
 
                   {/* Hero photo sub-card */}
                   <TouchableOpacity
-                    style={styles.pageOnePhotoHeroCard}
+                    style={[styles.pageOnePhotoHeroCard, themed.pageOnePhotoHeroCard]}
                     onPress={promptPhotoSource}
                     activeOpacity={0.85}
                   >
@@ -2411,11 +2540,11 @@ function ProductsView() {
                           </>
                         ) : (
                           <>
-                            <View style={styles.pageOneCameraCircle}>
+                            <View style={[styles.pageOneCameraCircle, themed.pageOneCameraCircle]}>
                               <Text style={{ fontSize: 32 }}>📸</Text>
                             </View>
-                            <Text style={styles.pageOneTapTitle}>Add Product Photo</Text>
-                            <Text style={styles.pageOneTapSubtitle}>Tap to choose Gallery or Camera</Text>
+                            <Text style={[styles.pageOneTapTitle, themed.pageOneTapTitle]}>Add Product Photo</Text>
+                            <Text style={[styles.pageOneTapSubtitle, themed.pageOneTapSubtitle]}>Tap to choose Gallery or Camera</Text>
                           </>
                         )}
                       </View>
@@ -2425,21 +2554,21 @@ function ProductsView() {
                   {/* Photo strip + quick URL add sub-card */}
                   {images.length > 0 && (
                     <View style={[styles.pillSubCard, themed.pillSubCard]}>
-                      <View style={styles.photoStripHeaderRow}>
+                      <View style={[styles.photoStripHeaderRow, themed.photoStripHeaderRow]}>
                         <Text style={[styles.pillSubCardLabel, themed.pillSubCardLabel]}>Photos ({images.length})</Text>
                         <TouchableOpacity
-                          style={styles.addAnotherPhotoPill}
+                          style={[styles.addAnotherPhotoPill, themed.addAnotherPhotoPill]}
                           onPress={promptPhotoSource}
                           activeOpacity={0.8}
                         >
-                          <Text style={styles.addAnotherPhotoPillText}>+ Add More</Text>
+                          <Text style={[styles.addAnotherPhotoPillText, themed.addAnotherPhotoPillText]}>+ Add More</Text>
                         </TouchableOpacity>
                       </View>
                       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
                         {images.map((imgUrl, idx) => (
                           <TouchableOpacity
                             key={idx}
-                            style={styles.miniPhotoThumbWrap}
+                            style={[styles.miniPhotoThumbWrap, themed.miniPhotoThumbWrap]}
                             onPress={() => setCoverImage(idx)}
                             activeOpacity={0.8}
                           >
@@ -2466,7 +2595,7 @@ function ProductsView() {
                     <Text style={[styles.pillSubCardLabel, themed.pillSubCardLabel]}>Image URL</Text>
                     <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
                       <TextInput
-                        style={[styles.pillAddInput, { flex: 1 }]}
+                        style={[[styles.pillAddInput, { flex: 1 }], themed.pillAddInput]}
                         placeholder="Paste image URL..."
                         placeholderTextColor="#9CA3AF"
                         value={directUrl}
@@ -2474,7 +2603,7 @@ function ProductsView() {
                         autoCapitalize="none"
                       />
                       <TouchableOpacity
-                        style={styles.addPillMiniBtn}
+                        style={[styles.addPillMiniBtn, themed.addPillMiniBtn]}
                         onPress={() => {
                           if (directUrl.trim()) {
                             setImages((prev) => [...prev, directUrl.trim()]);
@@ -2522,7 +2651,7 @@ function ProductsView() {
                   <View style={[styles.pillSubCard, themed.pillSubCard]}>
                     <Text style={[styles.pillSubCardLabel, themed.pillSubCardLabel]}>Fabric Description *</Text>
                     <TextInput
-                      style={[styles.subCardPillInput, { height: 85, borderRadius: 16, paddingTop: 10, textAlignVertical: 'top' }]}
+                      style={[[styles.subCardPillInput, { height: 85, borderRadius: 16, paddingTop: 10, textAlignVertical: 'top' }], themed.subCardPillInput]}
                       placeholder="Fabric weave, texture, drape, seasonality..."
                       placeholderTextColor="#9CA3AF"
                       multiline
@@ -2539,24 +2668,24 @@ function ProductsView() {
                       {COLOR_PRESETS.slice(0, 8).map((col) => (
                         <TouchableOpacity
                           key={col.value}
-                          style={styles.presetColorChip}
+                          style={[styles.presetColorChip, themed.presetColorChip]}
                           onPress={() => addColor(col.value)}
                           activeOpacity={0.8}
                         >
-                          <Text style={styles.presetColorText}>+ {col.label}</Text>
+                          <Text style={[styles.presetColorText, themed.presetColorText]}>+ {col.label}</Text>
                         </TouchableOpacity>
                       ))}
                     </ScrollView>
                     <View style={{ flexDirection: 'row', gap: 6 }}>
                       <TextInput
-                        style={[styles.pillAddInput, { flex: 1 }]}
+                        style={[[styles.pillAddInput, { flex: 1 }], themed.pillAddInput]}
                         placeholder="Custom color (e.g. Royal Navy)"
                         placeholderTextColor="#9CA3AF"
                         value={customColor}
                         onChangeText={setCustomColor}
                       />
                       <TouchableOpacity
-                        style={styles.addPillMiniBtn}
+                        style={[styles.addPillMiniBtn, themed.addPillMiniBtn]}
                         onPress={() => {
                           if (customColor.trim()) {
                             addColor(customColor.trim());
@@ -2570,8 +2699,8 @@ function ProductsView() {
                     {activeColors.length > 0 && (
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
                         {activeColors.map((c) => (
-                          <TouchableOpacity key={c} style={styles.selectedColorChip} onPress={() => removeColor(c)}>
-                            <Text style={styles.selectedColorText}>{c} ✕</Text>
+                          <TouchableOpacity key={c} style={[styles.selectedColorChip, themed.selectedColorChip]} onPress={() => removeColor(c)}>
+                            <Text style={[styles.selectedColorText, themed.selectedColorText]}>{c} ✕</Text>
                           </TouchableOpacity>
                         ))}
                       </View>
@@ -2582,7 +2711,7 @@ function ProductsView() {
                   <View style={[styles.pillSubCard, themed.pillSubCard]}>
                     <Text style={[styles.pillSubCardLabel, themed.pillSubCardLabel]}>Care Instructions</Text>
                     <TextInput
-                      style={[styles.subCardPillInput, { height: 75, borderRadius: 16, paddingTop: 10, textAlignVertical: 'top' }]}
+                      style={[[styles.subCardPillInput, { height: 75, borderRadius: 16, paddingTop: 10, textAlignVertical: 'top' }], themed.subCardPillInput]}
                       placeholder="e.g. Hand wash cold, iron on medium heat..."
                       placeholderTextColor="#9CA3AF"
                       multiline
@@ -2610,7 +2739,7 @@ function ProductsView() {
                   />
                   {taxonomySearch.length > 0 && (
                     <TouchableOpacity
-                      style={styles.taxonomySearchClear}
+                      style={[styles.taxonomySearchClear, themed.taxonomySearchClear]}
                       onPress={() => setTaxonomySearch('')}
                       activeOpacity={0.7}
                     >
@@ -2620,7 +2749,7 @@ function ProductsView() {
                 </View>
 
                 {/* ── Pillar Card 1: Categories & Taxonomy ────────────────── */}
-                <View style={[styles.pillarCard, taxonomyQuery ? { opacity: 0.45 } : null]}>
+                <View style={[[styles.pillarCard, taxonomyQuery ? { opacity: 0.45 } : null], themed.pillarCard]}>
                   <View style={[styles.pillarHeader, themed.pillarHeader]}>
                     <Text style={styles.pillarIcon}>🏷️</Text>
                     <Text style={[styles.pillarTitle, themed.pillarTitle]}>Categories & Taxonomy</Text>
@@ -2638,14 +2767,14 @@ function ProductsView() {
                     {categoryPills.filter(matchTaxonomy).map((cat) => (
                       <TouchableOpacity
                         key={cat}
-                        style={[styles.catChoiceBtn, category === cat && styles.catChoiceBtnActive]}
+                        style={[[styles.catChoiceBtn, category === cat && styles.catChoiceBtnActive], themed.catChoiceBtn]}
                         onPress={() => {
                           setCategory(cat);
                           setSizesText(categorySizes(cat).join(', '));
                         }}
                         activeOpacity={0.8}
                       >
-                        <Text style={[styles.catChoiceText, category === cat && styles.catChoiceTextActive]}>
+                        <Text style={[[styles.catChoiceText, category === cat && styles.catChoiceTextActive], themed.catChoiceText]}>
                           {cat}
                         </Text>
                       </TouchableOpacity>
@@ -2661,7 +2790,7 @@ function ProductsView() {
                       onSubmitEditing={addSessionCategory}
                       returnKeyType="done"
                     />
-                    <TouchableOpacity style={styles.addPillMiniBtn} onPress={addSessionCategory} activeOpacity={0.8}>
+                    <TouchableOpacity style={[styles.addPillMiniBtn, themed.addPillMiniBtn]} onPress={addSessionCategory} activeOpacity={0.8}>
                       <Text style={styles.addPillMiniBtnText}>+ Add</Text>
                     </TouchableOpacity>
                   </View>
@@ -2672,22 +2801,22 @@ function ProductsView() {
                   <Text style={[styles.pillSubCardLabel, themed.pillSubCardLabel]}>Collection</Text>
                   <View style={styles.pillChipWrap}>
                     <TouchableOpacity
-                      style={[styles.catChoiceBtn, collection === '' && styles.catChoiceBtnActive]}
+                      style={[[styles.catChoiceBtn, collection === '' && styles.catChoiceBtnActive], themed.catChoiceBtn]}
                       onPress={() => setCollection('')}
                       activeOpacity={0.8}
                     >
-                      <Text style={[styles.catChoiceText, collection === '' && styles.catChoiceTextActive]}>
+                      <Text style={[[styles.catChoiceText, collection === '' && styles.catChoiceTextActive], themed.catChoiceText]}>
                         No Collection
                       </Text>
                     </TouchableOpacity>
                     {collectionPills.filter(matchTaxonomy).map((col) => (
                       <TouchableOpacity
                         key={col}
-                        style={[styles.catChoiceBtn, collection === col && styles.catChoiceBtnActive]}
+                        style={[[styles.catChoiceBtn, collection === col && styles.catChoiceBtnActive], themed.catChoiceBtn]}
                         onPress={() => setCollection(col)}
                         activeOpacity={0.8}
                       >
-                        <Text style={[styles.catChoiceText, collection === col && styles.catChoiceTextActive]}>
+                        <Text style={[[styles.catChoiceText, collection === col && styles.catChoiceTextActive], themed.catChoiceText]}>
                           {col}
                         </Text>
                       </TouchableOpacity>
@@ -2703,7 +2832,7 @@ function ProductsView() {
                       onSubmitEditing={addSessionCollection}
                       returnKeyType="done"
                     />
-                    <TouchableOpacity style={styles.addPillMiniBtn} onPress={addSessionCollection} activeOpacity={0.8}>
+                    <TouchableOpacity style={[styles.addPillMiniBtn, themed.addPillMiniBtn]} onPress={addSessionCollection} activeOpacity={0.8}>
                       <Text style={styles.addPillMiniBtnText}>+ Add</Text>
                     </TouchableOpacity>
                   </View>
@@ -2716,11 +2845,11 @@ function ProductsView() {
                     {brandPills.filter(matchTaxonomy).map((b) => (
                       <TouchableOpacity
                         key={b}
-                        style={[styles.catChoiceBtn, brand === b && styles.catChoiceBtnActive]}
+                        style={[[styles.catChoiceBtn, brand === b && styles.catChoiceBtnActive], themed.catChoiceBtn]}
                         onPress={() => setBrand(b)}
                         activeOpacity={0.8}
                       >
-                        <Text style={[styles.catChoiceText, brand === b && styles.catChoiceTextActive]}>
+                        <Text style={[[styles.catChoiceText, brand === b && styles.catChoiceTextActive], themed.catChoiceText]}>
                           {b}
                         </Text>
                       </TouchableOpacity>
@@ -2736,7 +2865,7 @@ function ProductsView() {
                       onSubmitEditing={addSessionBrand}
                       returnKeyType="done"
                     />
-                    <TouchableOpacity style={styles.addPillMiniBtn} onPress={addSessionBrand} activeOpacity={0.8}>
+                    <TouchableOpacity style={[styles.addPillMiniBtn, themed.addPillMiniBtn]} onPress={addSessionBrand} activeOpacity={0.8}>
                       <Text style={styles.addPillMiniBtnText}>+ Add</Text>
                     </TouchableOpacity>
                   </View>
@@ -2744,7 +2873,7 @@ function ProductsView() {
                 </View>
 
                 {/* ── Pillar Card 2: Pricing & Economics ───────────────────── */}
-                <View style={[styles.pillarCard, taxonomyQuery ? { opacity: 0.45 } : null]}>
+                <View style={[[styles.pillarCard, taxonomyQuery ? { opacity: 0.45 } : null], themed.pillarCard]}>
                   <View style={[styles.pillarHeader, themed.pillarHeader]}>
                     <Text style={styles.pillarIcon}>💰</Text>
                     <Text style={[styles.pillarTitle, themed.pillarTitle]}>Pricing & Economics</Text>
@@ -2756,7 +2885,7 @@ function ProductsView() {
                   </View>
 
                   <View style={styles.pillarSubRow}>
-                    <View style={[styles.pillSubCard, styles.pillSubCardGrow]}>
+                    <View style={[[styles.pillSubCard, styles.pillSubCardGrow], themed.pillSubCard]}>
                       <Text style={[styles.pillSubCardLabel, themed.pillSubCardLabel]}>Retail Price (PKR) *</Text>
                       <TextInput
                         style={[styles.subCardPillInput, themed.subCardPillInput]}
@@ -2767,8 +2896,8 @@ function ProductsView() {
                         onChangeText={setPrice}
                       />
                     </View>
-                    <View style={[styles.pillSubCard, styles.pillSubCardGrow]}>
-                      <Text style={[styles.pillSubCardLabel, Number(discount) > 0 && { color: '#B91C2B' }]}>
+                    <View style={[[styles.pillSubCard, styles.pillSubCardGrow], themed.pillSubCard]}>
+                      <Text style={[[styles.pillSubCardLabel, Number(discount) > 0 && { color: '#B91C2B' }], themed.pillSubCardLabel]}>
                         Discount (%)
                       </Text>
                       <TextInput
@@ -2783,8 +2912,8 @@ function ProductsView() {
                   </View>
 
                   {Number(price) > 0 && (
-                    <View style={styles.effectivePriceBox}>
-                      <Text style={styles.effectivePriceText}>
+                    <View style={[styles.effectivePriceBox, themed.effectivePriceBox]}>
+                      <Text style={[styles.effectivePriceText, themed.effectivePriceText]}>
                         ✓ Effective Customer Price: {formatPkr(Math.round(Number(price) * (1 - Number(discount) / 100)))}
                       </Text>
                     </View>
@@ -2804,7 +2933,7 @@ function ProductsView() {
                 </View>
 
                 {/* ── Pillar Card 3: Inventory & Variants ───────────────────── */}
-                <View style={[styles.pillarCard, taxonomyQuery ? { opacity: 0.45 } : null]}>
+                <View style={[[styles.pillarCard, taxonomyQuery ? { opacity: 0.45 } : null], themed.pillarCard]}>
                   <View style={[styles.pillarHeader, themed.pillarHeader]}>
                     <Text style={styles.pillarIcon}>📦</Text>
                     <Text style={[styles.pillarTitle, themed.pillarTitle]}>Inventory & Variants</Text>
@@ -2816,7 +2945,7 @@ function ProductsView() {
                   </View>
 
                   <View style={styles.pillarSubRow}>
-                    <View style={[styles.pillSubCard, styles.pillSubCardGrow]}>
+                    <View style={[[styles.pillSubCard, styles.pillSubCardGrow], themed.pillSubCard]}>
                       <Text style={[styles.pillSubCardLabel, themed.pillSubCardLabel]}>Stock Quantity *</Text>
                       <TextInput
                         style={[styles.subCardPillInput, themed.subCardPillInput]}
@@ -2827,7 +2956,7 @@ function ProductsView() {
                         onChangeText={setStock}
                       />
                     </View>
-                    <View style={[styles.pillSubCard, styles.pillSubCardGrow]}>
+                    <View style={[[styles.pillSubCard, styles.pillSubCardGrow], themed.pillSubCard]}>
                       <Text style={[styles.pillSubCardLabel, themed.pillSubCardLabel]}>Low Stock Alert</Text>
                       <TextInput
                         style={[styles.subCardPillInput, themed.subCardPillInput]}
@@ -2847,11 +2976,11 @@ function ProductsView() {
                       {['IN_STOCK', 'OUT_OF_STOCK', 'PREORDER'].map((st) => (
                         <TouchableOpacity
                           key={st}
-                          style={[styles.catChoiceBtn, stockStatus === st && styles.catChoiceBtnActive]}
+                          style={[[styles.catChoiceBtn, stockStatus === st && styles.catChoiceBtnActive], themed.catChoiceBtn]}
                           onPress={() => setStockStatus(st)}
                           activeOpacity={0.8}
                         >
-                          <Text style={[styles.catChoiceText, stockStatus === st && styles.catChoiceTextActive]}>
+                          <Text style={[[styles.catChoiceText, stockStatus === st && styles.catChoiceTextActive], themed.catChoiceText]}>
                             {st.replace(/_/g, ' ')}
                           </Text>
                         </TouchableOpacity>
@@ -2869,11 +2998,11 @@ function ProductsView() {
                         return (
                           <TouchableOpacity
                             key={sz}
-                            style={[styles.chipToggle, isSel && styles.chipToggleActive]}
+                            style={[[styles.chipToggle, isSel && styles.chipToggleActive], themed.chipToggle]}
                             onPress={() => toggleSize(sz)}
                             activeOpacity={0.8}
                           >
-                            <Text style={[styles.chipToggleText, isSel && styles.chipToggleTextActive]}>
+                            <Text style={[[styles.chipToggleText, isSel && styles.chipToggleTextActive], themed.chipToggleText]}>
                               {isSel ? '✓ ' : '+ '}{sz}
                             </Text>
                           </TouchableOpacity>
@@ -2936,7 +3065,7 @@ function ProductsView() {
                       <View style={{ flex: 1 }}>
                         <Text style={[styles.reviewSummaryTitle, themed.reviewSummaryTitle]}>{name || 'Untitled Product'}</Text>
                         <Text style={[styles.reviewSummaryDetails, themed.reviewSummaryDetails]}>{brand} • {category}{collection ? ` • ${collection}` : ''}</Text>
-                        <Text style={[styles.reviewSummaryDetails, { fontWeight: '800', color: '#0F1F3D' }]}>
+                        <Text style={[[styles.reviewSummaryDetails, { fontWeight: '800', color: '#0F1F3D' }], themed.reviewSummaryDetails]}>
                           {formatPkr(price)} {Number(discount) > 0 ? `(-${discount}% OFF)` : ''}
                         </Text>
                         <Text style={[styles.reviewSummaryDetails, themed.reviewSummaryDetails]}>
@@ -2947,7 +3076,7 @@ function ProductsView() {
                   </View>
 
                   {/* Featured toggle sub-card */}
-                  <View style={[styles.pillSubCard, styles.merchSwitchRow]}>
+                  <View style={[[styles.pillSubCard, styles.merchSwitchRow], themed.pillSubCard]}>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.switchLabel, themed.switchLabel]}>⭐ Featured Product</Text>
                       <Text style={[styles.switchSub, themed.switchSub]}>Display in the Featured Storefront Collection</Text>
@@ -2961,7 +3090,7 @@ function ProductsView() {
                   </View>
 
                   {/* Trending toggle sub-card */}
-                  <View style={[styles.pillSubCard, styles.merchSwitchRow]}>
+                  <View style={[[styles.pillSubCard, styles.merchSwitchRow], themed.pillSubCard]}>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.switchLabel, themed.switchLabel]}>🔥 Trending / New Arrival</Text>
                       <Text style={[styles.switchSub, themed.switchSub]}>Highlight on homepage hero badges</Text>
@@ -2981,11 +3110,11 @@ function ProductsView() {
                       {['PUBLISHED', 'DRAFT', 'HIDDEN'].map((st) => (
                         <TouchableOpacity
                           key={st}
-                          style={[styles.catChoiceBtn, productStatus === st && styles.catChoiceBtnActive]}
+                          style={[[styles.catChoiceBtn, productStatus === st && styles.catChoiceBtnActive], themed.catChoiceBtn]}
                           onPress={() => setProductStatus(st)}
                           activeOpacity={0.8}
                         >
-                          <Text style={[styles.catChoiceText, productStatus === st && styles.catChoiceTextActive]}>
+                          <Text style={[[styles.catChoiceText, productStatus === st && styles.catChoiceTextActive], themed.catChoiceText]}>
                             {st}
                           </Text>
                         </TouchableOpacity>
@@ -2996,18 +3125,182 @@ function ProductsView() {
                     </Text>
                   </View>
                 </View>
+
+                {/* ── Pillar Card: SEO & AI Content ────────────────────────── */}
+                <View style={[styles.pillarCard, themed.pillarCard]}>
+                  <View style={[styles.pillarHeader, themed.pillarHeader]}>
+                    <Text style={styles.pillarIcon}>✨</Text>
+                    <Text style={[styles.pillarTitle, themed.pillarTitle]}>SEO & AI Content</Text>
+                    <View style={[styles.pillarMetaBadge, themed.pillarMetaBadge]}>
+                      <Text style={[styles.pillarMetaBadgeText, themed.pillarMetaBadgeText]}>
+                        {aiGenerated ? '● AI-ASSISTED' : '● OPTIONAL'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Generate button + score row */}
+                  <View style={styles.seoActionRow}>
+                    <TouchableOpacity
+                      style={[styles.seoGenerateBtn, seoGenerating && { opacity: 0.7 }]}
+                      onPress={() => runSeoGeneration(['description', 'seo', 'keywords', 'meta', 'faqs'], 'SEO')}
+                      disabled={Boolean(seoGenerating)}
+                      activeOpacity={0.85}
+                    >
+                      {seoGenerating ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                      ) : (
+                        <Text style={styles.seoGenerateBtnText}>✨ Generate SEO with AI</Text>
+                      )}
+                    </TouchableOpacity>
+                    {seoScore !== null && (
+                      <View style={[
+                        styles.seoScoreBadge,
+                        seoScore >= 80 ? [styles.seoScoreBadgeHigh, themed.seoScoreBadgeHigh] : seoScore >= 50 ? [styles.seoScoreBadgeMid, themed.seoScoreBadgeMid] : [styles.seoScoreBadgeLow, themed.seoScoreBadgeLow],
+                      ]}>
+                        <Text style={[
+                          styles.seoScoreBadgeText,
+                          seoScore >= 80 ? [styles.seoScoreBadgeTextHigh, themed.seoScoreBadgeTextHigh] : seoScore >= 50 ? [styles.seoScoreBadgeTextMid, themed.seoScoreBadgeTextMid] : [styles.seoScoreBadgeTextLow, themed.seoScoreBadgeTextLow],
+                        ]}>
+                          SEO Score: {seoScore}/100
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  {seoGenerating && (
+                    <Text style={[styles.pillSubCardHelper, themed.pillSubCardHelper, { marginBottom: 10 }]}>
+                      Generating with Gemini — this usually takes a few seconds…
+                    </Text>
+                  )}
+                  {seoSuggestions.length > 0 && !seoGenerating && (
+                    <View style={[styles.seoSuggestionBox, themed.seoSuggestionBox]}>
+                      {seoSuggestions.slice(0, 4).map((s, i) => (
+                        <Text key={i} style={[styles.seoSuggestionText, themed.seoSuggestionText]}>• {s}</Text>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* SEO title */}
+                  <View style={[styles.pillSubCard, themed.pillSubCard]}>
+                    <Text style={[styles.pillSubCardLabel, themed.pillSubCardLabel]}>SEO Title (search result)</Text>
+                    <TextInput
+                      style={[styles.subCardPillInput, themed.subCardPillInput]}
+                      placeholder="e.g. Premium Navy Wash & Wear Suit | Top Threadz"
+                      placeholderTextColor="#9CA3AF"
+                      value={seoTitle}
+                      onChangeText={setSeoTitle}
+                      maxLength={70}
+                    />
+                  </View>
+
+                  {/* Slug */}
+                  <View style={[styles.pillSubCard, themed.pillSubCard]}>
+                    <Text style={[styles.pillSubCardLabel, themed.pillSubCardLabel]}>SEO Slug (URL)</Text>
+                    <TextInput
+                      style={[styles.subCardPillInput, themed.subCardPillInput]}
+                      placeholder="premium-navy-wash-wear-suit"
+                      placeholderTextColor="#9CA3AF"
+                      value={seoSlug}
+                      onChangeText={(v) => { setSlugManuallyEdited(true); setSeoSlug(v.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')); }}
+                      autoCapitalize="none"
+                    />
+                  </View>
+
+                  {/* Meta description */}
+                  <View style={[styles.pillSubCard, themed.pillSubCard]}>
+                    <Text style={[styles.pillSubCardLabel, themed.pillSubCardLabel]}>Meta Description</Text>
+                    <TextInput
+                      style={[styles.subCardPillInput, themed.subCardPillInput, { borderRadius: 16, height: 76, paddingTop: 10, textAlignVertical: 'top' }]}
+                      placeholder="Compelling summary shown in search results (120-160 characters)"
+                      placeholderTextColor="#9CA3AF"
+                      value={metaDescription}
+                      onChangeText={setMetaDescription}
+                      multiline
+                      maxLength={320}
+                    />
+                  </View>
+
+                  {/* Short description + keywords */}
+                  <View style={styles.pillarSubRow}>
+                    <View style={[styles.pillSubCard, styles.pillSubCardGrow, themed.pillSubCard]}>
+                      <Text style={[styles.pillSubCardLabel, themed.pillSubCardLabel]}>Short Description</Text>
+                      <TextInput
+                        style={[styles.subCardPillInput, themed.subCardPillInput, { borderRadius: 16, height: 76, paddingTop: 10, textAlignVertical: 'top' }]}
+                        placeholder="One-line hook for product cards"
+                        placeholderTextColor="#9CA3AF"
+                        value={shortDescription}
+                        onChangeText={setShortDescription}
+                        multiline
+                        maxLength={500}
+                      />
+                    </View>
+                    <View style={[styles.pillSubCard, styles.pillSubCardGrow, themed.pillSubCard]}>
+                      <Text style={[styles.pillSubCardLabel, themed.pillSubCardLabel]}>SEO Keywords</Text>
+                      <TextInput
+                        style={[styles.subCardPillInput, themed.subCardPillInput, { borderRadius: 16, height: 76, paddingTop: 10, textAlignVertical: 'top' }]}
+                        placeholder="Comma-separated, primary first"
+                        placeholderTextColor="#9CA3AF"
+                        value={metaKeywordsText}
+                        onChangeText={setMetaKeywordsText}
+                        multiline
+                      />
+                    </View>
+                  </View>
+
+                  {/* Highlights + regenerate row */}
+                  <View style={[styles.pillSubCard, themed.pillSubCard]}>
+                    <View style={[styles.photoStripHeaderRow, themed.photoStripHeaderRow]}>
+                      <Text style={[styles.pillSubCardLabel, themed.pillSubCardLabel, { marginBottom: 0 }]}>Highlights (comma-separated)</Text>
+                      <View style={{ flexDirection: 'row', gap: 6 }}>
+                        <TouchableOpacity
+                          style={[styles.seoMiniBtn, themed.seoMiniBtn]}
+                          onPress={() => runSeoGeneration(['description'], 'Description')}
+                          disabled={Boolean(seoGenerating)}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={[styles.seoMiniBtnText, themed.seoMiniBtnText]}>↻ Desc</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.seoMiniBtn, themed.seoMiniBtn]}
+                          onPress={() => runSeoGeneration(['meta'], 'Meta')}
+                          disabled={Boolean(seoGenerating)}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={[styles.seoMiniBtnText, themed.seoMiniBtnText]}>↻ Meta</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.seoMiniBtn, themed.seoMiniBtn]}
+                          onPress={() => runSeoGeneration(['keywords'], 'Keywords')}
+                          disabled={Boolean(seoGenerating)}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={[styles.seoMiniBtnText, themed.seoMiniBtnText]}>↻ Keywords</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    <TextInput
+                      style={[styles.subCardPillInput, themed.subCardPillInput, { marginTop: 10 }]}
+                      placeholder="e.g. Wrinkle-resistant, Color-fast, Easy machine wash"
+                      placeholderTextColor="#9CA3AF"
+                      value={highlightsText}
+                      onChangeText={setHighlightsText}
+                    />
+                    <Text style={[styles.pillSubCardHelper, themed.pillSubCardHelper]}>
+                      Content populates from AI — review and edit anything before publishing
+                    </Text>
+                  </View>
+                </View>
               </View>
             )}
           </ScrollView>
 
-          <View style={styles.oneUiStickyBottomBar}>
+          <View style={[styles.oneUiStickyBottomBar, themed.oneUiStickyBottomBar]}>
             {currentStep > 1 && (
               <TouchableOpacity
-                style={styles.stepperBackBtn}
+                style={[styles.stepperBackBtn, themed.stepperBackBtn]}
                 onPress={() => setCurrentStep((c) => c - 1)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.stepperBackBtnText}>← Back</Text>
+                <Text style={[styles.stepperBackBtnText, themed.stepperBackBtnText]}>← Back</Text>
               </TouchableOpacity>
             )}
 
@@ -3100,11 +3393,11 @@ function CustomersView() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.customerName, themed.customerName]}>{item.name || 'Anonymous Guest'}</Text>
-                <Text style={styles.customerEmail}>{item.email}</Text>
+                <Text style={[styles.customerEmail, themed.customerEmail]}>{item.email}</Text>
                 <Text style={styles.customerPhone}>Phone: {item.phone || 'None'}</Text>
               </View>
-              <View style={styles.roleTag}>
-                <Text style={styles.roleTagText}>{item.role}</Text>
+              <View style={[styles.roleTag, themed.roleTag]}>
+                <Text style={[styles.roleTagText, themed.roleTagText]}>{item.role}</Text>
               </View>
             </View>
           )}
@@ -3168,10 +3461,10 @@ function PaymentsView() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadPayments(); }} />}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
-            <View style={styles.emptyView}>
+            <View style={[styles.emptyView, themed.emptyView]}>
               <Text style={styles.emptyIcon}>💳</Text>
-              <Text style={styles.emptyTitle}>Zero Pending Payments</Text>
-              <Text style={styles.emptySubtitle}>All customer transactions have been resolved.</Text>
+              <Text style={[styles.emptyTitle, themed.emptyTitle]}>Zero Pending Payments</Text>
+              <Text style={[styles.emptySubtitle, themed.emptySubtitle]}>All customer transactions have been resolved.</Text>
             </View>
           }
           renderItem={({ item }) => (
@@ -3192,7 +3485,7 @@ function PaymentsView() {
                   <Text style={styles.paymentApproveText}>✓ Approve</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.paymentRejectBtn}
+                  style={[styles.paymentRejectBtn, themed.paymentRejectBtn]}
                   onPress={() => verifyPayment(item.id, false)}
                 >
                   <Text style={styles.paymentRejectText}>✕ Reject</Text>
@@ -3282,11 +3575,11 @@ function SettingsView({ onLogout }: { onLogout: () => void }) {
           {(['light', 'dark'] as ThemeMode[]).map((m) => (
             <TouchableOpacity
               key={m}
-              style={[styles.catChoiceBtn, mode === m && styles.catChoiceBtnActive]}
+              style={[[styles.catChoiceBtn, mode === m && styles.catChoiceBtnActive], themed.catChoiceBtn]}
               onPress={() => setMode(m)}
               activeOpacity={0.8}
             >
-              <Text style={[styles.catChoiceText, mode === m && styles.catChoiceTextActive]}>
+              <Text style={[[styles.catChoiceText, mode === m && styles.catChoiceTextActive], themed.catChoiceText]}>
                 {m === 'light' ? '☀️  Light Mode' : '🌙  Dark Mode'}
               </Text>
             </TouchableOpacity>
@@ -3309,11 +3602,17 @@ function SettingsView({ onLogout }: { onLogout: () => void }) {
         </TouchableOpacity>
       </View>
 
+      {/* Store Branding — Logo */}
+      <LogoManagerCard />
+
+      {/* Admin Accounts */}
+      <AdminAccountsCard />
+
       <View style={[styles.cardSection, themed.cardSection]}>
         <Text style={[styles.cardSectionTitle, themed.cardSectionTitle]}>Shipping Rates</Text>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Standard Delivery Fee (PKR)</Text>
+        <View style={[styles.inputGroup, themed.inputGroup]}>
+          <Text style={[styles.inputLabel, themed.inputLabel]}>Standard Delivery Fee (PKR)</Text>
           <TextInput
             style={[styles.textInput, themed.textInput]}
             value={standardFee}
@@ -3322,8 +3621,8 @@ function SettingsView({ onLogout }: { onLogout: () => void }) {
           />
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Free Delivery Order Threshold (PKR)</Text>
+        <View style={[styles.inputGroup, themed.inputGroup]}>
+          <Text style={[styles.inputLabel, themed.inputLabel]}>Free Delivery Order Threshold (PKR)</Text>
           <TextInput
             style={[styles.textInput, themed.textInput]}
             value={freeThreshold}
@@ -3336,8 +3635,8 @@ function SettingsView({ onLogout }: { onLogout: () => void }) {
       <View style={[styles.cardSection, themed.cardSection]}>
         <Text style={[styles.cardSectionTitle, themed.cardSectionTitle]}>Customer Care Lines</Text>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>WhatsApp Support Number</Text>
+        <View style={[styles.inputGroup, themed.inputGroup]}>
+          <Text style={[styles.inputLabel, themed.inputLabel]}>WhatsApp Support Number</Text>
           <TextInput
             style={[styles.textInput, themed.textInput]}
             value={whatsapp}
@@ -3346,8 +3645,8 @@ function SettingsView({ onLogout }: { onLogout: () => void }) {
           />
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Outlet Phone Number</Text>
+        <View style={[styles.inputGroup, themed.inputGroup]}>
+          <Text style={[styles.inputLabel, themed.inputLabel]}>Outlet Phone Number</Text>
           <TextInput
             style={[styles.textInput, themed.textInput]}
             value={phone}
@@ -3369,7 +3668,7 @@ function SettingsView({ onLogout }: { onLogout: () => void }) {
         )}
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.logoutDangerBtn} onPress={onLogout}>
+      <TouchableOpacity style={[styles.logoutDangerBtn, themed.logoutDangerBtn]} onPress={onLogout}>
         <Text style={styles.logoutDangerText}>Sign Out from Administrator Session</Text>
       </TouchableOpacity>
 
@@ -3380,6 +3679,272 @@ function SettingsView({ onLogout }: { onLogout: () => void }) {
         onUpdated={() => {}}
       />
     </ScrollView>
+  );
+}
+
+// ── Store Logo Manager card (auto-resized header/footer/favicon variants) ──
+function LogoManagerCard() {
+  const { themed } = useTheme();
+  const [logo, setLogo] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+
+  const loadLogo = useCallback(async () => {
+    try {
+      const res = await api.get('/settings/logo');
+      setLogo(res?.data || null);
+    } catch {
+      setLogo(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadLogo(); }, [loadLogo]);
+
+  const uploadLogo = async () => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert('Permission Required', 'Please allow gallery access to upload a logo.');
+      return;
+    }
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.9,
+    });
+    if (res.canceled || !res.assets?.[0]) return;
+
+    setUploading(true);
+    try {
+      const asset = res.assets[0];
+      const filename = asset.uri.split('/').pop() || 'logo.png';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/png';
+      const formData = new FormData();
+      formData.append('image', { uri: asset.uri, name: filename, type } as any);
+      const uploadRes = await api.postFormData('/settings/logo', formData);
+      const data = uploadRes?.data || uploadRes;
+      if (data?.url || data?.header) setLogo(data);
+      Alert.alert('Logo Updated', 'Header, footer and favicon sizes were generated automatically.');
+    } catch (e: any) {
+      Alert.alert('Upload Failed', e?.response?.data?.message || e?.message || 'Could not upload logo.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeLogo = async () => {
+    Alert.alert('Remove Logo', 'Revert to the default Top Threadz logo?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await api.delete('/settings/logo');
+            setLogo(null);
+          } catch (e: any) {
+            Alert.alert('Error', e?.response?.data?.message || 'Could not remove logo.');
+          }
+        },
+      },
+    ]);
+  };
+
+  const headerLogo = logo?.header || logo?.url || '';
+
+  return (
+    <View style={[styles.cardSection, themed.cardSection]}>
+      <Text style={[styles.cardSectionTitle, themed.cardSectionTitle]}>Store Branding — Logo</Text>
+      <Text style={{ fontSize: 12, color: '#6B7280', marginBottom: 14, lineHeight: 17 }}>
+        Upload once — header, footer and favicon sizes generate automatically. Black background with white text looks best in both light & dark mode.
+      </Text>
+
+      <View style={styles.logoPreviewRow}>
+        <View style={styles.logoPreviewTileLight}>
+          {headerLogo ? (
+            <Image source={{ uri: resolveImageUrl(headerLogo) }} style={styles.logoPreviewImg} resizeMode="contain" />
+          ) : (
+            <Text style={styles.logoPreviewFallback}>Top Threadz</Text>
+          )}
+        </View>
+        <View style={styles.logoPreviewTileDark}>
+          {headerLogo ? (
+            <Image source={{ uri: resolveImageUrl(headerLogo) }} style={styles.logoPreviewImg} resizeMode="contain" />
+          ) : (
+            <Text style={[styles.logoPreviewFallback, { color: '#FFFFFF' }]}>Top Threadz</Text>
+          )}
+        </View>
+      </View>
+
+      <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+        <TouchableOpacity
+          style={[styles.primaryButton, { flex: 1, minHeight: 44 }, uploading && { opacity: 0.7 }]}
+          onPress={uploadLogo}
+          disabled={uploading}
+          activeOpacity={0.85}
+        >
+          {uploading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.primaryButtonText}>Upload Logo</Text>}
+        </TouchableOpacity>
+        {logo?.url ? (
+          <TouchableOpacity style={[styles.logoutDangerBtn, themed.logoutDangerBtn, { flex: 1 }]} onPress={removeLogo}>
+            <Text style={styles.logoutDangerText}>Remove</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+// ── Admin Accounts card (primary owner + secondary admins) ───────────────
+function AdminAccountsCard() {
+  const { themed } = useTheme();
+  const [admins, setAdmins] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const loadAdmins = useCallback(async () => {
+    try {
+      const res = await api.get('/admin/admins');
+      setAdmins(Array.isArray(res?.data) ? res.data : []);
+    } catch {
+      setAdmins([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadAdmins(); }, [loadAdmins]);
+
+  const handleCreate = async () => {
+    if (!name.trim() || !email.trim() || !password) {
+      Alert.alert('Missing Fields', 'Name, email and password are all required.');
+      return;
+    }
+    setCreating(true);
+    try {
+      await api.post('/admin/admins', { name: name.trim(), email: email.trim(), password });
+      Alert.alert('Admin Created', 'The new admin can now sign in with these credentials.');
+      setName(''); setEmail(''); setPassword(''); setShowForm(false);
+      loadAdmins();
+    } catch (e: any) {
+      Alert.alert('Failed', e?.response?.data?.error || e?.response?.data?.message || 'Could not create admin.');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleDelete = (a: any) => {
+    Alert.alert('Delete Admin', `Remove admin access for ${a.email}?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await api.delete(`/admin/admins/${a.id}`);
+            Alert.alert('Deleted', 'Admin account removed.');
+            loadAdmins();
+          } catch (e: any) {
+            Alert.alert('Failed', e?.response?.data?.error || 'Only the primary admin can delete admins.');
+          }
+        },
+      },
+    ]);
+  };
+
+  return (
+    <View style={[styles.cardSection, themed.cardSection]}>
+      <Text style={[styles.cardSectionTitle, themed.cardSectionTitle]}>Admin Accounts</Text>
+      <Text style={{ fontSize: 12, color: '#6B7280', marginBottom: 14, lineHeight: 17 }}>
+        The primary owner account is protected. Only the primary admin can delete other admin accounts.
+      </Text>
+
+      {loading ? (
+        <ActivityIndicator size="small" color="#0F1F3D" />
+      ) : (
+        <View style={{ gap: 8 }}>
+          {admins.map((a) => (
+            <View key={a.id} style={[styles.adminAccountRow, themed.adminAccountRow]}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.adminAccountName, themed.adminAccountName]}>
+                  {a.name} {a.isPrimary ? '👑' : ''}
+                </Text>
+                <Text style={[styles.adminAccountEmail, themed.adminAccountEmail]}>{a.email}</Text>
+              </View>
+              {a.isPrimary ? (
+                <View style={styles.primaryAdminBadge}>
+                  <Text style={styles.primaryAdminBadgeText}>PRIMARY</Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.orderDeleteMiniPill, themed.orderDeleteMiniPill]}
+                  onPress={() => handleDelete(a)}
+                >
+                  <Text style={styles.orderDeleteMiniPillText}>Delete</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
+        </View>
+      )}
+
+      {showForm ? (
+        <View style={{ marginTop: 14, gap: 10 }}>
+          <TextInput
+            style={[styles.textInput, themed.textInput]}
+            placeholder="Full name"
+            placeholderTextColor="#9CA3AF"
+            value={name}
+            onChangeText={setName}
+          />
+          <TextInput
+            style={[styles.textInput, themed.textInput]}
+            placeholder="Email address"
+            placeholderTextColor="#9CA3AF"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <TextInput
+            style={[styles.textInput, themed.textInput]}
+            placeholder="Password (8+ chars, Aa1)"
+            placeholderTextColor="#9CA3AF"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <TouchableOpacity
+              style={[styles.primaryButton, { flex: 1, minHeight: 44 }, creating && { opacity: 0.7 }]}
+              onPress={handleCreate}
+              disabled={creating}
+              activeOpacity={0.85}
+            >
+              {creating ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.primaryButtonText}>Create Admin</Text>}
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.stepperBackBtn, themed.stepperBackBtn, { flex: 1, minHeight: 44, justifyContent: 'center' }]} onPress={() => setShowForm(false)}>
+              <Text style={[styles.stepperBackBtnText, themed.stepperBackBtnText]}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : (
+        <TouchableOpacity
+          style={styles.heroBannerSettingsBtn}
+          onPress={() => setShowForm(true)}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.heroBannerSettingsBtnText}>➕ Create New Admin Account</Text>
+        </TouchableOpacity>
+      )}
+    </View>
   );
 }
 
@@ -4268,6 +4833,77 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 
+  // ── Store Logo previews & Admin Accounts ───────────────────────────
+  logoPreviewRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  logoPreviewTileLight: {
+    flex: 1,
+    height: 64,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  logoPreviewTileDark: {
+    flex: 1,
+    height: 64,
+    borderRadius: 14,
+    backgroundColor: '#0B1220',
+    borderWidth: 1,
+    borderColor: '#1F2937',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  logoPreviewImg: {
+    width: '100%',
+    height: 40,
+  },
+  logoPreviewFallback: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#0F1F3D',
+    letterSpacing: 1,
+  },
+  adminAccountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  adminAccountName: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  adminAccountEmail: {
+    fontSize: 11,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  primaryAdminBadge: {
+    backgroundColor: '#0F1F3D',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 9999,
+  },
+  primaryAdminBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+
   // Quick Action Buttons (More Rounded Corners)
   quickActionsGrid: {
     flexDirection: 'row',
@@ -4783,6 +5419,84 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+  },
+  seoActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+    flexWrap: 'wrap',
+  },
+  seoGenerateBtn: {
+    backgroundColor: '#0F1F3D',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 9999,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#0F1F3D',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  seoGenerateBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  seoScoreBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 9999,
+  },
+  seoScoreBadgeHigh: {
+    backgroundColor: '#DEF7EC',
+  },
+  seoScoreBadgeMid: {
+    backgroundColor: '#FEF3C7',
+  },
+  seoScoreBadgeLow: {
+    backgroundColor: '#FEE2E2',
+  },
+  seoScoreBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  seoScoreBadgeTextHigh: {
+    color: '#03543F',
+  },
+  seoScoreBadgeTextMid: {
+    color: '#92400E',
+  },
+  seoScoreBadgeTextLow: {
+    color: '#991B1B',
+  },
+  seoSuggestionBox: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    padding: 10,
+    marginBottom: 12,
+    gap: 3,
+  },
+  seoSuggestionText: {
+    fontSize: 11,
+    color: '#6B7280',
+    lineHeight: 16,
+  },
+  seoMiniBtn: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
+  seoMiniBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#374151',
   },
   subCardPillInput: {
     backgroundColor: '#F9FAFB',
@@ -5915,6 +6629,10 @@ const styles = StyleSheet.create({
   stepCapsuleTextActive: {
     color: '#FFFFFF',
   },
+  stepCapsuleTextPassed: {
+    color: '#03543F',
+    fontWeight: '800',
+  },
   stepCardSection: {
     paddingBottom: 24,
   },
@@ -6831,11 +7549,64 @@ function createThemedStyles(p: ThemePalette) {
     taxonomySearchInput: { color: p.textPrimary },
     taxonomySearchClear: { backgroundColor: p.chip },
 
+    // SEO & AI Content card
+    seoMiniBtn: { backgroundColor: p.chip, borderColor: p.border },
+    seoSuggestionBox: { backgroundColor: p.container },
+    seoSuggestionText: { color: p.textMuted },
+    seoScoreBadgeHigh: { backgroundColor: p.emeraldBg },
+    seoScoreBadgeMid: { backgroundColor: p.amberBg },
+    seoScoreBadgeLow: { backgroundColor: p.crimsonBg },
+    seoScoreBadgeTextHigh: { color: p.emeraldText },
+    seoScoreBadgeTextMid: { color: p.amberText },
+    seoScoreBadgeTextLow: { color: p.crimsonText },
+    photoStripHeaderRow: {},
+
+    // Add-product wizard: photo tiles, upload notice, URL box
+    bigPhotoUploadTile: { backgroundColor: p.container, borderColor: p.border },
+    bigPhotoTileTitle: { color: p.textPrimary },
+    uploadingNoticeBox: { backgroundColor: p.container, borderColor: p.border },
+    miniPhotoThumbWrap: { backgroundColor: p.surface, borderColor: p.border },
+
+    // Product detail sheet: hero, chips, labels
+    detailPhotoHeroWrapper: { backgroundColor: p.surface, borderColor: p.border },
+    detailSizeChip: { backgroundColor: p.container },
+    detailSizeChipText: { color: p.textSecondary },
+    detailColorChip: { backgroundColor: p.container },
+    detailColorChipText: { color: p.textSecondary },
+    detailThumbWrapDark: { backgroundColor: p.surface, borderColor: p.border },
+    productNoImageHero: { backgroundColor: p.container },
+
+    // Orders / payments / settings action pills
+    orderDeleteMiniPill: { backgroundColor: p.crimsonBg },
+    paymentRejectBtn: { backgroundColor: p.crimsonBg },
+    logoutDangerBtn: { backgroundColor: p.crimsonBg },
+    roleTag: { backgroundColor: p.chip },
+    roleTagText: { color: p.textSecondary },
+    modalCloseCircle: { backgroundColor: p.chip },
+    bannerModalContainer: { backgroundColor: p.background },
+    heroBannerEmptyBox: { backgroundColor: p.container, borderColor: p.border },
+    bannerCtaPill: { backgroundColor: p.chip },
+    highlightPillGold: { backgroundColor: p.amberBg },
+    highlightPillCrimson: { backgroundColor: p.crimsonBg },
+    heroBannerEmptyTitle: { color: p.textMuted },
+    statusBadgeText: { color: p.textPrimary },
+    seoMiniBtnText: { color: p.textSecondary },
+    detailBottomDeleteBtn: { backgroundColor: p.crimsonBg },
+
     // Chips & toggles
     catChoiceBtn: { backgroundColor: p.container, borderColor: p.border },
     catChoiceText: { color: p.textSecondary },
     chipToggle: { backgroundColor: p.container, borderColor: p.border },
     chipToggleText: { color: p.textSecondary },
+    presetColorChip: { backgroundColor: p.chip },
+    presetColorText: { color: p.textSecondary },
+    selectedColorChip: { backgroundColor: p.infoBg },
+    selectedColorText: { color: p.infoText },
+    pageOnePhotoHeroCard: { backgroundColor: p.container, borderColor: p.border },
+    pageOneTapTitle: { color: p.textPrimary },
+    pageOneTapSubtitle: { color: p.textMuted },
+    pageOneCameraCircle: { backgroundColor: p.chip },
+    addAnotherPhotoPillText: { color: '#FFFFFF' },
     effectivePriceBox: { backgroundColor: p.emeraldBg },
     effectivePriceText: { color: p.emeraldText },
 
@@ -6867,7 +7638,6 @@ function createThemedStyles(p: ThemePalette) {
     galleryTitle: { color: p.textPrimary },
     galleryPriceBold: { color: p.textPrimary },
     galleryOrigPrice: { color: p.textFaint },
-    galleryStockBadge: {},
 
     // Orders / payments / customers
     orderCard: { backgroundColor: p.surface, borderColor: p.hairline, shadowColor: '#000', shadowOpacity: 0.3 },
@@ -6885,7 +7655,14 @@ function createThemedStyles(p: ThemePalette) {
     itemSub: { color: p.textMuted },
     itemPrice: { color: p.textPrimary },
     statusBtn: { backgroundColor: p.surface, borderColor: p.border },
-    statusBtnText: { color: p.textSecondary },
+    statusBtnCurrent: { backgroundColor: p.chip, borderColor: p.borderStrong },
+    statusBtnTextCurrent: { color: p.textPrimary },
+    filterChipActive: { backgroundColor: p.chip, borderColor: p.borderStrong },
+    filterChipTextActive: { color: p.textPrimary },
+    oneUiFilterPillActive: { backgroundColor: p.chip, borderColor: p.borderStrong },
+    oneUiFilterPillTextActive: { color: p.textPrimary },
+    galleryStockBadge: {},
+    detailThumbWrapActive: { borderColor: p.infoText },
     filterScrollWrapper: { backgroundColor: p.surface, borderBottomColor: p.border },
     filterChip: { backgroundColor: p.chip },
     filterChipText: { color: p.textSecondary },
@@ -6901,6 +7678,9 @@ function createThemedStyles(p: ThemePalette) {
     sectionTitle: { color: p.textPrimary },
     sectionSubtitle: { color: p.textMuted },
     textInput: { backgroundColor: p.container, borderColor: p.borderStrong, color: p.textPrimary },
+    adminAccountRow: { backgroundColor: p.container, borderColor: p.border },
+    adminAccountName: { color: p.textPrimary },
+    adminAccountEmail: { color: p.textMuted },
     dashboardWelcomeCard: { backgroundColor: p.surface, borderColor: p.hairline, shadowColor: '#000', shadowOpacity: 0.3 },
     dashboardWelcomeTitle: { color: p.textPrimary },
     dashboardWelcomeSub: { color: p.textMuted },
@@ -6938,6 +7718,11 @@ function createThemedStyles(p: ThemePalette) {
     oneUiStickyBottomBar: { backgroundColor: p.surface, borderTopColor: p.border },
     stepperBackBtn: { backgroundColor: p.chip },
     stepperBackBtnText: { color: p.textSecondary },
+    stepCapsule: { backgroundColor: p.chip },
+    stepCapsuleText: { color: p.textMuted },
+    stepCapsulePassed: { backgroundColor: p.emeraldBg },
+    stepCapsuleTextPassed: { color: p.emeraldText },
+    stepperBarWrapper: { backgroundColor: p.surface, borderBottomColor: p.border },
     emptyView: {},
     emptyTitle: { color: p.textSecondary },
     emptySubtitle: { color: p.textFaint },
@@ -6945,8 +7730,5 @@ function createThemedStyles(p: ThemePalette) {
     directUrlAddBtn: { backgroundColor: p.navy },
     addPillMiniBtn: { backgroundColor: p.navy },
     addAnotherPhotoPill: { backgroundColor: p.navy },
-    stepCapsule: { backgroundColor: p.chip },
-    stepCapsuleText: { color: p.textMuted },
-    stepperBarWrapper: { backgroundColor: p.surface, borderBottomColor: p.border },
   });
 }
