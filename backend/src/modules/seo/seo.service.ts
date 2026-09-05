@@ -49,6 +49,33 @@ const aiSeoResponseSchema = z.object({
 
 export type AiSeoResponse = z.infer<typeof aiSeoResponseSchema>;
 
+// JSON Schema handed to the Interactions API response_format so the model's
+// output is structurally guaranteed (no code fences, no drift). Mirrors
+// aiSeoResponseSchema above; zod still validates on arrival (defense in depth).
+const SEO_JSON_SCHEMA: Record<string, unknown> = {
+  type: 'object',
+  properties: {
+    shortDescription: { type: 'string' },
+    description: { type: 'string' },
+    seoTitle: { type: 'string' },
+    metaDescription: { type: 'string' },
+    keywords: { type: 'array', items: { type: 'string' } },
+    tags: { type: 'array', items: { type: 'string' } },
+    slug: { type: 'string' },
+    highlights: { type: 'array', items: { type: 'string' } },
+    faqs: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: { question: { type: 'string' }, answer: { type: 'string' } },
+        required: ['question', 'answer'],
+      },
+    },
+    primaryKeyword: { type: 'string' },
+  },
+  required: ['shortDescription', 'description', 'seoTitle', 'metaDescription', 'keywords', 'tags', 'slug', 'highlights', 'faqs'],
+};
+
 export interface GenerateSeoResult {
   content: AiSeoResponse;
   score: { score: number; max: number; suggestions: string[] };
@@ -212,7 +239,7 @@ export class SeoService {
       systemPrompt: buildSystemPrompt(),
       userPrompt: buildUserPrompt(input, related, requested),
       responseMimeType: 'application/json',
-      temperature: 0.8,
+      responseSchema: SEO_JSON_SCHEMA,
       maxOutputTokens: 4096,
     });
 

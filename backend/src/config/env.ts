@@ -57,7 +57,7 @@ export const env = {
 
   // AI Product SEO Engine (admin generate-seo endpoint)
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || process.env.AI_API_KEY || '',
-  GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+  GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-3.6-flash',
   SEO_AI_PROVIDER: process.env.SEO_AI_PROVIDER || 'gemini',
   SEO_RATE_LIMIT_MAX: parseInt(process.env.SEO_RATE_LIMIT_MAX || '6', 10),
 };
