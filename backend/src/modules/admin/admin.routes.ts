@@ -22,6 +22,11 @@ router.get('/users', adminController.getUsers.bind(adminController));
 router.patch('/users/:id/role', adminController.updateUserRole.bind(adminController));
 router.post('/users/:id/unlock', adminController.unlockUser.bind(adminController));
 
+// Admin Accounts (secondary admin management; primary admin is protected server-side)
+router.get('/admins', adminController.listAdmins.bind(adminController));
+router.post('/admins', adminController.createAdminAccount.bind(adminController));
+router.delete('/admins/:id', adminController.deleteAdminAccount.bind(adminController));
+
 // Orders
 router.get('/orders', adminController.getOrders.bind(adminController));
 router.patch('/orders/:id/status', adminController.updateOrderStatus.bind(adminController));

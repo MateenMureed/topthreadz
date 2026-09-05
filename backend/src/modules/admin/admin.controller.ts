@@ -12,6 +12,27 @@ const DEFAULT_HERO_BANNER_TEXT = {
   buttonLink: '/products',
 };
 
+/**
+ * Insert an on-the-fly transformation into a Cloudinary delivery URL:
+ * https://res.cloudinary.com/<cloud>/image/upload/v123/logo.png
+ *   -> .../image/upload/t_v123/c_limit,h_96,q_auto:good,f_auto/logo.png
+ * Non-Cloudinary URLs are returned unchanged.
+ */
+function insertCloudinaryTransform(url: string, transformation: string): string {
+  const marker = '/image/upload/';
+  const idx = url.indexOf(marker);
+  if (idx === -1) return url;
+  const base = url.slice(0, idx + marker.length);
+  const rest = url.slice(idx + marker.length);
+  // rest looks like "v1690...​/folder/file.png" — insert transformation right
+  // after the version segment (or immediately if no version).
+  const slash = rest.indexOf('/');
+  const withTransform = slash === -1
+    ? `${transformation}/${rest}`
+    : `${rest.slice(0, slash)}/${transformation}${rest.slice(slash)}`;
+  return base + withTransform;
+}
+
 export class AdminController {
   async getDashboard(_req: AuthRequest, res: Response, next: NextFunction) {
     try {
@@ -115,6 +136,35 @@ export class AdminController {
       const setting = await prisma.siteSetting.findUnique({ where: { key: 'hero_banner_text' } });
       const savedText = setting ? JSON.parse(setting.value) : {};
       res.json({ success: true, data: { ...DEFAULT_HERO_BANNER_TEXT, ...savedText } });
+    } catch (error) { next(error); }
+  }
+
+  // ── Admin Accounts (create/delete/list secondary admins) ──────────────
+  async listAdmins(_req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const admins = await adminService.listAdmins();
+      res.json({ success: true, data: admins });
+    } catch (error) { next(error); }
+  }
+
+  async createAdminAccount(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { name, email, password } = req.body || {};
+      if (!name || !email || !password) {
+        res.status(400).json({ success: false, error: 'Name, email and password are required.' });
+        return;
+      }
+      const admin = await adminService.createAdmin({ name, email, password }, req.user!.userId);
+      res.status(201).json({ success: true, data: admin });
+    } catch (error) { next(error); }
+  }
+
+  async deleteAdminAccount(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const targetId = String(req.params.id);
+      const actingAdmin = await prisma.user.findUnique({ where: { id: req.user!.userId }, select: { email: true } });
+      const result = await adminService.deleteAdmin(targetId, actingAdmin?.email || '');
+      res.json({ success: true, data: result });
     } catch (error) { next(error); }
   }
 
@@ -255,6 +305,90 @@ export class AdminController {
             if (old.publicId) await deleteFromCloudinary(old.publicId);
           } catch { /* ignore */ }
           await prisma.siteSetting.delete({ where: { key: 'hero_banner' } });
+        }
+      } catch { /* ignore */ }
+      res.json({ success: true, data: null });
+    } catch (error) { next(error); }
+  }
+
+  // ── Site Logo (auto-resized variants for header/footer/favicon) ───────
+  // The logo is uploaded once; Cloudinary transformation URLs generate
+  // header/footer-sized and favicon-sized variants on demand. The stored
+  // payload keeps the canonical URL + publicId so variants are derivable.
+
+  async getSiteLogo(_req: Request, res: Response, next: NextFunction) {
+    try {
+      const setting = await prisma.siteSetting.findUnique({ where: { key: 'site_logo' } });
+      const data = setting ? JSON.parse(setting.value) : null;
+      res.json({ success: true, data });
+    } catch (error) { next(error); }
+  }
+
+  async uploadSiteLogo(req: Request, res: Response, next: NextFunction) {
+    try {
+      const file = (req as any).file as Express.Multer.File | undefined;
+      const directUrl = (req.body?.url as string | undefined)?.trim();
+
+      let imageUrl = '';
+      let publicId = '';
+
+      if (file) {
+        if (!isCloudinaryConfigured()) {
+          throw new Error('Cloudinary keys are missing on the backend. Please add Cloudinary keys or paste an image URL.');
+        }
+        const uploaded = await uploadToCloudinary(file.buffer, 'topthreadz-logo');
+        imageUrl = uploaded.url;
+        publicId = uploaded.publicId;
+      } else if (directUrl && /^https?:\/\//i.test(directUrl)) {
+        imageUrl = directUrl;
+      } else {
+        throw new Error('Please select an image file or enter a direct image URL.');
+      }
+
+      // Remove the previous logo asset from Cloudinary (best-effort)
+      try {
+        const existing = await prisma.siteSetting.findUnique({ where: { key: 'site_logo' } });
+        if (existing) {
+          try {
+            const old = JSON.parse(existing.value);
+            if (old.publicId) await deleteFromCloudinary(old.publicId);
+          } catch { /* ignore */ }
+        }
+      } catch { /* ignore */ }
+
+      // Cloudinary delivery URLs can transform on demand. Store the canonical
+      // URL plus derived variant URLs so clients don't need to build them.
+      const variant = (height: number) =>
+        insertCloudinaryTransform(imageUrl, `c_limit,h_${height},q_auto:good,f_auto`);
+
+      const payload = {
+        url: imageUrl,
+        publicId,
+        header: variant(96),
+        footer: variant(64),
+        favicon: variant(48),
+      };
+
+      await prisma.siteSetting.upsert({
+        where: { key: 'site_logo' },
+        update: { value: JSON.stringify(payload) },
+        create: { key: 'site_logo', value: JSON.stringify(payload) },
+      });
+
+      res.json({ success: true, data: payload });
+    } catch (error) { next(error); }
+  }
+
+  async deleteSiteLogo(_req: Request, res: Response, next: NextFunction) {
+    try {
+      try {
+        const existing = await prisma.siteSetting.findUnique({ where: { key: 'site_logo' } });
+        if (existing) {
+          try {
+            const old = JSON.parse(existing.value);
+            if (old.publicId) await deleteFromCloudinary(old.publicId);
+          } catch { /* ignore */ }
+          await prisma.siteSetting.delete({ where: { key: 'site_logo' } });
         }
       } catch { /* ignore */ }
       res.json({ success: true, data: null });

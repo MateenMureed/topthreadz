@@ -5,6 +5,7 @@ import { BadRequestError, UnauthorizedError, ConflictError, NotFoundError } from
 import logger from '../../utils/logger';
 import { env } from '../../config/env';
 import { SignupInput, LoginInput } from './auth.schema';
+import { PRIMARY_ADMIN_EMAIL } from '../admin/admin.service';
 
 const SALT_ROUNDS = 12;
 
@@ -120,6 +121,11 @@ export class AuthService {
     });
 
     if (!user) throw new BadRequestError('Invalid or expired reset token');
+
+    // The primary admin password is fixed and can never be reset.
+    if (user.email.toLowerCase() === PRIMARY_ADMIN_EMAIL) {
+      throw new BadRequestError('This account password cannot be changed.');
+    }
 
     const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
 

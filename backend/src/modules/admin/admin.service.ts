@@ -4,9 +4,94 @@ import { NotFoundError } from '../../utils/errors';
 import { orderService } from '../order/order.service';
 import { paymentService } from '../payment/payment.service';
 import logger from '../../utils/logger';
-import { BadRequestError } from '../../utils/errors';
+import { BadRequestError, ConflictError } from '../../utils/errors';
+import bcrypt from 'bcrypt';
+
+// The primary (owner) admin account. Its password is fixed via env and can
+// never be changed or deleted from the admin panel.
+export const PRIMARY_ADMIN_EMAIL = (process.env.PRIMARY_ADMIN_EMAIL || 'mateenmurid@gmail.com').toLowerCase();
 
 export class AdminService {
+  // ============ ADMIN ACCOUNTS ============
+  /**
+   * Ensure the primary admin exists with the fixed password. Called at boot
+   * and before each admin-management operation so the owner account is
+   * always present and correct.
+   */
+  async ensurePrimaryAdmin() {
+    const fixedPassword = process.env.PRIMARY_ADMIN_PASSWORD || 'TopThreadz@2026';
+    const existing = await prisma.user.findUnique({ where: { email: PRIMARY_ADMIN_EMAIL } });
+    if (!existing) {
+      const hashed = await bcrypt.hash(fixedPassword, 12);
+      await prisma.user.create({
+        data: {
+          name: 'Mateen Mureed',
+          email: PRIMARY_ADMIN_EMAIL,
+          password: hashed,
+          role: 'ADMIN',
+          isVerified: true,
+        },
+      });
+      logger.info(`Primary admin account created: ${PRIMARY_ADMIN_EMAIL}`);
+    } else if (existing.role !== 'ADMIN') {
+      await prisma.user.update({ where: { id: existing.id }, data: { role: 'ADMIN' } });
+    }
+  }
+
+  async listAdmins() {
+    const admins = await prisma.user.findMany({
+      where: { role: 'ADMIN' },
+      select: { id: true, name: true, email: true, isVerified: true, createdAt: true },
+      orderBy: { createdAt: 'asc' },
+    });
+    return admins.map((a) => ({ ...a, isPrimary: a.email.toLowerCase() === PRIMARY_ADMIN_EMAIL }));
+  }
+
+  async createAdmin(data: { name: string; email: string; password: string }, creatorAdminId: string) {
+    const email = data.email.trim().toLowerCase();
+    if (email === PRIMARY_ADMIN_EMAIL) {
+      throw new ConflictError('This email is reserved for the primary admin account.');
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) throw new BadRequestError('Please enter a valid email address.');
+    if (!data.password || data.password.length < 8) {
+      throw new BadRequestError('Password must be at least 8 characters long.');
+    }
+    if (!/[A-Z]/.test(data.password) || !/[a-z]/.test(data.password) || !/[0-9]/.test(data.password)) {
+      throw new BadRequestError('Password must include uppercase, lowercase and a number.');
+    }
+
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) throw new ConflictError('An account with this email already exists.');
+
+    const hashed = await bcrypt.hash(data.password, 12);
+    const created = await prisma.user.create({
+      data: {
+        name: data.name.trim(),
+        email,
+        password: hashed,
+        role: 'ADMIN',
+        isVerified: true,
+      },
+      select: { id: true, name: true, email: true, isVerified: true, createdAt: true },
+    });
+    await this.createAuditLog(creatorAdminId, 'CREATE_ADMIN', 'User', created.id, {}, { email });
+    return { ...created, isPrimary: false };
+  }
+
+  async deleteAdmin(adminId: string, actingAdminEmail: string) {
+    if (actingAdminEmail.toLowerCase() !== PRIMARY_ADMIN_EMAIL) {
+      throw new BadRequestError('Only the primary admin can delete admin accounts.');
+    }
+    const target = await prisma.user.findUnique({ where: { id: adminId } });
+    if (!target || target.role !== 'ADMIN') throw new NotFoundError('Admin account not found.');
+    if (target.email.toLowerCase() === PRIMARY_ADMIN_EMAIL) {
+      throw new ConflictError('The primary admin account cannot be deleted.');
+    }
+    await prisma.user.delete({ where: { id: adminId } });
+    await this.createAuditLog(adminId, 'DELETE_ADMIN', 'User', adminId, { email: target.email }, {});
+    return { message: 'Admin account deleted' };
+  }
   // ============ USERS ============
   async getUsers(page = 1, limit = 20) {
     const skip = (page - 1) * limit;
@@ -25,6 +110,11 @@ export class AdminService {
   async updateUserRole(userId: string, role: string, adminId: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundError('User not found');
+
+    // The primary admin role is permanent.
+    if (user.email.toLowerCase() === PRIMARY_ADMIN_EMAIL && role?.toUpperCase() !== 'ADMIN') {
+      throw new BadRequestError('The primary admin role cannot be changed.');
+    }
 
     const normalizedRole = role?.toUpperCase();
     if (!Object.values(Role).includes(normalizedRole as Role)) {

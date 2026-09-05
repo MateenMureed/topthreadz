@@ -18,6 +18,7 @@ import paymentRoutes from './modules/payment/payment.routes';
 import adminRoutes from './modules/admin/admin.routes';
 import experienceRoutes from './modules/experience/experience.routes';
 import { adminController } from './modules/admin/admin.controller';
+import { adminService } from './modules/admin/admin.service';
 import { upload } from './middleware/upload.middleware';
 import { recommendationService } from './modules/product/recommendation.service';
 import { authenticate, authenticateAdmin, authorize, AuthRequest } from './middleware/auth.middleware';
@@ -105,6 +106,11 @@ app.delete('/api/settings/hero-banner', authenticateAdmin, authorize('ADMIN'), a
 app.get('/api/settings/hero-banner-text', adminController.getHeroBannerText.bind(adminController));
 app.post('/api/settings/hero-banner-text', authenticateAdmin, authorize('ADMIN'), adminController.updateHeroBannerText.bind(adminController));
 
+// Site logo (auto-resized Cloudinary variants for header/footer/favicon)
+app.get('/api/settings/logo', adminController.getSiteLogo.bind(adminController));
+app.post('/api/settings/logo', authenticateAdmin, authorize('ADMIN'), upload.single('image'), adminController.uploadSiteLogo.bind(adminController));
+app.delete('/api/settings/logo', authenticateAdmin, authorize('ADMIN'), adminController.deleteSiteLogo.bind(adminController));
+
 app.get('/api/settings/store', adminController.getStoreSettings.bind(adminController));
 app.put('/api/settings/store', authenticateAdmin, authorize('ADMIN'), adminController.updateStoreSettings.bind(adminController));
 
@@ -126,4 +132,12 @@ app.get('/api/health', async (_req, res) => {
 });
 
 app.use(errorHandler);
+
+// Ensure the primary owner admin exists with its fixed password. Never blocks
+// boot: if the DB is briefly unavailable the account is re-checked lazily by
+// the admin-management endpoints.
+adminService.ensurePrimaryAdmin().catch((err) =>
+  logger.warn('Primary admin bootstrap skipped', err)
+);
+
 export default app;
