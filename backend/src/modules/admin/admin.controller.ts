@@ -13,10 +13,12 @@ const DEFAULT_HERO_BANNER_TEXT = {
 };
 
 /**
- * Insert an on-the-fly transformation into a Cloudinary delivery URL:
- * https://res.cloudinary.com/<cloud>/image/upload/v123/logo.png
- *   -> .../image/upload/t_v123/c_limit,h_96,q_auto:good,f_auto/logo.png
- * Non-Cloudinary URLs are returned unchanged.
+ * Insert an on-the-fly transformation into a Cloudinary delivery URL.
+ * Cloudinary syntax: .../image/upload/<transformation>/<version>/<path>.jpg
+ *   https://res.cloudinary.com/<cloud>/image/upload/v123/logo.jpg
+ *     + c_limit,h_96  ->  .../image/upload/c_limit,h_96,q_auto:good,f_auto/v123/logo.jpg
+ * The transformation goes BEFORE the version segment. Non-Cloudinary URLs
+ * are returned unchanged.
  */
 function insertCloudinaryTransform(url: string, transformation: string): string {
   const marker = '/image/upload/';
@@ -24,13 +26,7 @@ function insertCloudinaryTransform(url: string, transformation: string): string 
   if (idx === -1) return url;
   const base = url.slice(0, idx + marker.length);
   const rest = url.slice(idx + marker.length);
-  // rest looks like "v1690...​/folder/file.png" — insert transformation right
-  // after the version segment (or immediately if no version).
-  const slash = rest.indexOf('/');
-  const withTransform = slash === -1
-    ? `${transformation}/${rest}`
-    : `${rest.slice(0, slash)}/${transformation}${rest.slice(slash)}`;
-  return base + withTransform;
+  return `${base}${transformation}/${rest}`;
 }
 
 export class AdminController {
@@ -319,7 +315,21 @@ export class AdminController {
   async getSiteLogo(_req: Request, res: Response, next: NextFunction) {
     try {
       const setting = await prisma.siteSetting.findUnique({ where: { key: 'site_logo' } });
-      const data = setting ? JSON.parse(setting.value) : null;
+      if (!setting) {
+        res.json({ success: true, data: null });
+        return;
+      }
+      // Re-derive variant URLs on read so logo entries uploaded with an
+      // older transformation builder self-heal without re-uploading.
+      const stored = JSON.parse(setting.value);
+      const variant = (height: number) =>
+        insertCloudinaryTransform(stored.url, `c_limit,h_${height},q_auto:good,f_auto`);
+      const data = {
+        ...stored,
+        header: variant(96),
+        footer: variant(64),
+        favicon: variant(48),
+      };
       res.json({ success: true, data });
     } catch (error) { next(error); }
   }
