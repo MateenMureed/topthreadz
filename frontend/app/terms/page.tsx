@@ -39,29 +39,64 @@ export default function TermsOfServicePage() {
             <section>
               <h2 className="text-lg font-bold text-surface-900 mb-2">1. Overview</h2>
               <p>
-                This website is operated by Top Threadz. Throughout the site, the terms &quot;we&quot;, &quot;us&quot; and &quot;our&quot; refer to Top Threadz. By visiting our site and/ or purchasing something from us, you engage in our &quot;Service&quot; and agree to be bound by the following terms and conditions.
+                This website is operated by Top Threadz (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;). By visiting our site and/or purchasing from us, you engage in our &quot;Service&quot; and agree to be bound by these terms and conditions. Top Threadz is a multi-category fashion retailer offering menswear, unstitched fabrics, stitched garments, suits and kids&apos; collections.
               </p>
             </section>
 
             <section>
-              <h2 className="text-lg font-bold text-surface-900 mb-2">2. Products & Pricing</h2>
+              <h2 className="text-lg font-bold text-surface-900 mb-2">2. Products &amp; Pricing</h2>
               <p>
-                All unstitched fabrics (4.5 meter suit lengths, blended wash & wear, Boski series) are described as accurately as possible. Prices for our products are subject to change without notice. We reserve the right at any time to modify or discontinue any product.
+                We describe all products — including unstitched fabrics, stitched garments, two-piece and three-piece suits, and kids&apos; wear — as accurately as possible. Prices are subject to change without notice, and we reserve the right to modify or discontinue any product at any time.
               </p>
             </section>
 
             <section>
-              <h2 className="text-lg font-bold text-surface-900 mb-2">3. Orders & Payment</h2>
+              <h2 className="text-lg font-bold text-surface-900 mb-2">3. Orders &amp; Payment</h2>
               <p>
-                We accept Cash on Delivery (COD) and approved digital payments. We reserve the right to refuse any order you place with us or limit quantities per person or per order.
+                We accept Cash on Delivery (COD) and approved digital payments. We reserve the right to refuse any order or limit quantities per person or per order.
               </p>
             </section>
 
             <section>
-              <h2 className="text-lg font-bold text-surface-900 mb-2">4. Contact Information</h2>
+              <h2 className="text-lg font-bold text-surface-900 mb-2">4. Product Use &amp; Sizing</h2>
               <p>
-                Questions about the Terms of Service should be sent to us at{' '}
-                <a href={`mailto:${settingsData?.email || 'support@topthreadz.pk'}`} className="text-black font-semibold underline">
+                Sizing guides are provided as a reference. Because tailoring preferences and body measurements vary, we encourage you to review each product&apos;s size details before ordering. Unstitched fabric is supplied for stitching to your preferred style and measurements.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-bold text-surface-900 mb-2">5. Intellectual Property</h2>
+              <p>
+                All content on this website — including product photography, descriptions, branding and design — belongs to Top Threadz and may not be copied, reproduced or used commercially without written permission.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-bold text-surface-900 mb-2">6. Returns &amp; Exchanges</h2>
+              <p>
+                Returns and exchanges are governed by our <Link href="/returns" className="text-black font-semibold underline underline-offset-2">Exchange &amp; Return Policy</Link>, which forms part of these terms.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-bold text-surface-900 mb-2">7. Limitation of Liability</h2>
+              <p>
+                To the extent permitted by law, Top Threadz is not liable for indirect or consequential losses arising from the use of this website or the purchase of our products.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-bold text-surface-900 mb-2">8. Changes to These Terms</h2>
+              <p>
+                We may update these terms from time to time. Continued use of the website after changes are posted constitutes acceptance of the revised terms.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-bold text-surface-900 mb-2">9. Contact Information</h2>
+              <p>
+                Questions about these Terms of Service may be sent to{' '}
+                <a href={`mailto:${settingsData?.email || 'support@topthreadz.pk'}`} className="text-black font-semibold underline underline-offset-2">
                   {settingsData?.email || 'support@topthreadz.pk'}
                 </a>.
               </p>

@@ -19,40 +19,40 @@ import { FaWhatsapp } from 'react-icons/fa';
 const FAQS_LIST = [
   {
     category: 'Product & Quality',
-    question: 'What type of fabric does Top Threadz sell?',
+    question: 'What does Top Threadz sell?',
     answer:
-      'Top Threadz specializes in premium unstitched men’s fabric in Pakistan, including wash & wear and other selected fabrics. Our collection is designed for a clean, comfortable and premium formal look.',
+      'Top Threadz is a multi-category menswear retailer. Our collections include unstitched fabrics, stitched garments, two-piece and three-piece suits, and kids\u2019 wear — designed for men who value premium quality and modern style.',
   },
   {
     category: 'Product & Quality',
-    question: 'How much fabric is included in one suit?',
+    question: 'What is included in an unstitched suit?',
     answer:
-      'Our standard unstitched men’s suit fabric is provided according to the product specification shown on the individual product page. Please check the product details before placing your order for the exact fabric length and included pieces.',
+      'Unstitched suits include fabric pieces tailored to the product specification shown on each product page. Exact fabric length and included pieces vary by product, so please review the product details before ordering.',
   },
   {
     category: 'Product & Quality',
-    question: 'Are Top Threadz fabrics unstitched?',
+    question: 'Do you only sell unstitched fabric?',
     answer:
-      'Yes. Top Threadz primarily offers unstitched men’s fabric. The fabric is supplied for customers who want to have it stitched according to their preferred style, size and design.',
+      'No. While unstitched fabric remains one of our signature categories, we now offer a full range of menswear — including stitched garments, two-piece and three-piece suits, and kids\u2019 collections.',
   },
   {
     category: 'Product & Quality',
-    question: 'Do the actual fabric colors look exactly like the website images?',
+    question: 'Do the actual colors look exactly like the website images?',
     answer:
-      'We make every effort to display product colors as accurately as possible. However, colors may appear slightly different depending on your screen, device settings, lighting and photography conditions.',
+      'We make every effort to display colors as accurately as possible. However, colors may appear slightly different depending on your screen, device settings, lighting and photography conditions.',
   },
   {
     category: 'Product & Quality',
-    question: 'Is Top Threadz fabric suitable for everyday wear?',
+    question: 'Is Top Threadz clothing suitable for everyday wear?',
     answer:
-      'Our collection includes fabrics designed for comfortable everyday and formal wear. Please check the individual product description for specific information about the fabric, finish, season and recommended use.',
+      'Yes. Our collections are designed for everyday comfort as well as formal occasions. Each product page describes the fabric, finish, season and recommended use so you can choose what fits your routine.',
   },
 
   {
     category: 'Shipping & Delivery',
     question: 'Do you deliver across Pakistan?',
     answer:
-      'Yes. Top Threadz provides delivery across Pakistan through available courier and logistics partners. Delivery availability and charges may vary depending on your location.',
+      'Yes. Top Threadz delivers across Pakistan through trusted courier and logistics partners. Delivery availability and charges may vary depending on your location.',
   },
   {
     category: 'Shipping & Delivery',
@@ -68,7 +68,7 @@ const FAQS_LIST = [
   },
   {
     category: 'Shipping & Delivery',
-    question: 'How can I track my Top Threadz order?',
+    question: 'How can I track my order?',
     answer:
       'Once your order has been dispatched, tracking information may be provided through your account, email, SMS, WhatsApp or another available notification method. You can use the tracking ID to check your parcel status with the relevant courier.',
   },
@@ -106,15 +106,15 @@ const FAQS_LIST = [
 
   {
     category: 'Exchanges & Returns',
-    question: 'What is Top Threadz’s return and exchange policy?',
+    question: 'What is Top Threadz\u2019s return and exchange policy?',
     answer:
-      'Returns and exchanges are subject to the current Top Threadz Return & Exchange Policy. Please review that policy before returning a product, as eligibility may depend on the condition of the fabric, packaging, tags and the time period specified in the policy.',
+      'Returns and exchanges are subject to the current Top Threadz Return & Exchange Policy. Please review that policy before returning an item, as eligibility may depend on the condition of the product, packaging, tags and the time period specified in the policy.',
   },
   {
     category: 'Exchanges & Returns',
-    question: 'Can I return fabric after it has been cut or stitched?',
+    question: 'Can I return items after they have been altered or washed?',
     answer:
-      'Products that have been cut, stitched, altered, washed or otherwise used may not be eligible for return or exchange. Please review our Return & Exchange Policy for the complete eligibility requirements before altering the fabric.',
+      'Products that have been altered, stitched, washed or otherwise used may not be eligible for return or exchange. Please review our Return & Exchange Policy for the complete eligibility requirements before altering your purchase.',
   },
   {
     category: 'Exchanges & Returns',
@@ -127,7 +127,7 @@ const FAQS_LIST = [
     category: 'Ordering & Support',
     question: 'How can I place an order?',
     answer:
-      'Select your desired products, choose the required quantity or available options, add the products to your shopping bag and proceed to checkout. Enter your delivery information, select an available payment method and confirm your order.',
+      'Select your desired products, choose the required size or available options, add them to your shopping bag and proceed to checkout. Enter your delivery information, select an available payment method and confirm your order.',
   },
   {
     category: 'Ordering & Support',
@@ -151,32 +151,32 @@ const FAQS_LIST = [
     category: 'Ordering & Support',
     question: 'How can I contact Top Threadz customer support?',
     answer:
-      'You can contact Top Threadz through the support options provided on our website, including WhatsApp, phone or email where available. Our team can assist with orders, products, delivery and other customer questions.',
+      'You can contact Top Threadz through the support options provided on our website, including WhatsApp, phone or email where available. Our team can assist with orders, products, sizing, delivery and other customer questions.',
   },
 
   {
-    category: 'Washing & Care',
-    question: 'How should I wash Top Threadz wash & wear fabric?',
+    category: 'Product Care',
+    question: 'How should I care for my Top Threadz products?',
     answer:
-      'For best results, follow the care instructions provided with the specific product. In general, use a suitable mild detergent and avoid excessive heat or harsh chemicals. Always check the product-specific care instructions before washing.',
+      'For best results, follow the care instructions provided with each product. In general, use a suitable mild detergent and avoid excessive heat or harsh chemicals. Always check the product-specific care label before washing.',
   },
   {
-    category: 'Washing & Care',
-    question: 'Can I use bleach on the fabric?',
+    category: 'Product Care',
+    question: 'Can I use bleach on fabrics or garments?',
     answer:
-      'We generally recommend avoiding bleach and harsh chemicals unless the specific product care instructions state otherwise, as they may affect the fabric color, finish or fibers.',
+      'We generally recommend avoiding bleach and harsh chemicals unless the specific product care instructions state otherwise, as they may affect the color, finish or fibers.',
   },
   {
-    category: 'Washing & Care',
-    question: 'How should I iron the fabric?',
+    category: 'Product Care',
+    question: 'How should I iron my clothes?',
     answer:
       'Use an appropriate iron temperature for the specific fabric and follow the product care instructions. Avoid excessive heat, particularly on delicate or blended fabrics.',
   },
   {
-    category: 'Washing & Care',
-    question: 'How can I keep my fabric looking fresh and wrinkle-free?',
+    category: 'Product Care',
+    question: 'How can I keep my garments looking fresh and wrinkle-free?',
     answer:
-      'Follow the recommended washing and ironing instructions for the product. Avoid excessive heat during washing and drying, and store the fabric clean and properly folded when not in use.',
+      'Follow the recommended washing and ironing instructions for the product. Avoid excessive heat during washing and drying, and store your garments clean and properly folded or hung when not in use.',
   },
 ];
 
@@ -187,7 +187,7 @@ const CATEGORIES = [
   'Payment Methods',
   'Exchanges & Returns',
   'Ordering & Support',
-  'Washing & Care',
+  'Product Care',
 ];
 
 export default function FAQPage() {
@@ -240,7 +240,7 @@ export default function FAQPage() {
             </div>
           </div>
           <p className="text-xs sm:text-sm text-surface-600 leading-relaxed">
-            Find answers to common questions about fabric cuts, nationwide delivery, Cash on Delivery payments, and returns.
+            Find answers about our collections, nationwide delivery, Cash on Delivery payments, returns and more.
           </p>
 
           {/* Search Box */}

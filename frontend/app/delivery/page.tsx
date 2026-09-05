@@ -70,7 +70,7 @@ export default function DeliveryPolicyPage() {
 
                 <p className="text-sm text-surface-500 mt-2 leading-relaxed">
                   Everything you need to know about ordering, shipping and
-                  receiving your Top Threadz products across Pakistan.
+                  receiving your Top Threadz orders across Pakistan.
                 </p>
               </div>
             </div>
@@ -549,7 +549,7 @@ export default function DeliveryPolicyPage() {
 
         {/* Footer note */}
         <p className="text-center text-[11px] text-surface-400 mt-5 px-4">
-          Top Threadz • Premium Unstitched Men&apos;s Fabric in Pakistan
+          Top Threadz • Premium Menswear, Fabric & Kids Collections in Pakistan
         </p>
       </div>
     </div>
