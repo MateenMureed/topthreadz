@@ -48,6 +48,14 @@ const FAVORITE_BRANDS = [
 ];
 
 export default function Navbar() {
+  // Dynamic store logo (admin-uploadable). Falls back to the bundled logo.
+  const { data: siteLogo } = useQuery({
+    queryKey: ['site-logo'],
+    queryFn: () => api.get('/settings/logo').then((r) => r.data?.data).catch(() => null),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+  const logoSrc = siteLogo?.header || siteLogo?.url || '/images/topthreadz-logo.png';
   const pathname = usePathname();
   const router = useRouter();
   const hydrated = useHydration();
@@ -190,12 +198,13 @@ export default function Navbar() {
               <span className="sr-only">Top Threadz</span>
               <div className="relative h-11 sm:h-12 md:h-14 w-36 sm:w-44 md:w-52 flex items-center justify-center">
                 <Image
-                  src="/images/topthreadz-logo.png"
+                  src={logoSrc}
                   alt="Top Threadz"
                   width={320}
                   height={158}
                   priority
-                  className="h-full w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                  unoptimized={!logoSrc.startsWith('/')}
+                  className="h-full w-auto object-contain rounded-md transition-transform duration-300 group-hover:scale-105"
                 />
               </div>
             </Link>
@@ -305,15 +314,16 @@ export default function Navbar() {
           <div className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white shadow-2xl flex flex-col z-10 animate-slideIn">
             {/* Drawer Header */}
             <div className="p-4 border-b border-surface-200 flex items-center justify-between bg-[#0F1F3D] text-white">
-              <div className="relative h-8 w-28">
-                <Image
-                  src="/images/topthreadz-logo-light.png"
-                  alt="Top Threadz"
-                  width={160}
-                  height={50}
-                  className="h-full w-auto object-contain brightness-125"
-                />
-              </div>
+            <div className="relative h-8 w-28">
+              <Image
+                src={logoSrc}
+                alt="Top Threadz"
+                width={160}
+                height={50}
+                unoptimized={!logoSrc.startsWith('/')}
+                className="h-full w-auto object-contain rounded"
+              />
+            </div>
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}

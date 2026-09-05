@@ -230,6 +230,28 @@ button {
 }
 
 /* ============================================================
+   PRODUCT CARD LAZY-LOAD BRAND PLACEHOLDER
+   Animated "TOP THREADZ" text shown while images load.
+   ============================================================ */
+@keyframes brandPulse {
+  0%, 100% { opacity: 0.35; letter-spacing: 0.28em; }
+  50%      { opacity: 1;    letter-spacing: 0.34em; }
+}
+.brand-loading-anim {
+  animation: brandPulse 1.6s ease-in-out infinite;
+}
+.brand-loading-anim-delayed {
+  animation: brandPulse 1.6s ease-in-out 0.25s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-loading-anim,
+  .brand-loading-anim-delayed {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* ============================================================
    MODERN INPUTS WITH PILL CORNERS
    ============================================================ */
 

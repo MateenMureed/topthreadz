@@ -28,6 +28,8 @@ interface ProductCardProps {
   colors?: string[];
   slug?: string;
   imageMeta?: ProductImageMeta[];
+  /** "full" shows the entire product image (no crop) — used on category pages */
+  imageFit?: 'cover' | 'full';
 }
 
 function normalizeImageMetaInput(input: unknown): ProductImageMeta[] {
@@ -55,6 +57,7 @@ export default function ProductCard({
   colors = [],
   slug,
   imageMeta = [],
+  imageFit = 'cover',
 }: ProductCardProps) {
   const { addItem, openCart } = useCartStore();
   const { isAuthenticated } = useAuthStore();
@@ -200,26 +203,36 @@ export default function ProductCard({
         {/* Image container */}
         <div className="relative aspect-[3/4] overflow-hidden bg-[#f4f2ee] rounded-xl cursor-pointer">
 
-          {/* Product image — object-cover object-top so model and suit are always centered & sharp */}
-          <div className="absolute inset-0">
-            {frontSrc ? (
-              <>
-                {imageState === 'loading' ? <div className="absolute inset-0 bg-stone-100 shimmer" aria-hidden="true" /> : null}
-                <Image
-                  ref={imgRef}
-                  src={frontSrc}
-                  alt={frontAlt}
-                  fill
-                  loading="lazy"
-                  decoding="async"
-                  unoptimized={isBackendUploadUrl(frontSrc)}
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className={`h-full w-full object-cover object-top transition-[opacity,transform] duration-500 ease-out will-change-transform group-hover:scale-[1.05] ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
-                  style={{ transformOrigin: '50% 50%' }}
-                  onLoad={() => setImageState('loaded')}
-                  onError={() => setImageState('error')}
-                  draggable={false}
-                />
+      {/* Product image — object-cover object-top so model and suit are always centered & sharp */}
+  <div className="absolute inset-0">
+    {frontSrc ? (
+      <>
+        {imageState === 'loading' && (
+          <div className="absolute inset-0 bg-stone-100 flex flex-col items-center justify-center gap-1.5" aria-hidden="true">
+            <div className="shimmer absolute inset-0" />
+            <span className="relative text-[11px] sm:text-xs font-black tracking-[0.28em] text-stone-400 select-none brand-loading-anim">
+              TOP THREADZ
+            </span>
+            <span className="relative text-[9px] font-semibold uppercase tracking-widest text-stone-300 brand-loading-anim-delayed">
+              Loading
+            </span>
+          </div>
+        )}
+        <Image
+          ref={imgRef}
+          src={frontSrc}
+          alt={frontAlt}
+          fill
+          loading="lazy"
+          decoding="async"
+          unoptimized={isBackendUploadUrl(frontSrc)}
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className={`h-full w-full ${imageFit === 'full' ? 'object-contain object-center p-0.5 bg-white' : 'object-cover object-top'} transition-[opacity,transform] duration-500 ease-out will-change-transform group-hover:scale-[1.05] ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
+          style={{ transformOrigin: '50% 50%' }}
+          onLoad={() => setImageState('loaded')}
+          onError={() => setImageState('error')}
+          draggable={false}
+        />
                 {imageState === 'error' ? <div className="absolute inset-0 bg-stone-200" aria-hidden="true" /> : null}
               </>
             ) : (

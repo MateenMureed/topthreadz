@@ -39,6 +39,15 @@ export default function Footer() {
 
   if (pathname?.startsWith('/admin')) return null;
 
+  // Dynamic store logo (footer variant) with bundled fallback
+  const { data: siteLogo } = useQuery({
+    queryKey: ['site-logo'],
+    queryFn: () => api.get('/settings/logo').then((r) => r.data?.data).catch(() => null),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+  const footerLogoSrc = siteLogo?.footer || siteLogo?.url || '/images/topthreadz-logo-light.png';
+
   const toggleSection = (key: SectionKey) => {
     setOpenSection((current) => (current === key ? null : key));
   };
@@ -79,11 +88,12 @@ export default function Footer() {
             <Link href="/" className="hover-lift inline-flex items-center gap-2.5">
               <div className="relative h-7 w-24">
                 <Image
-                  src="/images/topthreadz-logo-light.png"
+                  src={footerLogoSrc}
                   alt="Top Threadz"
                   width={140}
                   height={44}
-                  className="h-full w-auto object-contain brightness-125"
+                  unoptimized={!footerLogoSrc.startsWith('/')}
+                  className="h-full w-auto object-contain brightness-125 rounded"
                 />
               </div>
             </Link>

@@ -759,6 +759,231 @@ function HeroBannerManager() {
   );
 }
 
+// ── Store Logo Manager (auto-resized header/footer/favicon variants) ────────
+function LogoManager() {
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [logoUrlInput, setLogoUrlInput] = useState('');
+
+  const { data: logo } = useQuery({
+    queryKey: ['site-logo'],
+    queryFn: () => api.get('/settings/logo').then((r) => r.data?.data),
+    retry: false,
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      return api.post('/settings/logo', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['site-logo'] });
+      toast.success('Logo uploaded — header, footer and favicon sizes were generated automatically.');
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.message || 'Logo upload failed.'),
+    onSettled: () => setUploading(false),
+  });
+
+  const urlMutation = useMutation({
+    mutationFn: (url: string) => api.post('/settings/logo', { url }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['site-logo'] });
+      toast.success('Logo URL saved.');
+      setLogoUrlInput('');
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.message || 'Could not save logo URL.'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => api.delete('/settings/logo'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['site-logo'] });
+      toast.success('Logo removed — the default Top Threadz logo is now in use.');
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.message || 'Could not remove logo.'),
+  });
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    uploadMutation.mutate(file);
+    e.target.value = '';
+  };
+
+  return (
+    <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft space-y-5">
+      <div>
+        <h2 className="text-xl font-bold text-surface-950 mb-1">Store Branding — Logo</h2>
+        <p className="text-xs text-surface-500">
+          Upload your logo once; header, footer and favicon sizes are generated automatically.
+          Tip: a logo with a black background and white text looks great on both light and dark modes.
+        </p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+        {/* Dual-mode preview */}
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl border border-surface-200 bg-white p-3">
+            <AdminImage
+              src={logo?.header || logo?.url || '/images/topthreadz-logo.png'}
+              alt="Logo light preview"
+              className="h-10 w-auto object-contain"
+            />
+          </div>
+          <div className="rounded-xl border border-surface-700 bg-[#0B1220] p-3">
+            <AdminImage
+              src={logo?.header || logo?.url || '/images/topthreadz-logo.png'}
+              alt="Logo dark preview"
+              className="h-10 w-auto object-contain"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2.5">
+          <label className="admin-btn-primary cursor-pointer">
+            {uploading ? 'Uploading…' : 'Upload Logo'}
+            <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={handleFile} />
+          </label>
+          {logo?.url && (
+            <button onClick={() => deleteMutation.mutate()} className="admin-btn-secondary !text-[#B91C2B]">
+              Remove Logo
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <input
+          type="text"
+          className="admin-input flex-1"
+          placeholder="…or paste a direct image URL"
+          value={logoUrlInput}
+          onChange={(e) => setLogoUrlInput(e.target.value)}
+        />
+        <button
+          className="admin-btn-secondary"
+          disabled={!logoUrlInput.trim()}
+          onClick={() => urlMutation.mutate(logoUrlInput.trim())}
+        >
+          Save URL
+        </button>
+      </div>
+      {logo?.url && (
+        <p className="text-[11px] text-surface-400 break-all">
+          Current: <span className="font-mono">{logo.url}</span>
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ── Admin Accounts Manager (primary owner + secondary admins) ─────────────
+function AdminAccountsManager() {
+  const queryClient = useQueryClient();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [creating, setCreating] = useState(false);
+
+  const { data: admins, isLoading } = useQuery({
+    queryKey: ['admin-accounts'],
+    queryFn: () => api.get('/admin/admins').then((r) => r.data?.data),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (payload: { name: string; email: string; password: string }) =>
+      api.post('/admin/admins', payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+      toast.success('Admin account created. They can now sign in with these credentials.');
+      setName(''); setEmail(''); setPassword('');
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error || err?.response?.data?.message || 'Could not create admin.'),
+    onSettled: () => setCreating(false),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.delete(`/admin/admins/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+      toast.success('Admin account deleted.');
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error || err?.response?.data?.message || 'Could not delete admin.'),
+  });
+
+  const handleCreate = () => {
+    if (!name.trim() || !email.trim() || !password) {
+      toast.error('All three fields are required.');
+      return;
+    }
+    setCreating(true);
+    createMutation.mutate({ name: name.trim(), email: email.trim(), password });
+  };
+
+  return (
+    <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft space-y-5">
+      <div>
+        <h2 className="text-xl font-bold text-surface-950 mb-1">Admin Accounts</h2>
+        <p className="text-xs text-surface-500">
+          The primary owner account is protected and its password cannot be changed.
+          Create additional admin accounts for your team — only the primary admin can delete them.
+        </p>
+      </div>
+
+      {isLoading ? (
+        <p className="text-sm text-surface-500 py-4 text-center">Loading admin accounts…</p>
+      ) : (
+        <div className="space-y-2.5">
+          {(admins || []).map((a: any) => (
+            <div key={a.id} className="flex items-center justify-between gap-3 rounded-xl border border-surface-200 bg-surface-50 px-4 py-3">
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-surface-950 truncate">
+                  {a.name}{' '}
+                  {a.isPrimary && (
+                    <span className="ml-1 rounded-full bg-[#0F1F3D] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                      Primary • Protected
+                    </span>
+                  )}
+                </p>
+                <p className="text-xs text-surface-500 truncate">{a.email}</p>
+              </div>
+              {!a.isPrimary && (
+                <button
+                  onClick={() => deleteMutation.mutate(a.id)}
+                  className="admin-btn-secondary !text-[#B91C2B] shrink-0"
+                >
+                  Delete
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="rounded-xl border border-dashed border-surface-300 p-4 space-y-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-surface-700">Create New Admin</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <input className="admin-input" placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} />
+          <input className="admin-input" type="email" placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input
+            className="admin-input"
+            type="password"
+            placeholder="Password (8+ chars, Aa1)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <button onClick={handleCreate} disabled={creating} className="admin-btn-primary">
+          {creating ? 'Creating…' : '+ Create Admin Account'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function DashboardTab({ onNavigate }: { onNavigate: (tab: AdminTab) => void }) {
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'dashboard'],
@@ -2956,6 +3181,10 @@ function StoreSettingsTab() {
   return (
     <div className="space-y-8">
       <CategoriesManager />
+      {/* Store Branding — Logo */}
+      <LogoManager />
+      {/* Admin Accounts */}
+      <AdminAccountsManager />
       {/* Hero Banner Section */}
       <HeroBannerManager />
 

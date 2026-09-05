@@ -75,3 +75,14 @@ export async function fetchServerHeroBannerText() {
   const data = await fetchServerData<any>('/settings/hero-banner-text', 120);
   return data || null;
 }
+
+export interface SiteLogo {
+  url: string;
+  header?: string;
+  footer?: string;
+  favicon?: string;
+}
+
+export async function fetchServerSiteLogo(): Promise<SiteLogo | null> {
+  return fetchServerData<SiteLogo>('/settings/logo', 120);
+}

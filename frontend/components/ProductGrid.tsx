@@ -28,8 +28,10 @@ interface ProductGridProps {
   products: Product[];
   loading?: boolean;
   showGridControls?: boolean;
-  initialGridCols?: 2 | 3 | 4;
+  initialGridCols?: 2 | 3 | 4 | 5;
   gridControlsLabel?: string;
+  /** "full" shows entire product images (no crop) for category browsing */
+  imageFit?: 'cover' | 'full';
 }
 
 export default function ProductGrid({
@@ -38,8 +40,9 @@ export default function ProductGrid({
   showGridControls = true,
   initialGridCols = 4,
   gridControlsLabel,
+  imageFit = 'cover',
 }: ProductGridProps) {
-  const [gridCols, setGridCols] = useState<2 | 3 | 4>(initialGridCols);
+  const [gridCols, setGridCols] = useState<2 | 3 | 4 | 5>(initialGridCols);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -66,7 +69,9 @@ export default function ProductGrid({
       ? 'sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2'
       : gridCols === 3
         ? 'sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3'
-        : 'sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
+        : gridCols === 5
+          ? 'sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
+          : 'sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
 
   const isSparse = uniqueProducts.length > 0 && uniqueProducts.length < gridCols;
   const gridClass = `grid grid-cols-2 gap-3.5 sm:gap-4 md:gap-5 lg:gap-6 ${desktopGridClass} ${isSparse ? 'justify-center mx-auto max-w-5xl' : ''}`;
@@ -94,7 +99,7 @@ export default function ProductGrid({
       {gridControlsLabel ? <h2 className="text-xl font-bold text-surface-950">{gridControlsLabel}</h2> : <span className="text-sm font-semibold text-surface-600">Choose a layout</span>}
       <div className="inline-flex items-center gap-1.5 rounded-full border border-surface-300 bg-white p-1 shadow-sm">
         <span className="px-2 text-xs font-semibold text-surface-600">Columns:</span>
-        {([2, 3, 4] as const).map((cols) => (
+        {([2, 3, 4, 5] as const).map((cols) => (
           <button
             key={cols}
             type="button"
@@ -168,7 +173,7 @@ export default function ProductGrid({
             delay={(i % gridCols) * 100}
             animation="slide-up"
           >
-            <ProductCard {...product} />
+            <ProductCard {...product} imageFit={imageFit} />
           </ScrollReveal>
         ))}
 

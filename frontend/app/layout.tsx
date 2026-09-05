@@ -84,7 +84,10 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-logo', type: 'image/png' },
+    ],
     shortcut: '/favicon.ico',
     apple: '/favicon-full-512.png',
   },
