@@ -6,12 +6,14 @@ import { deleteFromCloudinary } from '../../config/cloudinary';
 
 export class ProductService {
   private normalizeUnstitchedMensProduct(data: CreateProductInput | UpdateProductInput): Record<string, unknown> {
-    const sizes = Array.isArray(data.sizes) && data.sizes.length > 0 
-      ? data.sizes 
+    const sizes = Array.isArray(data.sizes) && data.sizes.length > 0
+      ? data.sizes
       : ['S', 'M', 'L', 'XL', 'XXL', '4.5m', '7 meter'];
 
+    const { metaTitle, metaDescription, metaKeywords, shortDescription, highlights, faqs, aiGenerated, aiGeneratedAt, ...rest } = data as any;
+
     return {
-      ...data,
+      ...rest,
       category: data.category || 'Unstitched',
       gender: data.gender || 'MALE',
       sizes,
@@ -21,9 +23,16 @@ export class ProductService {
       weight: null,
       dimensions: null,
       shippingClass: null,
-      metaTitle: null,
-      metaDescription: null,
-      metaKeywords: [],
+      // SEO fields pass through when provided (AI SEO Engine); legacy callers
+      // that omit them keep prior behaviour (create defaults, update no-op).
+      ...(metaTitle !== undefined ? { metaTitle } : {}),
+      ...(metaDescription !== undefined ? { metaDescription } : {}),
+      ...(metaKeywords !== undefined ? { metaKeywords } : {}),
+      ...(shortDescription !== undefined ? { shortDescription } : {}),
+      ...(highlights !== undefined ? { highlights } : {}),
+      ...(faqs !== undefined ? { faqs: faqs as Prisma.InputJsonValue } : {}),
+      ...(aiGenerated !== undefined ? { aiGenerated } : {}),
+      ...(aiGeneratedAt !== undefined ? { aiGeneratedAt } : {}),
       relatedProducts: [],
       upsellProducts: [],
       crossSellProducts: [],

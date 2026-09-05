@@ -152,6 +152,16 @@ interface ProductFormState {
   trending: boolean;
   productStatus: 'DRAFT' | 'PUBLISHED' | 'HIDDEN';
   images: string[];
+  // AI SEO fields
+  metaTitle: string;
+  metaDescription: string;
+  metaKeywords: string;
+  shortDescription: string;
+  highlightsText: string;
+  faqsJson: string;
+  aiGenerated: boolean;
+  seoScore: number | null;
+  seoSuggestions: string[];
 }
 
 const emptyProductForm: ProductFormState = {
@@ -176,6 +186,15 @@ const emptyProductForm: ProductFormState = {
   trending: false,
   productStatus: 'DRAFT',
   images: [],
+  metaTitle: '',
+  metaDescription: '',
+  metaKeywords: '',
+  shortDescription: '',
+  highlightsText: '',
+  faqsJson: '',
+  aiGenerated: false,
+  seoScore: null,
+  seoSuggestions: [],
 };
 
 const BRAND_OPTIONS = ['Top Threadz'];
@@ -1289,6 +1308,90 @@ function ProductsTab() {
     }
   }, [form.name, isSlugEditedManually]);
 
+  // ── AI SEO Engine state & handler ──────────────────────────────────────
+  const [seoGenerating, setSeoGenerating] = useState<string | null>(null); // null | 'all' | section name
+  const [seoAvailable, setSeoAvailable] = useState(true);
+
+  const buildSeoRequest = () => ({
+    ...(editingProduct ? { id: editingProduct.id } : {}),
+    name: form.name.trim() || 'Untitled Product',
+    category: form.category || undefined,
+    subcategory: form.subcategory || undefined,
+    collection: form.collection || undefined,
+    brand: form.brand || undefined,
+    colors: splitCsv(form.colorsText).length ? splitCsv(form.colorsText) : undefined,
+    price: Number(form.price) > 0 ? Number(form.price) : undefined,
+    discount: Number(form.discount || 0) > 0 ? Number(form.discount) : undefined,
+    description: form.description.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').trim() || undefined,
+    shortDescription: form.shortDescription || undefined,
+    tags: splitCsv(form.tagsText).length ? splitCsv(form.tagsText) : undefined,
+    sizes: splitCsv(form.sizesText).length ? splitCsv(form.sizesText) : undefined,
+    careInstructions: form.careInstructions || undefined,
+    slug: form.slug || undefined,
+  });
+
+  const applySeoResult = (data: any, sections: string[]) => {
+    setForm((prev) => {
+      const next = { ...prev };
+      const wants = (s: string) => sections.includes(s);
+      if (wants('description')) {
+        if (data.description) {
+          next.description = `<p>${data.description.split('\n').filter(Boolean).join('</p><p>')}</p>`;
+        }
+        if (data.shortDescription) next.shortDescription = data.shortDescription;
+        if (Array.isArray(data.highlights)) next.highlightsText = data.highlights.join(', ');
+      }
+      if (wants('seo')) {
+        if (data.slug) next.slug = data.slug;
+      }
+      if (wants('meta')) {
+        if (data.seoTitle) next.metaTitle = data.seoTitle;
+        if (data.metaDescription) next.metaDescription = data.metaDescription;
+      }
+      if (wants('keywords')) {
+        if (Array.isArray(data.keywords)) next.metaKeywords = data.keywords.join(', ');
+        if (Array.isArray(data.tags) && data.tags.length) {
+          const merged = Array.from(new Set([...splitCsv(prev.tagsText), ...data.tags]));
+          next.tagsText = merged.join(', ');
+        }
+      }
+      if (wants('faqs')) {
+        if (Array.isArray(data.faqs)) next.faqsJson = data.faqs.length ? JSON.stringify(data.faqs) : '';
+      }
+      next.aiGenerated = true;
+      return next;
+    });
+    if (data.score) {
+      setForm((prev) => ({ ...prev, seoScore: data.score.score, seoSuggestions: data.score.suggestions || [] }));
+    }
+  };
+
+  const runSeoGeneration = async (sections: string[], label: string) => {
+    if (!form.name.trim()) {
+      toast.error('Enter a product name first');
+      return;
+    }
+    setSeoGenerating(label);
+    try {
+      const res = await api.post('/products/generate-seo', { ...buildSeoRequest(), sections });
+      applySeoResult(res.data.data, sections);
+      toast.success(`${label} generated — review before saving`);
+    } catch (e: any) {
+      const msg = e?.response?.data?.error || e?.message || 'AI generation failed';
+      if (e?.response?.status === 429) {
+        toast.error('Too many AI requests — wait a moment and try again.');
+      } else if (Number(e?.response?.status) === 503) {
+        toast.error(msg + ' Your product data is safe — nothing was changed.');
+      } else {
+        toast.error(msg);
+      }
+      setSeoAvailable(true);
+    } finally {
+      setSeoGenerating(null);
+    }
+  };
+
+
   useEffect(() => {
     if (editingProduct) return;
     const brandPart = (form.brand || 'MW').replace(/[^a-zA-Z0-9]/g, '').slice(0, 3).toUpperCase() || 'MW';
@@ -1442,6 +1545,15 @@ function ProductsTab() {
       trending: Boolean(product.trending),
       productStatus: product.productStatus || 'DRAFT',
       images: asStringArray(product.images),
+      metaTitle: product.metaTitle || '',
+      metaDescription: product.metaDescription || '',
+      metaKeywords: asStringArray(product.metaKeywords).join(', '),
+      shortDescription: product.shortDescription || '',
+      highlightsText: asStringArray(product.highlights).join(', '),
+      faqsJson: Array.isArray(product.faqs) ? JSON.stringify(product.faqs, null, 0) : '',
+      aiGenerated: Boolean(product.aiGenerated),
+      seoScore: null,
+      seoSuggestions: [],
     });
     setImageMeta(Array.isArray(product.imageMeta) ? product.imageMeta : []);
     setShowInlineForm(true);
@@ -1540,6 +1652,14 @@ function ProductsTab() {
       trending: form.trending,
       productStatus: form.productStatus,
       visibility: 'PUBLIC',
+      // AI SEO fields (optional pass-through; only include when non-empty)
+      ...(form.metaTitle.trim() ? { metaTitle: form.metaTitle.trim() } : {}),
+      ...(form.metaDescription.trim() ? { metaDescription: form.metaDescription.trim() } : {}),
+      ...(form.metaKeywords.trim() ? { metaKeywords: splitCsv(form.metaKeywords) } : {}),
+      ...(form.shortDescription.trim() ? { shortDescription: form.shortDescription.trim() } : {}),
+      ...(form.highlightsText.trim() ? { highlights: splitCsv(form.highlightsText) } : {}),
+      ...(form.faqsJson.trim() ? { faqs: (() => { try { return JSON.parse(form.faqsJson); } catch { return undefined; } })() } : {}),
+      ...(form.aiGenerated ? { aiGenerated: true, aiGeneratedAt: new Date().toISOString() } : {}),
     };
 
     if (editingProduct) {
@@ -1701,6 +1821,44 @@ function ProductsTab() {
                     ⚡ Auto-Generate Description
                   </button>
                 </div>
+
+                {/* AI SEO generation status row */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => runSeoGeneration(['description', 'seo', 'keywords', 'meta', 'faqs'], 'SEO')}
+                    disabled={Boolean(seoGenerating)}
+                    className="admin-btn-primary !bg-gradient-to-r !from-[#0F1F3D] !to-[#2A4A7F] !px-4 !py-2 text-xs font-bold inline-flex items-center gap-1.5"
+                  >
+                    {seoGenerating === 'SEO' ? (
+                      <span className="inline-block w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      '✨'
+                    )}
+                    {seoGenerating === 'SEO' ? 'Generating with AI…' : 'Generate SEO with AI'}
+                  </button>
+                  {seoGenerating && seoGenerating !== 'SEO' && (
+                    <span className="text-xs text-[#6B7280] inline-flex items-center gap-1.5">
+                      <span className="inline-block w-3 h-3 border-2 border-[#D1D5DB] border-t-[#0F1F3D] rounded-full animate-spin" />
+                      Regenerating {seoGenerating}…
+                    </span>
+                  )}
+                  {form.aiGenerated && !seoGenerating && (
+                    <span className="px-2 py-0.5 rounded-full bg-[#DEF7EC] text-[#03543F] text-[11px] font-bold">✨ AI-assisted</span>
+                  )}
+                  {form.seoScore !== null && !seoGenerating && (
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${form.seoScore >= 80 ? 'bg-[#DEF7EC] text-[#03543F]' : form.seoScore >= 50 ? 'bg-[#FEF3C7] text-[#92400E]' : 'bg-[#FEE2E2] text-[#991B1B]'}`}>
+                      SEO Score: {form.seoScore}/100
+                    </span>
+                  )}
+                </div>
+                {form.seoSuggestions.length > 0 && (
+                  <ul className="text-xs text-[#6B7280] space-y-0.5 pl-1">
+                    {form.seoSuggestions.slice(0, 4).map((s, i) => (
+                      <li key={i}>• {s}</li>
+                    ))}
+                  </ul>
+                )}
 
                 <div>
                   <label className="admin-label">Product Name *</label>
@@ -1882,6 +2040,104 @@ function ProductsTab() {
                       placeholder="e.g. summer, wash and wear, luxury"
                     />
                   </div>
+                </div>
+              </section>
+
+              {/* 1b. SEO & AI Content */}
+              <section className="space-y-4 rounded-[10px] border border-[#E5E7EB] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E7EB] pb-2">
+                  <h3 className="text-sm font-bold text-[#0F1F3D] uppercase tracking-wide">1b. SEO & AI Content</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button type="button" disabled={Boolean(seoGenerating)} onClick={() => runSeoGeneration(['description'], 'Description')} className="admin-btn-secondary !py-1 !px-2.5 text-[11px] font-semibold">
+                      ↻ Description
+                    </button>
+                    <button type="button" disabled={Boolean(seoGenerating)} onClick={() => runSeoGeneration(['meta'], 'Meta')} className="admin-btn-secondary !py-1 !px-2.5 text-[11px] font-semibold">
+                      ↻ Meta
+                    </button>
+                    <button type="button" disabled={Boolean(seoGenerating)} onClick={() => runSeoGeneration(['keywords'], 'Keywords')} className="admin-btn-secondary !py-1 !px-2.5 text-[11px] font-semibold">
+                      ↻ Keywords
+                    </button>
+                    <button type="button" disabled={Boolean(seoGenerating)} onClick={() => runSeoGeneration(['faqs'], 'FAQs')} className="admin-btn-secondary !py-1 !px-2.5 text-[11px] font-semibold">
+                      ↻ FAQs
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="admin-label">SEO Title <span className="text-[#6B7280] font-normal">(search result title)</span></label>
+                    <input
+                      className="admin-input"
+                      value={form.metaTitle}
+                      onChange={(e) => setForm((prev) => ({ ...prev, metaTitle: e.target.value }))}
+                      placeholder="e.g. Premium Navy Wash & Wear Suit | Top Threadz"
+                      maxLength={70}
+                    />
+                    <p className="text-[11px] text-[#9CA3AF] mt-1">{form.metaTitle.length}/70</p>
+                  </div>
+                  <div>
+                    <label className="admin-label">SEO Slug <span className="text-[#6B7280] font-normal">(URL)</span></label>
+                    <input
+                      className="admin-input"
+                      value={form.slug}
+                      onChange={(e) => { setIsSlugEditedManually(true); setForm((prev) => ({ ...prev, slug: makeSlug(e.target.value) })); }}
+                      placeholder="premium-navy-wash-wear-suit"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="admin-label">Meta Description</label>
+                  <textarea
+                    className="admin-input min-h-[70px]"
+                    value={form.metaDescription}
+                    onChange={(e) => setForm((prev) => ({ ...prev, metaDescription: e.target.value }))}
+                    placeholder="Compelling summary shown in search results (120-160 characters)"
+                    maxLength={320}
+                  />
+                  <p className="text-[11px] text-[#9CA3AF] mt-1">{form.metaDescription.length}/160 recommended</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="admin-label">Short Description <span className="text-[#6B7280] font-normal">(cards & previews)</span></label>
+                    <textarea
+                      className="admin-input min-h-[70px]"
+                      value={form.shortDescription}
+                      onChange={(e) => setForm((prev) => ({ ...prev, shortDescription: e.target.value }))}
+                      placeholder="One-sentence hook for product cards"
+                      maxLength={500}
+                    />
+                  </div>
+                  <div>
+                    <label className="admin-label">SEO Keywords <span className="text-[#6B7280] font-normal">(comma-separated)</span></label>
+                    <textarea
+                      className="admin-input min-h-[70px]"
+                      value={form.metaKeywords}
+                      onChange={(e) => setForm((prev) => ({ ...prev, metaKeywords: e.target.value }))}
+                      placeholder="mens wash and wear fabric, unstitched suit pakistan"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="admin-label">Highlights <span className="text-[#6B7280] font-normal">(comma-separated selling points)</span></label>
+                  <input
+                    className="admin-input"
+                    value={form.highlightsText}
+                    onChange={(e) => setForm((prev) => ({ ...prev, highlightsText: e.target.value }))}
+                    placeholder="Wrinkle-resistant, Color-fast, Easy machine wash"
+                  />
+                </div>
+
+                <div>
+                  <label className="admin-label">FAQs (JSON) <span className="text-[#6B7280] font-normal">(editable)</span></label>
+                  <textarea
+                    className="admin-input min-h-[70px] font-mono text-xs"
+                    value={form.faqsJson}
+                    onChange={(e) => setForm((prev) => ({ ...prev, faqsJson: e.target.value }))}
+                    placeholder='[{"question":"...","answer":"..."}]'
+                  />
                 </div>
               </section>
 
@@ -2387,6 +2643,15 @@ function ProductsTab() {
               <p><span className="font-semibold">Sizes:</span> {asStringArray(detailsProduct.sizes).join(', ') || 'N/A'}</p>
               <p><span className="font-semibold">Colors:</span> {asStringArray(detailsProduct.colors).join(', ') || 'N/A'}</p>
               <p><span className="font-semibold">Tags:</span> {asStringArray(detailsProduct.tags).join(', ') || 'N/A'}</p>
+              {detailsProduct.aiGenerated && (
+                <p><span className="font-semibold">SEO:</span> <span className="text-[#03543F] font-bold">✨ AI-generated</span>{detailsProduct.aiGeneratedAt ? ` ${new Date(detailsProduct.aiGeneratedAt).toLocaleDateString()}` : ''}</p>
+              )}
+              {detailsProduct.metaTitle && <p><span className="font-semibold">SEO Title:</span> {detailsProduct.metaTitle}</p>}
+              {detailsProduct.metaDescription && <p><span className="font-semibold">Meta Description:</span> {detailsProduct.metaDescription}</p>}
+              {Array.isArray(detailsProduct.metaKeywords) && detailsProduct.metaKeywords.length > 0 && (
+                <p><span className="font-semibold">Keywords:</span> {asStringArray(detailsProduct.metaKeywords).join(', ')}</p>
+              )}
+              {detailsProduct.shortDescription && <p><span className="font-semibold">Short Description:</span> {detailsProduct.shortDescription}</p>}
               <div>
                 <p className="font-semibold mb-1">Description:</p>
                 <FormattedProductDescription content={detailsProduct.description} />

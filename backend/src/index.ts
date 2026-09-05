@@ -10,6 +10,7 @@ import prisma from './utils/prisma';
 import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/user/user.routes';
 import productRoutes from './modules/product/product.routes';
+import seoRoutes from './modules/seo/seo.routes';
 import categoryRoutes from './modules/category/category.routes';
 import cartRoutes from './modules/cart/cart.routes';
 import orderRoutes from './modules/order/order.routes';
@@ -90,6 +91,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/products', seoRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);

@@ -51,7 +51,13 @@ export const env = {
 
   // AI Marketing Automation
   AI_PROVIDER: process.env.AI_PROVIDER || 'gemini',
-  AI_API_KEY: process.env.AI_API_KEY || '',
+  AI_API_KEY: process.env.AI_API_KEY || process.env.GEMINI_API_KEY || '',
   AI_MODEL: process.env.AI_MODEL || '',
   MARKETING_TIMEZONE: process.env.MARKETING_TIMEZONE || 'Asia/Karachi',
+
+  // AI Product SEO Engine (admin generate-seo endpoint)
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || process.env.AI_API_KEY || '',
+  GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+  SEO_AI_PROVIDER: process.env.SEO_AI_PROVIDER || 'gemini',
+  SEO_RATE_LIMIT_MAX: parseInt(process.env.SEO_RATE_LIMIT_MAX || '6', 10),
 };

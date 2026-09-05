@@ -52,3 +52,4 @@ function createLimiter(name: string, windowMs: number, max: number) {
 export const generalLimiter = createLimiter('general', env.RATE_LIMIT_WINDOW, env.RATE_LIMIT_MAX);
 export const loginLimiter = createLimiter('login', env.RATE_LIMIT_WINDOW, env.LOGIN_RATE_LIMIT_MAX);
 export const paymentLimiter = createLimiter('payment', 60_000, 10);
+export const seoLimiter = createLimiter('seo', 60_000, parseInt(process.env.SEO_RATE_LIMIT_MAX || '6', 10));

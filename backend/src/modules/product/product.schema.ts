@@ -30,6 +30,18 @@ export const createProductSchema = z.object({
   productStatus: z.enum(['DRAFT', 'PUBLISHED', 'HIDDEN']).optional(),
   visibility: z.enum(['PUBLIC']).optional(),
   tags: z.array(z.string()).default([]),
+  // SEO fields (AI Product SEO Engine)
+  metaTitle: z.string().min(2).max(70).optional(),
+  metaDescription: z.string().min(10).max(320).optional(),
+  metaKeywords: z.array(z.string().max(60)).max(30).optional(),
+  shortDescription: z.string().min(10).max(500).optional(),
+  highlights: z.array(z.string().max(120)).max(8).optional(),
+  faqs: z.array(z.object({
+    question: z.string().min(2).max(300),
+    answer: z.string().min(2).max(1000),
+  })).max(8).optional(),
+  aiGenerated: z.boolean().optional(),
+  aiGeneratedAt: z.coerce.date().optional(),
 });
 
 export const updateProductSchema = createProductSchema.partial();

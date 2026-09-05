@@ -228,6 +228,11 @@ model Product {
   metaTitle         String?
   metaDescription   String?
   metaKeywords      String[]           @default([])
+  shortDescription  String?
+  highlights        String[]           @default([])
+  faqs              Json?
+  aiGenerated       Boolean            @default(false)
+  aiGeneratedAt     DateTime?
   featured          Boolean            @default(false)
   trending          Boolean            @default(false)
   relatedProducts   String[]           @default([])
