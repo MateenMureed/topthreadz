@@ -46,9 +46,11 @@ export const metadata: Metadata = {
     template: '%s | Top Threadz',
   },
   description: 'Official Top Threadz Store. Shop premium unstitched men\'s fabric in Pakistan. Visit our flagship store at Zamzama Commercial Area DHA Phase 5 Karachi. Free delivery nationwide on orders over PKR 10,000.',
-  alternates: {
-    canonical: '/',
-  },
+
+  // NOTE: no global canonical here. A layout-level canonical is inherited by
+  // every page that doesn't define its own, which told Google all pages were
+  // duplicates of the homepage ("Alternate page with proper canonical tag").
+  // Each page/layout now declares its own self-canonical.
   openGraph: {
     type: 'website',
     locale: 'en_PK',

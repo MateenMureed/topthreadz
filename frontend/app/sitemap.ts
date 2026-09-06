@@ -37,7 +37,11 @@ async function fetchAllProducts(): Promise<any[]> {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = STATIC_PATHS.map((path) => ({
-    url: `${SITE_URL}${path}`,
+    // Canonical URLs have no trailing slash (see page metadata). Keep the
+    // sitemap byte-identical to canonicals so Google doesn't see the same
+    // page as two URLs. Root is the exception: it canonicalizes to the bare
+    // domain.
+    url: path === '/' ? SITE_URL : `${SITE_URL}${path}`,
     changeFrequency: 'daily',
     priority: path === '/' ? 1 : 0.7,
   }));
