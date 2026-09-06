@@ -198,6 +198,23 @@ function AdminMain() {
   const [user, setUser] = useState<any | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
 
+  // Dynamic store logo (admin-uploadable). The uploaded PNG is white-text;
+  // headerLight is the auto-negated black-text version for light mode.
+  const [siteLogo, setSiteLogo] = useState<any | null>(null);
+  useEffect(() => {
+    api.get('/settings/logo')
+      .then((res: any) => setSiteLogo(res?.data || null))
+      .catch(() => setSiteLogo(null));
+  }, []);
+  // Slot-based logo: dark slot for dark mode, light slot for light mode.
+  const topBarLogoUri = siteLogo
+    ? resolveImageUrl(
+        palette.isDark
+          ? (siteLogo.dark?.header || siteLogo.header || siteLogo.url)
+          : (siteLogo.light?.header || siteLogo.dark?.header || siteLogo.url)
+      )
+    : null;
+
   // Login form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -481,7 +498,11 @@ function AdminMain() {
         <View style={styles.topBarGlassPill}>
           <View style={styles.brandRow}>
             <View style={styles.topBarLogoCircle}>
-              <Image source={require('./assets/logo-round.png')} style={{ width: 28, height: 28, borderRadius: 14 }} />
+              {topBarLogoUri ? (
+                <Image source={{ uri: topBarLogoUri }} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: palette.isDark ? 'transparent' : '#F3F4F6' }} resizeMode="cover" />
+              ) : (
+                <Image source={require('./assets/logo-round.png')} style={{ width: 28, height: 28, borderRadius: 14 }} />
+              )}
             </View>
             <View style={{ marginLeft: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -3683,11 +3704,19 @@ function SettingsView({ onLogout }: { onLogout: () => void }) {
 }
 
 // ── Store Logo Manager card (auto-resized header/footer/favicon variants) ──
+// ── Store Logo slots (dark / light / footer / favicon uploaded separately) ─
+const LOGO_SLOT_META: { slot: 'dark' | 'light' | 'footer' | 'favicon'; title: string; hint: string; previewBg: string }[] = [
+  { slot: 'dark', title: 'Dark Mode Logo', hint: 'White text logo shown on dark headers/navbars', previewBg: '#0B1220' },
+  { slot: 'light', title: 'Light Mode Logo', hint: 'Black text logo shown on white headers', previewBg: '#FFFFFF' },
+  { slot: 'footer', title: 'Footer Logo', hint: 'Logo for the storefront footer area', previewBg: '#0F1F3D' },
+  { slot: 'favicon', title: 'Favicon (ICO)', hint: 'Square icon — auto-generates .ico + .png for all browsers', previewBg: '#EEF1F6' },
+];
+
 function LogoManagerCard() {
   const { themed } = useTheme();
   const [logo, setLogo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
+  const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
 
   const loadLogo = useCallback(async () => {
     try {
@@ -3702,7 +3731,7 @@ function LogoManagerCard() {
 
   useEffect(() => { loadLogo(); }, [loadLogo]);
 
-  const uploadLogo = async () => {
+  const uploadSlotLogo = async (slot: 'dark' | 'light' | 'footer' | 'favicon') => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
       Alert.alert('Permission Required', 'Please allow gallery access to upload a logo.');
@@ -3711,12 +3740,12 @@ function LogoManagerCard() {
     const res = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.9,
+      aspect: slot === 'favicon' ? [1, 1] : [3, 2],
+      quality: 0.92,
     });
     if (res.canceled || !res.assets?.[0]) return;
 
-    setUploading(true);
+    setUploadingSlot(slot);
     try {
       const asset = res.assets[0];
       const filename = asset.uri.split('/').pop() || 'logo.png';
@@ -3724,27 +3753,29 @@ function LogoManagerCard() {
       const type = match ? `image/${match[1]}` : 'image/png';
       const formData = new FormData();
       formData.append('image', { uri: asset.uri, name: filename, type } as any);
+      formData.append('slot', slot);
       const uploadRes = await api.postFormData('/settings/logo', formData);
       const data = uploadRes?.data || uploadRes;
-      if (data?.url || data?.header) setLogo(data);
-      Alert.alert('Logo Updated', 'Header, footer and favicon sizes were generated automatically.');
+      if (data) setLogo(data);
+      Alert.alert('Logo Updated', `${LOGO_SLOT_META.find((m) => m.slot === slot)?.title} uploaded — sizes resize automatically.`);
     } catch (e: any) {
       Alert.alert('Upload Failed', e?.response?.data?.message || e?.message || 'Could not upload logo.');
     } finally {
-      setUploading(false);
+      setUploadingSlot(null);
     }
   };
 
-  const removeLogo = async () => {
-    Alert.alert('Remove Logo', 'Revert to the default Top Threadz logo?', [
+  const removeSlotLogo = async (slot: 'dark' | 'light' | 'footer' | 'favicon') => {
+    const meta = LOGO_SLOT_META.find((m) => m.slot === slot);
+    Alert.alert(`Remove ${meta?.title}`, 'Revert this slot to the default branding?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Remove',
         style: 'destructive',
         onPress: async () => {
           try {
-            await api.delete('/settings/logo');
-            setLogo(null);
+            await api.delete(`/settings/logo?slot=${slot}`);
+            loadLogo();
           } catch (e: any) {
             Alert.alert('Error', e?.response?.data?.message || 'Could not remove logo.');
           }
@@ -3753,47 +3784,65 @@ function LogoManagerCard() {
     ]);
   };
 
-  const headerLogo = logo?.header || logo?.url || '';
+  const slotPreviewUrl = (slot: string) => {
+    const entry = logo?.[slot];
+    return entry?.header || entry?.url || '';
+  };
 
   return (
     <View style={[styles.cardSection, themed.cardSection]}>
-      <Text style={[styles.cardSectionTitle, themed.cardSectionTitle]}>Store Branding — Logo</Text>
+      <Text style={[styles.cardSectionTitle, themed.cardSectionTitle]}>Store Branding — Logos</Text>
       <Text style={{ fontSize: 12, color: '#6B7280', marginBottom: 14, lineHeight: 17 }}>
-        Upload once — header, footer and favicon sizes generate automatically. Black background with white text looks best in both light & dark mode.
+        Upload each logo separately. Sizes resize automatically for header, footer and favicon placements.
       </Text>
 
-      <View style={styles.logoPreviewRow}>
-        <View style={styles.logoPreviewTileLight}>
-          {headerLogo ? (
-            <Image source={{ uri: resolveImageUrl(headerLogo) }} style={styles.logoPreviewImg} resizeMode="contain" />
-          ) : (
-            <Text style={styles.logoPreviewFallback}>Top Threadz</Text>
-          )}
+      {loading ? (
+        <ActivityIndicator size="small" color="#0F1F3D" />
+      ) : (
+        <View style={{ gap: 10 }}>
+          {LOGO_SLOT_META.map((meta) => {
+            const preview = slotPreviewUrl(meta.slot);
+            const isUploading = uploadingSlot === meta.slot;
+            return (
+              <View key={meta.slot} style={[styles.logoSlotRow, themed.logoSlotRow]}>
+                <View style={[styles.logoSlotPreview, { backgroundColor: meta.previewBg }]}>
+                  {preview ? (
+                    <Image source={{ uri: resolveImageUrl(preview) }} style={styles.logoSlotPreviewImg} resizeMode="contain" />
+                  ) : (
+                    <Text style={styles.logoSlotPlaceholder}>None</Text>
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.logoSlotTitle, themed.logoSlotTitle]}>{meta.title}</Text>
+                  <Text style={[styles.logoSlotHint, themed.logoSlotHint]}>{meta.hint}</Text>
+                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                    <TouchableOpacity
+                      style={[styles.logoSlotUploadBtn, isUploading && { opacity: 0.6 }]}
+                      onPress={() => uploadSlotLogo(meta.slot)}
+                      disabled={Boolean(uploadingSlot)}
+                      activeOpacity={0.85}
+                    >
+                      {isUploading ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                      ) : (
+                        <Text style={styles.logoSlotUploadBtnText}>Upload</Text>
+                      )}
+                    </TouchableOpacity>
+                    {preview ? (
+                      <TouchableOpacity
+                        style={[styles.logoSlotRemoveBtn, themed.logoSlotRemoveBtn]}
+                        onPress={() => removeSlotLogo(meta.slot)}
+                      >
+                        <Text style={styles.logoSlotRemoveBtnText}>Remove</Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                </View>
+              </View>
+            );
+          })}
         </View>
-        <View style={styles.logoPreviewTileDark}>
-          {headerLogo ? (
-            <Image source={{ uri: resolveImageUrl(headerLogo) }} style={styles.logoPreviewImg} resizeMode="contain" />
-          ) : (
-            <Text style={[styles.logoPreviewFallback, { color: '#FFFFFF' }]}>Top Threadz</Text>
-          )}
-        </View>
-      </View>
-
-      <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
-        <TouchableOpacity
-          style={[styles.primaryButton, { flex: 1, minHeight: 44 }, uploading && { opacity: 0.7 }]}
-          onPress={uploadLogo}
-          disabled={uploading}
-          activeOpacity={0.85}
-        >
-          {uploading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.primaryButtonText}>Upload Logo</Text>}
-        </TouchableOpacity>
-        {logo?.url ? (
-          <TouchableOpacity style={[styles.logoutDangerBtn, themed.logoutDangerBtn, { flex: 1 }]} onPress={removeLogo}>
-            <Text style={styles.logoutDangerText}>Remove</Text>
-          </TouchableOpacity>
-        ) : null}
-      </View>
+      )}
     </View>
   );
 }
@@ -4833,42 +4882,76 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 
-  // ── Store Logo previews & Admin Accounts ───────────────────────────
-  logoPreviewRow: {
+  // ── Store Logo slots & Admin Accounts ──────────────────────────────
+  logoSlotRow: {
     flexDirection: 'row',
-    gap: 10,
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 12,
   },
-  logoPreviewTileLight: {
-    flex: 1,
-    height: 64,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+  logoSlotPreview: {
+    width: 76,
+    height: 56,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E5E7EB',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 10,
+    overflow: 'hidden',
   },
-  logoPreviewTileDark: {
-    flex: 1,
-    height: 64,
-    borderRadius: 14,
-    backgroundColor: '#0B1220',
-    borderWidth: 1,
-    borderColor: '#1F2937',
+  logoSlotPreviewImg: {
+    width: '92%',
+    height: '80%',
+  },
+  logoSlotPlaceholder: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#9CA3AF',
+    textTransform: 'uppercase',
+  },
+  logoSlotTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  logoSlotHint: {
+    fontSize: 11,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  logoSlotUploadBtn: {
+    backgroundColor: '#0F1F3D',
+    borderRadius: 9999,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 10,
+    minHeight: 36,
   },
-  logoPreviewImg: {
-    width: '100%',
-    height: 40,
+  logoSlotUploadBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800',
   },
-  logoPreviewFallback: {
-    fontSize: 13,
-    fontWeight: '900',
-    color: '#0F1F3D',
-    letterSpacing: 1,
+  logoSlotRemoveBtn: {
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 36,
+  },
+  logoSlotRemoveBtnText: {
+    color: '#991B1B',
+    fontSize: 12,
+    fontWeight: '800',
   },
   adminAccountRow: {
     flexDirection: 'row',
@@ -7681,6 +7764,10 @@ function createThemedStyles(p: ThemePalette) {
     adminAccountRow: { backgroundColor: p.container, borderColor: p.border },
     adminAccountName: { color: p.textPrimary },
     adminAccountEmail: { color: p.textMuted },
+    logoSlotRow: { backgroundColor: p.container, borderColor: p.border },
+    logoSlotTitle: { color: p.textPrimary },
+    logoSlotHint: { color: p.textMuted },
+    logoSlotPreview: { borderColor: p.border },
     dashboardWelcomeCard: { backgroundColor: p.surface, borderColor: p.hairline, shadowColor: '#000', shadowOpacity: 0.3 },
     dashboardWelcomeTitle: { color: p.textPrimary },
     dashboardWelcomeSub: { color: p.textMuted },
