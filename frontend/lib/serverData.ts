@@ -77,10 +77,16 @@ export async function fetchServerHeroBannerText() {
 }
 
 export interface SiteLogo {
-  url: string;
+  url?: string;
   header?: string;
-  footer?: string;
-  favicon?: string;
+  footerLogo?: string;
+  faviconUrl?: string;
+  faviconPng?: string;
+  faviconIco?: string;
+  dark?: { url?: string; header?: string; footer?: string; small?: string } | null;
+  light?: { url?: string; header?: string; footer?: string; small?: string } | null;
+  footer?: { url?: string; header?: string; footer?: string; small?: string } | null;
+  favicon?: { url?: string; header?: string; footer?: string; small?: string } | null;
 }
 
 export async function fetchServerSiteLogo(): Promise<SiteLogo | null> {

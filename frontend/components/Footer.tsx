@@ -46,7 +46,7 @@ export default function Footer() {
     staleTime: 5 * 60 * 1000,
     retry: false,
   });
-  const footerLogoSrc = siteLogo?.footer || siteLogo?.url || '/images/topthreadz-logo-light.png';
+  const footerLogoSrc = siteLogo?.footer?.footer || siteLogo?.dark?.footer || siteLogo?.url || '/images/topthreadz-logo-light.png';
 
   const toggleSection = (key: SectionKey) => {
     setOpenSection((current) => (current === key ? null : key));

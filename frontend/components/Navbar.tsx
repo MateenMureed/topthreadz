@@ -48,14 +48,16 @@ const FAVORITE_BRANDS = [
 ];
 
 export default function Navbar() {
-  // Dynamic store logo (admin-uploadable). Falls back to the bundled logo.
+  // Dynamic store logo (admin-uploadable, slot-based). Falls back to bundled assets.
+  // Desktop navbar is light → light slot (black text); dark drawer → dark slot (white text).
   const { data: siteLogo } = useQuery({
     queryKey: ['site-logo'],
     queryFn: () => api.get('/settings/logo').then((r) => r.data?.data).catch(() => null),
     staleTime: 5 * 60 * 1000,
     retry: false,
   });
-  const logoSrc = siteLogo?.header || siteLogo?.url || '/images/topthreadz-logo.png';
+  const logoSrc = siteLogo?.light?.header || siteLogo?.url || '/images/topthreadz-logo.png';
+  const logoSrcDark = siteLogo?.dark?.header || siteLogo?.url || '/images/topthreadz-logo-light.png';
   const pathname = usePathname();
   const router = useRouter();
   const hydrated = useHydration();
@@ -316,11 +318,11 @@ export default function Navbar() {
             <div className="p-4 border-b border-surface-200 flex items-center justify-between bg-[#0F1F3D] text-white">
             <div className="relative h-8 w-28">
               <Image
-                src={logoSrc}
+                src={logoSrcDark}
                 alt="Top Threadz"
                 width={160}
                 height={50}
-                unoptimized={!logoSrc.startsWith('/')}
+                unoptimized={!logoSrcDark.startsWith('/')}
                 className="h-full w-auto object-contain rounded"
               />
             </div>

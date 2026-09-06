@@ -759,12 +759,17 @@ function HeroBannerManager() {
   );
 }
 
-// ── Store Logo Manager (auto-resized header/footer/favicon variants) ────────
+// ── Store Logo Manager (four separately-uploaded slots, auto-resized) ─────
+const LOGO_SLOTS_UI: { slot: 'dark' | 'light' | 'footer' | 'favicon'; title: string; hint: string; previewBg: string; previewTextLight?: boolean }[] = [
+  { slot: 'dark', title: 'Dark Mode Logo', hint: 'White-text logo for dark headers & the mobile drawer', previewBg: '#0B1220' },
+  { slot: 'light', title: 'Light Mode Logo', hint: 'Black-text logo for the white desktop navbar', previewBg: '#FFFFFF' },
+  { slot: 'footer', title: 'Footer Logo', hint: 'Logo shown in the storefront footer', previewBg: '#0F1F3D' },
+  { slot: 'favicon', title: 'Favicon (ICO)', hint: 'Square icon — auto-generates .ico + .png for all browsers', previewBg: '#EEF1F6' },
+];
+
 function LogoManager() {
   const queryClient = useQueryClient();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [logoUrlInput, setLogoUrlInput] = useState('');
+  const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
 
   const { data: logo } = useQuery({
     queryKey: ['site-logo'],
@@ -773,109 +778,100 @@ function LogoManager() {
   });
 
   const uploadMutation = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async ({ file, slot }: { file: File; slot: string }) => {
       const formData = new FormData();
       formData.append('image', file);
+      formData.append('slot', slot);
       return api.post('/settings/logo', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
     },
-    onSuccess: () => {
+    onSuccess: (_res, { slot }) => {
       queryClient.invalidateQueries({ queryKey: ['site-logo'] });
-      toast.success('Logo uploaded — header, footer and favicon sizes were generated automatically.');
+      toast.success(`${LOGO_SLOTS_UI.find((s) => s.slot === slot)?.title} uploaded — sizes resize automatically.`);
     },
     onError: (err: any) => toast.error(err?.response?.data?.message || 'Logo upload failed.'),
-    onSettled: () => setUploading(false),
-  });
-
-  const urlMutation = useMutation({
-    mutationFn: (url: string) => api.post('/settings/logo', { url }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['site-logo'] });
-      toast.success('Logo URL saved.');
-      setLogoUrlInput('');
-    },
-    onError: (err: any) => toast.error(err?.response?.data?.message || 'Could not save logo URL.'),
+    onSettled: (_d, _e, { slot }) => setUploadingSlot(null),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => api.delete('/settings/logo'),
+    mutationFn: (slot: string) => api.delete(`/settings/logo?slot=${slot}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['site-logo'] });
-      toast.success('Logo removed — the default Top Threadz logo is now in use.');
+      toast.success('Logo slot cleared — default branding now in use.');
     },
     onError: (err: any) => toast.error(err?.response?.data?.message || 'Could not remove logo.'),
   });
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = (slot: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploading(true);
-    uploadMutation.mutate(file);
+    setUploadingSlot(slot);
+    uploadMutation.mutate({ file, slot });
     e.target.value = '';
+  };
+
+  const slotPreview = (slot: string) => {
+    const entry = (logo as any)?.[slot];
+    return entry?.header || entry?.url || '';
   };
 
   return (
     <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft space-y-5">
       <div>
-        <h2 className="text-xl font-bold text-surface-950 mb-1">Store Branding — Logo</h2>
+        <h2 className="text-xl font-bold text-surface-950 mb-1">Store Branding — Logos</h2>
         <p className="text-xs text-surface-500">
-          Upload your logo once; header, footer and favicon sizes are generated automatically.
-          Tip: a logo with a black background and white text looks great on both light and dark modes.
+          Upload each logo separately. Every upload is auto-resized for its placements (header, footer, favicon) — nothing else is altered.
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-        {/* Dual-mode preview */}
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl border border-surface-200 bg-white p-3">
-            <AdminImage
-              src={logo?.header || logo?.url || '/images/topthreadz-logo.png'}
-              alt="Logo light preview"
-              className="h-10 w-auto object-contain"
-            />
-          </div>
-          <div className="rounded-xl border border-surface-700 bg-[#0B1220] p-3">
-            <AdminImage
-              src={logo?.header || logo?.url || '/images/topthreadz-logo.png'}
-              alt="Logo dark preview"
-              className="h-10 w-auto object-contain"
-            />
-          </div>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {LOGO_SLOTS_UI.map(({ slot, title, hint, previewBg }) => {
+          const preview = slotPreview(slot);
+          const uploading = uploadingSlot === slot;
+          return (
+            <div key={slot} className="rounded-xl border border-surface-200 bg-surface-50 p-4 flex gap-4">
+              {/* Preview tile on the slot's real background */}
+              <div
+                className="shrink-0 w-28 h-20 rounded-lg border border-surface-200 flex items-center justify-center overflow-hidden px-2"
+                style={{ backgroundColor: previewBg }}
+              >
+                {preview ? (
+                  <AdminImage src={preview} alt={`${title} preview`} className="max-h-12 w-auto object-contain" />
+                ) : (
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-surface-400">None</span>
+                )}
+              </div>
 
-        <div className="flex flex-wrap gap-2.5">
-          <label className="admin-btn-primary cursor-pointer">
-            {uploading ? 'Uploading…' : 'Upload Logo'}
-            <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={handleFile} />
-          </label>
-          {logo?.url && (
-            <button onClick={() => deleteMutation.mutate()} className="admin-btn-secondary !text-[#B91C2B]">
-              Remove Logo
-            </button>
-          )}
-        </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-surface-950">{title}</p>
+                <p className="text-[11px] text-surface-500 mt-0.5 leading-snug">{hint}</p>
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  <label className="admin-btn-primary cursor-pointer !py-1.5 !px-3 text-[11px]">
+                    {uploading ? 'Uploading…' : 'Upload'}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/x-icon"
+                      hidden
+                      onChange={handleFile(slot)}
+                    />
+                  </label>
+                  {preview && (
+                    <button
+                      onClick={() => deleteMutation.mutate(slot)}
+                      className="admin-btn-secondary !py-1.5 !px-3 text-[11px] !text-[#B91C2B]"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="flex gap-2">
-        <input
-          type="text"
-          className="admin-input flex-1"
-          placeholder="…or paste a direct image URL"
-          value={logoUrlInput}
-          onChange={(e) => setLogoUrlInput(e.target.value)}
-        />
-        <button
-          className="admin-btn-secondary"
-          disabled={!logoUrlInput.trim()}
-          onClick={() => urlMutation.mutate(logoUrlInput.trim())}
-        >
-          Save URL
-        </button>
-      </div>
-      {logo?.url && (
-        <p className="text-[11px] text-surface-400 break-all">
-          Current: <span className="font-mono">{logo.url}</span>
-        </p>
-      )}
+      <p className="text-[11px] text-surface-400">
+        Tip: favicon should be square (512 × 512 recommended). The .ico and .png favicons are generated automatically and work across all browsers.
+      </p>
     </div>
   );
 }

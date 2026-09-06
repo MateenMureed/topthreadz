@@ -85,10 +85,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.ico' },
-      { url: '/favicon-logo', type: 'image/png' },
+      { url: '/favicon-logo', type: 'image/x-icon' },
+      { url: '/favicon.ico', sizes: 'any' },
     ],
-    shortcut: '/favicon.ico',
+    shortcut: '/favicon-logo',
     apple: '/favicon-full-512.png',
   },
   category: 'fashion',
