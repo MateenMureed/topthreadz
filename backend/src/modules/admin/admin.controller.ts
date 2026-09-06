@@ -29,6 +29,72 @@ function insertCloudinaryTransform(url: string, transformation: string): string 
   return `${base}${transformation}/${rest}`;
 }
 
+// ── Site logo slots ──────────────────────────────────────────────────────
+// Each slot is uploaded separately by the admin (dark-mode logo, light-mode
+// logo, footer logo, favicon). Auto-resize derives the needed dimensions via
+// Cloudinary transformations — nothing else is altered.
+type LogoSlot = 'dark' | 'light' | 'footer' | 'favicon';
+const LOGO_SLOTS: LogoSlot[] = ['dark', 'light', 'footer', 'favicon'];
+
+/** Per-slot display sizes (height in px). */
+const LOGO_SLOT_SIZES: Record<LogoSlot, { header: number; footer: number; small: number }> = {
+  dark: { header: 96, footer: 64, small: 48 },
+  light: { header: 96, footer: 64, small: 48 },
+  footer: { header: 96, footer: 64, small: 48 },
+  favicon: { header: 96, footer: 64, small: 48 },
+};
+
+/**
+ * Build the public logo payload from stored slots. Each slot provides:
+ *  - url:   canonical upload
+ *  - header / footer / small: auto-resized Cloudinary variants
+ * The favicon slot additionally provides .ico and .png entries for broad
+ * browser compatibility (Cloudinary's f_icl converts to ICO on the fly).
+ * Legacy single-logo storage is mapped into the dark slot for compatibility.
+ */
+function normalizeLogoPayload(stored: any) {
+  const slotsIn = stored?.slots || (stored?.url ? { dark: { url: stored.url, publicId: stored.publicId } } : {});
+
+  const build = (slot: LogoSlot) => {
+    const entry = slotsIn[slot];
+    if (!entry?.url) return null;
+    const sizes = LOGO_SLOT_SIZES[slot];
+    const variant = (height: number) =>
+      insertCloudinaryTransform(entry.url, `c_limit,h_${height},q_auto:good,f_auto`);
+    return {
+      url: entry.url,
+      publicId: entry.publicId || '',
+      header: variant(sizes.header),
+      footer: variant(sizes.footer),
+      small: variant(sizes.small),
+    };
+  };
+
+  const dark = build('dark');
+  const light = build('light');
+  const footer = build('footer');
+  const favicon = build('favicon');
+
+  return {
+    // Primary convenience fields: dark-mode header logo (uploaded separately)
+    url: dark?.url || '',
+    publicId: dark?.publicId || '',
+    header: dark?.header || '',
+    footerLogo: footer?.footer || dark?.footer || '',
+    faviconUrl: favicon?.small || '',
+    faviconPng: favicon
+      ? insertCloudinaryTransform(favicon.url, 'c_limit,h_48,q_auto:good,f_png')
+      : '',
+    faviconIco: favicon
+      ? insertCloudinaryTransform(favicon.url, 'c_limit,h_48,q_auto:good,f_ico')
+      : '',
+    dark,
+    light,
+    footer,
+    favicon,
+  };
+}
+
 export class AdminController {
   async getDashboard(_req: AuthRequest, res: Response, next: NextFunction) {
     try {
@@ -319,18 +385,7 @@ export class AdminController {
         res.json({ success: true, data: null });
         return;
       }
-      // Re-derive variant URLs on read so logo entries uploaded with an
-      // older transformation builder self-heal without re-uploading.
-      const stored = JSON.parse(setting.value);
-      const variant = (height: number) =>
-        insertCloudinaryTransform(stored.url, `c_limit,h_${height},q_auto:good,f_auto`);
-      const data = {
-        ...stored,
-        header: variant(96),
-        footer: variant(64),
-        favicon: variant(48),
-      };
-      res.json({ success: true, data });
+      res.json({ success: true, data: normalizeLogoPayload(JSON.parse(setting.value)) });
     } catch (error) { next(error); }
   }
 
@@ -338,6 +393,11 @@ export class AdminController {
     try {
       const file = (req as any).file as Express.Multer.File | undefined;
       const directUrl = (req.body?.url as string | undefined)?.trim();
+      const slot = String(req.body?.slot || 'dark').toLowerCase();
+
+      if (!LOGO_SLOTS.includes(slot as LogoSlot)) {
+        throw new Error(`Invalid logo slot. Use one of: ${LOGO_SLOTS.join(', ')}.`);
+      }
 
       let imageUrl = '';
       let publicId = '';
@@ -355,52 +415,77 @@ export class AdminController {
         throw new Error('Please select an image file or enter a direct image URL.');
       }
 
-      // Remove the previous logo asset from Cloudinary (best-effort)
-      try {
-        const existing = await prisma.siteSetting.findUnique({ where: { key: 'site_logo' } });
-        if (existing) {
-          try {
-            const old = JSON.parse(existing.value);
-            if (old.publicId) await deleteFromCloudinary(old.publicId);
-          } catch { /* ignore */ }
+      // Read current stored shape (may be the legacy single-logo format).
+      const existingSetting = await prisma.siteSetting.findUnique({ where: { key: 'site_logo' } }).catch(() => null);
+      let stored: any = {};
+      if (existingSetting) {
+        try { stored = JSON.parse(existingSetting.value); } catch { stored = {}; }
+      }
+
+      // Delete the asset this upload replaces:
+      //  - the previous occupant of this slot, and
+      //  - the legacy single-logo asset (only referenced by the legacy shape).
+      const toDelete = new Set<string>();
+      const previousSlotId = stored?.slots?.[slot]?.publicId;
+      if (previousSlotId) toDelete.add(previousSlotId);
+      if (stored?.publicId && !stored?.slots) toDelete.add(stored.publicId);
+      for (const pid of toDelete) {
+        if (pid && pid !== publicId) {
+          await deleteFromCloudinary(pid).catch(() => { /* best-effort */ });
         }
-      } catch { /* ignore */ }
+      }
 
-      // Cloudinary delivery URLs can transform on demand. Store the canonical
-      // URL plus derived variant URLs so clients don't need to build them.
-      const variant = (height: number) =>
-        insertCloudinaryTransform(imageUrl, `c_limit,h_${height},q_auto:good,f_auto`);
-
-      const payload = {
-        url: imageUrl,
-        publicId,
-        header: variant(96),
-        footer: variant(64),
-        favicon: variant(48),
+      // Merge into the slot-based shape and persist.
+      const slots = {
+        ...(stored?.slots || {}),
+        [slot]: { url: imageUrl, publicId },
       };
+      const payload = normalizeLogoPayload({ slots });
 
       await prisma.siteSetting.upsert({
         where: { key: 'site_logo' },
-        update: { value: JSON.stringify(payload) },
-        create: { key: 'site_logo', value: JSON.stringify(payload) },
+        update: { value: JSON.stringify({ slots }) },
+        create: { key: 'site_logo', value: JSON.stringify({ slots }) },
       });
 
       res.json({ success: true, data: payload });
     } catch (error) { next(error); }
   }
 
-  async deleteSiteLogo(_req: Request, res: Response, next: NextFunction) {
+  async deleteSiteLogo(req: Request, res: Response, next: NextFunction) {
     try {
-      try {
-        const existing = await prisma.siteSetting.findUnique({ where: { key: 'site_logo' } });
-        if (existing) {
-          try {
-            const old = JSON.parse(existing.value);
-            if (old.publicId) await deleteFromCloudinary(old.publicId);
-          } catch { /* ignore */ }
+      const slot = req.query.slot ? String(req.query.slot).toLowerCase() : null;
+      const existing = await prisma.siteSetting.findUnique({ where: { key: 'site_logo' } });
+      if (existing) {
+        let stored: any = {};
+        try { stored = JSON.parse(existing.value); } catch { /* ignore */ }
+
+        if (slot && LOGO_SLOTS.includes(slot as LogoSlot)) {
+          // Remove a single slot; keep the others.
+          const slots = { ...(stored?.slots || {}) };
+          const removed = slots[slot];
+          delete slots[slot];
+          if (removed?.publicId) {
+            await deleteFromCloudinary(removed.publicId).catch(() => { /* best-effort */ });
+          }
+          await prisma.siteSetting.update({
+            where: { key: 'site_logo' },
+            data: { value: JSON.stringify(Object.keys(slots).length > 0 ? { slots } : {}) },
+          });
+        } else {
+          // No slot specified: remove everything.
+          const publicIds = new Set<string>();
+          if (stored?.publicId) publicIds.add(stored.publicId);
+          for (const s of LOGO_SLOTS) {
+            const pid = stored?.slots?.[s]?.publicId;
+            if (pid) publicIds.add(pid);
+          }
+          for (const pid of publicIds) {
+            await deleteFromCloudinary(pid).catch(() => { /* best-effort */ });
+          }
           await prisma.siteSetting.delete({ where: { key: 'site_logo' } });
         }
-      } catch { /* ignore */ }
+      }
       res.json({ success: true, data: null });
     } catch (error) { next(error); }
   }
