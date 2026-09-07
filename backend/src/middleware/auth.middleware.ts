@@ -30,6 +30,26 @@ export function authenticate(req: AuthRequest, _res: Response, next: NextFunctio
   return authenticateWithSession(req, next, false);
 }
 
+export async function optionalAuthenticate(req: AuthRequest, _res: Response, next: NextFunction): Promise<void> {
+  try {
+    const authHeader = req.headers.authorization;
+    const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : undefined;
+    const adminToken = req.cookies?.[sessionCookies.ADMIN_COOKIE] || bearerToken;
+    const userToken = req.cookies?.[sessionCookies.USER_COOKIE] || bearerToken;
+    const token = adminToken || userToken;
+    if (token) {
+      const session = await sessionService.findValid(token, false);
+      if (session) {
+        req.user = { userId: session.user.id, role: session.user.role };
+        (req as AuthRequest & { session: typeof session }).session = session;
+      }
+    }
+  } catch {
+    // Ignore error for optional authentication
+  }
+  next();
+}
+
 // Admin endpoints accept only the dedicated __Host-admin_session cookie.
 export function authenticateAdmin(req: AuthRequest, _res: Response, next: NextFunction): Promise<void> {
   return authenticateWithSession(req, next, true);

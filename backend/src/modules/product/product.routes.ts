@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { productController } from './product.controller';
-import { authenticate, authenticateAdmin, authorize } from '../../middleware/auth.middleware';
+import { reviewController } from './review.controller';
+import { authenticate, authenticateAdmin, authorize, optionalAuthenticate } from '../../middleware/auth.middleware';
 import { validate } from '../../middleware/validate.middleware';
 import { createProductSchema, updateProductSchema, productQuerySchema } from './product.schema';
 import { upload } from '../../middleware/upload.middleware';
@@ -13,8 +14,11 @@ router.get('/categories', productController.getCategories.bind(productController
 router.get('/suggestions', productController.searchSuggestions.bind(productController));
 router.get('/popular-searches', productController.getPopularSearches.bind(productController));
 router.get('/ai-search', productController.aiSearch.bind(productController));
+router.get('/reviews/featured', reviewController.getFeaturedReviews.bind(reviewController));
 router.get('/slug/:slug', productController.findBySlug.bind(productController));
 router.get('/:id/upsell', productController.getUpsellSuggestions.bind(productController));
+router.get('/:id/reviews', reviewController.getProductReviews.bind(reviewController));
+router.post('/:id/reviews', optionalAuthenticate, reviewController.createReview.bind(reviewController));
 router.get('/:id', productController.findById.bind(productController));
 
 // Authenticated routes

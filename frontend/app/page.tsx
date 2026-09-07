@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import HomePageClient from '@/components/HomePageClient';
 import HeroBanner from '@/components/HeroBanner';
+import CustomerReviewsSection from '@/components/CustomerReviewsSection';
 import {
   fetchServerCategories,
   fetchServerProducts,
@@ -472,6 +473,8 @@ export default async function HomePage() {
         initialHeroBanner={heroBanner}
         initialSettings={settings}
       />
+      {/* Customer Testimonials Section (Matching Reference Image 1) */}
+      <CustomerReviewsSection />
       {/* Brand content section — 150-300 words of crawlable, human-readable
           copy below the product grid. Fixes "thin content" on the homepage. */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-14">

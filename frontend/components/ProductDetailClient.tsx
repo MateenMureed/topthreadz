@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -14,11 +14,17 @@ import Image from 'next/image';
 import toast from 'react-hot-toast';
 import ScrollReveal from '@/components/ScrollReveal';
 import { resolveImageUrl } from '@/lib/images';
+import ProductReviewsAccordion from '@/components/ProductReviewsAccordion';
 
-function stripHtml(html: string) {
-  if (typeof window === 'undefined') return html;
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  return doc.body.textContent || '';
+function stripHtml(html: string = ''): string {
+  return html
+    .replace(/<[^>]*>?/gm, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function decodeHtmlEntities(str: string): string {
@@ -441,7 +447,7 @@ export default function ProductDetailClient({ initialProduct, productId }: Produ
                 </span>
               ) : isLowStock ? (
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" /> Only {product.stock} left in stock â€” order soon
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" /> Only {product.stock} left in stock — order soon
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600">
@@ -569,7 +575,7 @@ export default function ProductDetailClient({ initialProduct, productId }: Produ
               className="w-full flex items-center justify-between text-left py-2 font-display font-bold text-base text-surface-950"
             >
               <span>Product Description & Fabric Specs</span>
-              <span>{detailsExpanded ? 'âˆ’' : '+'}</span>
+              <span>{detailsExpanded ? '−' : '+'}</span>
             </button>
             {detailsExpanded && (
               <div className="pt-2">
@@ -587,13 +593,19 @@ export default function ProductDetailClient({ initialProduct, productId }: Produ
                 className="w-full flex items-center justify-between text-left py-2 font-display font-bold text-base text-surface-950"
               >
                 <span>Care Instructions</span>
-                <span>{careExpanded ? 'âˆ’' : '+'}</span>
+                <span>{careExpanded ? '−' : '+'}</span>
               </button>
               {careExpanded && (
                 <FormattedCareInstructions content={product.careInstructions} />
               )}
             </div>
           )}
+
+          {/* Customer Reviews Accordion (Matching Reference Image 2) */}
+          <ProductReviewsAccordion
+            productId={product.id}
+            productName={product.name}
+          />
         </div>
       </div>
 

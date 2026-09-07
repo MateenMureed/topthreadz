@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -283,7 +283,7 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="flex flex-col items-center justify-between gap-2.5 py-4 text-[11.5px] text-white/35 sm:flex-row">
-          <p>Â© {new Date().getFullYear()} Top Threadz. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Top Threadz. All rights reserved.</p>
           <div className="flex flex-wrap items-center justify-center gap-4 text-[11.5px]">
             <Link
               href="/faq"

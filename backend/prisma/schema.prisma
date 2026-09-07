@@ -390,18 +390,24 @@ model Payment {
 }
 
 model Review {
-  id        String  @id @default(uuid())
-  userId    String
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  rating    Int
-  comment   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(uuid())
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userName        String?
+  userEmail       String?
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rating          Int
+  title           String?
+  comment         String?
+  isVerifiedBuyer Boolean  @default(false)
+  isApproved      Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  @@unique([userId, productId])
   @@index([productId])
+  @@index([userId])
+  @@index([isApproved])
 }
 
 model ProductView {
