@@ -69,7 +69,7 @@ export default function AuthModal() {
       toast.success('Welcome back!');
       closeModal();
       if (res.data.user.role === 'ADMIN') {
-        router.push('/admin');
+        window.location.replace('/admin');
       } else {
         router.push(finalRedirect);
       }

@@ -3,46 +3,6 @@ import prisma from '../../utils/prisma';
 import { BadRequestError, NotFoundError } from '../../utils/errors';
 import { AuthRequest } from '../../middleware/auth.middleware';
 
-// Default initial authentic customer testimonials matching the store style
-const CURATED_TESTIMONIALS = [
-  {
-    id: 'curated-1',
-    userName: 'Umair',
-    rating: 5,
-    title: 'Outstanding quality',
-    comment: 'The magical words with multicolor effect attract me very much. The fabric feel is exceptionally soft and durable.',
-    isVerifiedBuyer: true,
-    createdAt: new Date('2025-01-15').toISOString(),
-  },
-  {
-    id: 'curated-2',
-    userName: 'Abeera Mirza',
-    rating: 5,
-    title: 'Beautiful stitching & honest fabric',
-    comment: 'Your suits are beautifully and carefully stitched. Thank you for being honest in this meta age. Keep it up 💪',
-    isVerifiedBuyer: true,
-    createdAt: new Date('2025-01-28').toISOString(),
-  },
-  {
-    id: 'curated-3',
-    userName: 'Ibrar Khan',
-    rating: 5,
-    title: 'Decent finishing',
-    comment: 'A very good stuff. The finishing of the fabric is very decent. Highly recommended for formal and daily wear.',
-    isVerifiedBuyer: true,
-    createdAt: new Date('2025-02-04').toISOString(),
-  },
-  {
-    id: 'curated-4',
-    userName: 'ALI Shahzad',
-    rating: 5,
-    title: 'Met all expectations',
-    comment: 'Great experience as i expected. Color stayed true after wash, zero wrinkles. Delivery to Lahore was quick.',
-    isVerifiedBuyer: true,
-    createdAt: new Date('2025-02-12').toISOString(),
-  },
-];
-
 export class ReviewController {
   /**
    * Create a review for a product (public or authenticated)
@@ -90,7 +50,7 @@ export class ReviewController {
       }
 
       if (!finalName) {
-        finalName = 'Verified Customer';
+        finalName = 'Customer';
       }
 
       // Check if buyer has verified order for this product
@@ -231,13 +191,18 @@ export class ReviewController {
 
   /**
    * Get customer reviews for homepage testimonial section ("WHAT CUSTOMER SPEAK FOR US")
+   * Only returns real customer reviews submitted to the database.
    */
   async getFeaturedReviews(req: Request, res: Response, next: NextFunction) {
     try {
       const dbReviews = await prisma.review.findMany({
-        where: { isApproved: true, rating: { gte: 4 } },
+        where: {
+          isApproved: true,
+          rating: { gte: 4 },
+          comment: { not: null },
+        },
         orderBy: { createdAt: 'desc' },
-        take: 8,
+        take: 12,
         select: {
           id: true,
           userName: true,
@@ -255,23 +220,11 @@ export class ReviewController {
         },
       });
 
-      // Filter reviews that have comments
-      const withComments = dbReviews.filter((r) => r.comment && r.comment.trim().length > 5);
-
-      // Merge with curated testimonials if database has few reviews
-      const merged = [...withComments];
-      if (merged.length < 4) {
-        for (const item of CURATED_TESTIMONIALS) {
-          if (!merged.some((m) => (m.userName || '').toLowerCase() === item.userName.toLowerCase())) {
-            merged.push(item as any);
-          }
-          if (merged.length >= 6) break;
-        }
-      }
+      const withComments = dbReviews.filter((r) => r.comment && r.comment.trim().length > 0);
 
       res.json({
         success: true,
-        data: merged,
+        data: withComments,
       });
     } catch (error) {
       next(error);

@@ -6,50 +6,18 @@ import { reviewService, CustomerReview } from '@/services/review.service';
 import { FiArrowLeft, FiArrowRight } from 'react-icons/fi';
 import Link from 'next/link';
 
-// Fallback initial reviews directly mirroring the reference image
-const DEFAULT_TESTIMONIALS: CustomerReview[] = [
-  {
-    id: 'default-1',
-    userName: 'Umair',
-    rating: 5,
-    comment: 'The magical words with multicolor effect attract me very much.',
-    createdAt: '2025-01-15',
-  },
-  {
-    id: 'default-2',
-    userName: 'Abeera Mirza',
-    rating: 5,
-    comment: 'Your suits are beautifully and carefully stitched. Thank you for being honest in this meta age. Keep it up 💪',
-    createdAt: '2025-01-28',
-  },
-  {
-    id: 'default-3',
-    userName: 'Ibrar Khan',
-    rating: 5,
-    comment: 'A very good stuff. The finishing of the fabric is very decent.',
-    createdAt: '2025-02-04',
-  },
-  {
-    id: 'default-4',
-    userName: 'ALI Shahzad',
-    rating: 5,
-    comment: 'Great experience as i expected.',
-    createdAt: '2025-02-12',
-  },
-];
-
 export default function CustomerReviewsSection() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  const { data: reviews = DEFAULT_TESTIMONIALS } = useQuery({
+  const { data: reviews = [] } = useQuery({
     queryKey: ['featured-reviews'],
     queryFn: async () => {
       const items = await reviewService.getFeaturedReviews();
-      return items && items.length > 0 ? items : DEFAULT_TESTIMONIALS;
+      return Array.isArray(items) ? items : [];
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 60 * 1000,
   });
 
   const checkScroll = () => {
@@ -71,6 +39,11 @@ export default function CustomerReviewsSection() {
     };
   }, [reviews]);
 
+  // Only show section when real customer reviews exist
+  if (!reviews || reviews.length === 0) {
+    return null;
+  }
+
   const handleScroll = (direction: 'left' | 'right') => {
     const el = scrollContainerRef.current;
     if (!el) return;
@@ -84,7 +57,7 @@ export default function CustomerReviewsSection() {
   return (
     <section className="w-full bg-[#f8f8f8] py-14 sm:py-20 border-y border-surface-200/60 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Title Section (Matching Reference Image 1) */}
+        {/* Title Section (Matching Reference Image 1 with "Top Threadz" instead of Diners) */}
         <div className="text-center mb-10 sm:mb-14">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-normal tracking-[0.2em] text-surface-900 uppercase">
             WHAT CUSTOMER SPEAK FOR US
@@ -94,7 +67,7 @@ export default function CustomerReviewsSection() {
               href="/products"
               className="text-xs sm:text-sm text-surface-600 hover:text-surface-950 underline underline-offset-4 decoration-surface-400 hover:decoration-surface-900 transition-colors font-serif italic tracking-wide"
             >
-              We Love Trusting Diners.
+              We Love Trusting Top Threadz.
             </Link>
           </div>
         </div>
