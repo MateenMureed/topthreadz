@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react';
 import Link from 'next/link';
@@ -7,7 +7,7 @@ import { FiHeart, FiShoppingBag } from 'react-icons/fi';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
 import { experienceService } from '@/services/experience.service';
-import { isBackendUploadUrl, resolveImageUrl } from '@/lib/images';
+import { isBackendUploadUrl, isCloudinaryUrl, cloudinaryLoader, resolveImageUrl } from '@/lib/images';
 import toast from 'react-hot-toast';
 
 interface ProductImageMeta {
@@ -114,9 +114,19 @@ export default function ProductCard({
 
   const frontSrc = resolveImageUrl(orderedImages[0] || '');
   const frontAlt = imageAltMap.get(frontSrc) || name;
+  const isCloudinary = isCloudinaryUrl(frontSrc);
+  const isBackend = isBackendUploadUrl(frontSrc);
 
   useEffect(() => {
+    if (imgRef.current?.complete) {
+      setImageState(imgRef.current.naturalWidth > 0 ? 'loaded' : 'error');
+      return;
+    }
     setImageState('loading');
+    const timer = setTimeout(() => {
+      setImageState((prev) => (prev === 'loading' ? 'loaded' : prev));
+    }, 2500);
+    return () => clearTimeout(timer);
   }, [frontSrc]);
 
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -225,11 +235,14 @@ export default function ProductCard({
           fill
           loading="lazy"
           decoding="async"
-          unoptimized={isBackendUploadUrl(frontSrc)}
+          loader={isCloudinary ? cloudinaryLoader : undefined}
+          unoptimized={isBackend}
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className={`h-full w-full transform-origin-center ${imageFit === 'full' ? 'object-contain object-center p-0.5 bg-white' : 'object-cover object-top'} transition-[opacity,transform] duration-500 ease-out will-change-transform group-hover:scale-[1.05] ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
+          className={`h-full w-full transform-origin-center ${imageFit === 'full' ? 'object-contain object-center p-0.5 bg-white' : 'object-cover object-top'} transition-[opacity,transform] duration-300 ease-out will-change-transform group-hover:scale-[1.05] ${imageState === 'loaded' ? 'opacity-100' : 'opacity-85'}`}
           onLoad={() => setImageState('loaded')}
-          onError={() => setImageState('error')}
+          onError={() => {
+            setImageState('loaded');
+          }}
           draggable={false}
         />
                 {imageState === 'error' ? <div className="absolute inset-0 bg-stone-200" aria-hidden="true" /> : null}

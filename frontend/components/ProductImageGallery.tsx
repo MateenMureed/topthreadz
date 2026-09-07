@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import { FiMaximize2, FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import { isBackendUploadUrl, resolveImageUrl } from '@/lib/images';
+import { isBackendUploadUrl, isCloudinaryUrl, cloudinaryLoader, resolveImageUrl } from '@/lib/images';
 
 interface ProductImageGalleryProps {
   images: string[];
@@ -144,6 +144,7 @@ export default function ProductImageGallery({ images, name, category }: ProductI
             fill
             priority={activeIndex === 0}
             fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
+            loader={isCloudinaryUrl(currentImageUrl) ? cloudinaryLoader : undefined}
             unoptimized={isBackendUploadUrl(currentImageUrl)}
             sizes="(max-width: 768px) 100vw, 50vw"
             className="absolute inset-0 w-full h-full object-contain object-center transform-origin-center transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.08]"
@@ -210,6 +211,7 @@ export default function ProductImageGallery({ images, name, category }: ProductI
                 src={normalizeImageSrc(imgUrl)}
                 alt={`${name} thumbnail ${i + 1}`}
                 fill
+                loader={isCloudinaryUrl(imgUrl) ? cloudinaryLoader : undefined}
                 unoptimized={isBackendUploadUrl(imgUrl)}
                 sizes="64px"
                 className="absolute inset-0 w-full h-full object-cover"
@@ -299,7 +301,16 @@ export default function ProductImageGallery({ images, name, category }: ProductI
                     i === activeIndex ? 'border-white/90 scale-110 shadow-lg' : 'border-white/20 opacity-50 hover:opacity-80'
                   }`}
                 >
-                    <Image src={normalizeImageSrc(imgUrl)} alt={`Preview ${i + 1}`} width={48} height={48} unoptimized={isBackendUploadUrl(imgUrl)} sizes="48px" className="w-full h-full object-cover" />
+                    <Image
+                      src={normalizeImageSrc(imgUrl)}
+                      alt={`Preview ${i + 1}`}
+                      width={48}
+                      height={48}
+                      loader={isCloudinaryUrl(imgUrl) ? cloudinaryLoader : undefined}
+                      unoptimized={isBackendUploadUrl(imgUrl)}
+                      sizes="48px"
+                      className="w-full h-full object-cover"
+                    />
                 </button>
               ))
             ) : (

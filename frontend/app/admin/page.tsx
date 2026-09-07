@@ -2672,10 +2672,11 @@ function ProductsTab() {
                   </div>
 
                   <div>
-                    <label className="admin-label">Care Instructions</label>
-                    <input
+                    <label className="admin-label">Care Instructions (one per line or comma-separated)</label>
+                    <textarea
+                      rows={3}
                       className="admin-input"
-                      placeholder="e.g. Hand wash in cold water, do not bleach"
+                      placeholder="e.g. Hand wash in cold water&#10;Do not bleach&#10;Warm iron on reverse"
                       value={form.careInstructions}
                       onChange={(e) => setForm((prev) => ({ ...prev, careInstructions: e.target.value }))}
                     />

@@ -56,7 +56,7 @@ export interface CloudinaryTransformOptions {
 
 export function isCloudinaryUrl(url: string | null | undefined): boolean {
   if (!url || typeof url !== 'string') return false;
-  return url.includes('res.cloudinary.com') && url.includes('/image/upload/');
+  return url.includes('res.cloudinary.com') && (url.includes('/image/upload/') || url.includes('/upload/'));
 }
 
 export function getOptimizedCloudinaryUrl(
@@ -84,7 +84,7 @@ export function getOptimizedCloudinaryUrl(
   const transformSegment = transforms.join(',');
   if (!transformSegment) return url;
 
-  const uploadMarker = '/image/upload/';
+  const uploadMarker = url.includes('/image/upload/') ? '/image/upload/' : '/upload/';
   const uploadIndex = url.indexOf(uploadMarker);
   if (uploadIndex === -1) return url;
 
@@ -106,10 +106,11 @@ export function cloudinaryLoader({
   width: number;
   quality?: number;
 }): string {
-  if (!isCloudinaryUrl(src)) {
-    return src;
+  const resolved = resolveImageUrl(src);
+  if (!isCloudinaryUrl(resolved)) {
+    return resolved;
   }
-  return getOptimizedCloudinaryUrl(src, {
+  return getOptimizedCloudinaryUrl(resolved, {
     width,
     quality: quality || 'auto',
     format: 'auto',

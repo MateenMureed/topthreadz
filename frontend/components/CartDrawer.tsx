@@ -1,10 +1,10 @@
-﻿'use client';
+'use client';
 
 import { FiX, FiMinus, FiPlus, FiShoppingBag, FiTrash2, FiArrowRight } from 'react-icons/fi';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCartStore } from '@/store/cartStore';
-import { isBackendUploadUrl, resolveImageUrl } from '@/lib/images';
+import { isBackendUploadUrl, isCloudinaryUrl, cloudinaryLoader, resolveImageUrl } from '@/lib/images';
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal, getItemCount } = useCartStore();
@@ -69,7 +69,16 @@ export default function CartDrawer() {
                 <div key={item.id} className="grid grid-cols-[72px_1fr_auto] gap-2.5 items-start border-b border-surface-200 pb-3 last:border-b-0">
                   <div className="w-[72px] h-[92px] bg-surface-100 rounded-xl overflow-hidden flex-shrink-0 border border-surface-200">
                     {itemImage ? (
-                      <Image src={itemImage} alt={item.name} width={72} height={92} unoptimized={isBackendUploadUrl(itemImage)} sizes="72px" className="w-full h-full object-cover" />
+                      <Image
+                        src={itemImage}
+                        alt={item.name}
+                        width={72}
+                        height={92}
+                        loader={isCloudinaryUrl(itemImage) ? cloudinaryLoader : undefined}
+                        unoptimized={isBackendUploadUrl(itemImage)}
+                        sizes="72px"
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-xs text-surface-400">img</div>
                     )}

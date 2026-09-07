@@ -13,7 +13,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import ScrollReveal from '@/components/ScrollReveal';
-import { resolveImageUrl } from '@/lib/images';
+import { resolveImageUrl, isCloudinaryUrl, isBackendUploadUrl, cloudinaryLoader } from '@/lib/images';
 import ProductReviewsAccordion from '@/components/ProductReviewsAccordion';
 
 function stripHtml(html: string = ''): string {
@@ -190,23 +190,112 @@ interface ProductDetailClientProps {
 export function FormattedCareInstructions({ content }: { content?: string }) {
   if (!content) return null;
 
-  const cleaned = decodeHtmlEntities(content)
-    .replace(/<[^>]+>/g, '\n')
+  // 1. Decode entities and normalize HTML line breaks / list tags
+  let text = decodeHtmlEntities(content)
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(li|p|div|h[1-6])>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/[\u2022\u2023\u25E6\u2043\u2219]/g, '\n')
+    .replace(/â€¢/g, '\n')
+    .replace(/•/g, '\n')
     .trim();
 
-  const items = cleaned
-    .split(/\r?\n|â€¢|;/)
-    .map((s) => s.trim().replace(/^[-*â€¢\d.)\s]+/, ''))
-    .filter((s) => s.length > 0);
+  // Strip leading redundant heading if present
+  text = text.replace(/^(?:care\s+instructions?|wash\s+care|care\s+guide|care|instructions?)\s*[:\-–]\s*/i, '');
 
-  if (items.length === 0) return null;
+  // 2. Split on common care action triggers
+  const actionWords = [
+    'do not',
+    'wash with',
+    'wash separately',
+    'wash in',
+    'wash',
+    'hand wash',
+    'gentle hand',
+    'machine wash',
+    'machine or',
+    'use mild',
+    'use cold',
+    'use',
+    'avoid direct',
+    'avoid excessive',
+    'avoid',
+    'iron on',
+    'iron at',
+    'iron with',
+    'iron',
+    'steam iron',
+    'warm iron',
+    'cool iron',
+    'store in',
+    'store on',
+    'store',
+    'dry in',
+    'dry clean',
+    'dry flat',
+    'dry',
+    'hang dry',
+    'tumble dry',
+    'line dry',
+    'drip dry',
+    'bleach',
+    'always',
+    'never',
+    'keep away',
+    'rinse',
+    'separate',
+  ];
+
+  const actionRegex = new RegExp(`(?<=[a-z0-9)\\].,])\\s+(?=(?:${actionWords.join('|')})\\b)`, 'gi');
+  text = text.replace(actionRegex, '\n');
+
+  // Split on numbered items: "1. Hand wash 2. Dry clean" or "1) ... 2) ..."
+  text = text.replace(/(?<=[a-z0-9)\\].,])\\s+(?=\d+[\.\)]\s+)/gi, '\n');
+
+  // Also split on sentence boundaries
+  text = text.replace(/\.\s+(?=[A-Z])/g, '.\n');
+
+  // Split into raw items by newline or semicolon
+  let items = text
+    .split(/\r?\n|;/)
+    .map((s) => s.trim().replace(/^[-*•\d.)\s]+/, '').trim())
+    .map((s) => s.replace(/^[.,;:\-]+|[.,;:\-]+$/g, '').trim())
+    .filter((s) => s.length > 1);
+
+  // If items are few and contain commas (e.g. "Hand wash cold, do not bleach, warm iron"), split them by comma
+  if (items.length <= 2) {
+    const expanded: string[] = [];
+    for (const item of items) {
+      if (item.includes(',')) {
+        const parts = item.split(/\s*,\s*/).map((p) => p.trim()).filter((p) => p.length > 2);
+        if (parts.length >= 2) {
+          expanded.push(...parts);
+          continue;
+        }
+      }
+      expanded.push(item);
+    }
+    items = expanded;
+  }
+
+  // Clean and capitalize each item
+  const cleanedItems = items
+    .map((item) => {
+      let s = item.replace(/^[-*•\d.)\s]+/, '').trim();
+      s = s.replace(/^[.,;:\-]+|[.,;:\-]+$/g, '').trim();
+      if (!s) return '';
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    })
+    .filter((s) => s.length > 2);
+
+  if (cleanedItems.length === 0) return null;
 
   return (
     <ul className="pt-2 space-y-2 text-xs sm:text-sm text-surface-700">
-      {items.map((item, idx) => (
+      {cleanedItems.map((item, idx) => (
         <li key={idx} className="flex items-start gap-2.5 leading-relaxed">
           <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[#0F1F3D] shrink-0" />
-          <span>{item}</span>
+          <span className="text-surface-800 font-normal">{item}</span>
         </li>
       ))}
     </ul>
@@ -648,6 +737,8 @@ export default function ProductDetailClient({ initialProduct, productId }: Produ
                 alt={product.name}
                 fill
                 sizes="40px"
+                loader={isCloudinaryUrl(product.images[0]) ? cloudinaryLoader : undefined}
+                unoptimized={isBackendUploadUrl(product.images[0])}
                 className="object-cover object-top"
               />
             </div>

@@ -12,7 +12,7 @@ import { orderService, paymentService } from '@/services/order.service';
 import { productService } from '@/services/product.service';
 import Image from 'next/image';
 import { submitHostedCheckout } from '@/lib/paymentCheckout';
-import { isBackendUploadUrl, resolveImageUrl } from '@/lib/images';
+import { isBackendUploadUrl, isCloudinaryUrl, cloudinaryLoader, resolveImageUrl } from '@/lib/images';
 import toast from 'react-hot-toast';
 
 const PAKISTAN_LOCATIONS: Record<string, string[]> = {
@@ -553,7 +553,18 @@ export default function CheckoutPage() {
             {bagItem ? (
               <div className="pt-4 grid grid-cols-[88px_1fr] gap-3">
                 <div className="w-[88px] h-[110px] rounded-lg bg-surface-200 overflow-hidden">
-                  {bagItemImage ? <Image src={bagItemImage} alt={bagItem.name} width={88} height={110} unoptimized={isBackendUploadUrl(bagItemImage)} sizes="88px" className="w-full h-full object-cover" /> : null}
+                  {bagItemImage ? (
+                    <Image
+                      src={bagItemImage}
+                      alt={bagItem.name}
+                      width={88}
+                      height={110}
+                      loader={isCloudinaryUrl(bagItemImage) ? cloudinaryLoader : undefined}
+                      unoptimized={isBackendUploadUrl(bagItemImage)}
+                      sizes="88px"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : null}
                 </div>
                 <div>
                   <p className="font-semibold text-black text-lg">{bagItem.name}</p>
