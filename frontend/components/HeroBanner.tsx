@@ -37,13 +37,7 @@ export default function HeroBanner({
           loader={isCloudinary ? cloudinaryLoader : undefined}
           unoptimized={isBackend}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1536px"
-          className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-[1.01]"
-          style={{
-            aspectRatio: '12 / 5',
-            maxHeight: '80vh',
-            width: '100%',
-            height: 'auto',
-          }}
+          className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-[1.01] aspect-[12/5] max-h-[80vh]"
         />
       </Link>
     </div>

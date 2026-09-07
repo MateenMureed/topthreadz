@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useQuery } from '@tanstack/react-query';
 import api from '@/services/api';
@@ -17,6 +17,7 @@ import {
   FiMail,
 } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
+import ObfuscatedEmail from '@/components/ObfuscatedEmail';
 
 export default function DeliveryPolicyPage() {
   const { data: settingsData } = useQuery({
@@ -33,6 +34,7 @@ export default function DeliveryPolicyPage() {
 
   const phoneNumber = settingsData?.phoneNumber || '';
   const email = settingsData?.email || 'support@topthreadz.pk';
+  void email; // reserved for dynamic contact display; link uses ObfuscatedEmail
 
   const operatingDays =
     settingsData?.operatingDays || 'Mon to Fri: 9:00 AM - 6:00 PM';
@@ -486,21 +488,17 @@ export default function DeliveryPolicyPage() {
                     </a>
                   )}
 
-                  <a
-                    href={`mailto:${email}`}
-                    className="flex items-center gap-3 rounded-xl border border-surface-200 bg-surface-50 p-4 hover:bg-surface-100 transition-colors"
-                  >
+                  {/* Obfuscated email â€” assembled at runtime; scrapers never
+                      see the address in raw HTML. */}
+                  <div className="flex items-center gap-3 rounded-xl border border-surface-200 bg-surface-50 p-4">
                     <FiMail className="w-5 h-5 text-surface-700" />
-
                     <div>
                       <p className="text-xs font-bold text-surface-900">
                         Email
                       </p>
-                      <p className="text-xs text-surface-500 break-all">
-                        {email}
-                      </p>
+                      <ObfuscatedEmail className="text-xs text-surface-500 break-all hover:text-surface-900 transition-colors" />
                     </div>
-                  </a>
+                  </div>
 
                   <div className="flex items-center gap-3 rounded-xl border border-surface-200 bg-surface-50 p-4">
                     <FiClock className="w-5 h-5 text-surface-700" />
@@ -549,7 +547,7 @@ export default function DeliveryPolicyPage() {
 
         {/* Footer note */}
         <p className="text-center text-[11px] text-surface-400 mt-5 px-4">
-          Top Threadz • Premium Menswear, Fabric & Kids Collections in Pakistan
+          Top Threadz â€¢ Premium Menswear, Fabric & Kids Collections in Pakistan
         </p>
       </div>
     </div>

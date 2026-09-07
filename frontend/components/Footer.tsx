@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -6,13 +6,13 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/services/api';
+import ObfuscatedEmail from '@/components/ObfuscatedEmail';
 import {
   FiArrowUpRight,
   FiChevronDown,
   FiClock,
   FiFileText,
   FiHelpCircle,
-  FiMail,
   FiMapPin,
   FiPhone,
   FiRefreshCw,
@@ -34,8 +34,9 @@ export default function Footer() {
 
   const phoneNumber = settings?.phoneNumber || '+92 300 9070520';
   const email = settings?.email || 'support@topthreadz.pk';
+  void email; // reserved for future dynamic contact display; storefront link uses ObfuscatedEmail
   const operatingDays =
-    settings?.operatingDays || 'Mon – Sat: 11:00 AM – 10:30 PM | Sun: 2:00 PM – 10:00 PM';
+    settings?.operatingDays || 'Mon â€“ Sat: 11:00 AM â€“ 10:30 PM | Sun: 2:00 PM â€“ 10:00 PM';
 
   if (pathname?.startsWith('/admin')) return null;
 
@@ -61,7 +62,7 @@ export default function Footer() {
 
   return (
     <footer className="relative overflow-hidden bg-gradient-to-b from-[#0F1F3D] to-[#081020] text-white">
-      {/* Thread-line accent — a single gold hairline, evoking a stitched seam */}
+      {/* Thread-line accent â€” a single gold hairline, evoking a stitched seam */}
       <div className="h-px w-full bg-gradient-to-r from-transparent via-[#D4A84B]/70 to-transparent" />
 
       {/* Ambient glow */}
@@ -77,7 +78,7 @@ export default function Footer() {
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Main Footer Grid */}
         <div className="grid grid-cols-1 border-b border-white/10 py-8 sm:py-9 lg:grid-cols-[1.2fr_0.7fr_0.7fr_0.9fr] lg:gap-8 lg:py-8">
-          {/* Brand Info & Outlets — always visible, not part of the accordion */}
+          {/* Brand Info & Outlets â€” always visible, not part of the accordion */}
           <div className="relative space-y-3 pb-6 lg:pb-0 lg:pr-8">
             {/* Vertical gold divider, desktop only */}
             <div
@@ -99,7 +100,7 @@ export default function Footer() {
             </Link>
 
             <p className="max-w-sm text-[12px] leading-relaxed text-white/55">
-              Official store for premium unstitched men&apos;s fabric in Pakistan — exceptional
+              Official store for premium unstitched men&apos;s fabric in Pakistan â€” exceptional
               quality, soft finish, and timeless luxury menswear.
             </p>
 
@@ -265,15 +266,9 @@ export default function Footer() {
                   </li>
                 )}
                 <li>
-                  <a
-                    href={`mailto:${email}`}
-                    className="group/link inline-flex items-center gap-2 break-all transition-colors hover:text-white focus-visible:outline-none"
-                  >
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] transition-colors group-hover/link:border-[#D4A84B]/40 group-hover/link:bg-[#D4A84B]/10">
-                      <FiMail className="h-3 w-3 text-white/50 group-hover/link:text-[#E8C86A]" />
-                    </span>
-                    <span>{email}</span>
-                  </a>
+                  {/* Obfuscated contact email â€” assembled at runtime; raw
+                      HTML never contains the scrapeable address. */}
+                  <ObfuscatedEmail className="group/link inline-flex items-center gap-2 break-all transition-colors hover:text-white focus-visible:outline-none" />
                 </li>
                 <li className="inline-flex items-center gap-2 text-white/50">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04]">
@@ -288,7 +283,7 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="flex flex-col items-center justify-between gap-2.5 py-4 text-[11.5px] text-white/35 sm:flex-row">
-          <p>© {new Date().getFullYear()} Top Threadz. All rights reserved.</p>
+          <p>Â© {new Date().getFullYear()} Top Threadz. All rights reserved.</p>
           <div className="flex flex-wrap items-center justify-center gap-4 text-[11.5px]">
             <Link
               href="/faq"

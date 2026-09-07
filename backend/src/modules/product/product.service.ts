@@ -212,19 +212,41 @@ export class ProductService {
     // Preserve legacy UUID links while allowing the public /products/:slug
     // contract used by product cards and direct API consumers.
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idOrSlug);
-    const product = await prisma.product.findFirst({
+    let product = await prisma.product.findFirst({
       where: isUuid ? { OR: [{ id: idOrSlug }, { slug: idOrSlug }] } : { slug: idOrSlug },
       include: { reviews: { include: { user: { select: { name: true } } }, take: 10 } },
     });
+
+    // Slug history: old URLs (e.g. indexed by Google) resolve to the product's
+    // current canonical record. The frontend's product fetch includes a
+    // "requestedSlug" marker so it can 301 clients to the new canonical URL.
+    if (!product && !isUuid) {
+      product = await prisma.product.findFirst({
+        where: { slugRedirects: { some: { oldSlug: idOrSlug } } },
+        include: { reviews: { include: { user: { select: { name: true } } }, take: 10 } },
+      });
+      if (product) {
+        return { ...product, requestedSlug: idOrSlug };
+      }
+    }
     if (!product) throw new NotFoundError('Product not found');
     return product;
   }
 
   async findBySlug(slug: string) {
-    const product = await prisma.product.findUnique({
+    let product = await prisma.product.findUnique({
       where: { slug },
       include: { reviews: { include: { user: { select: { name: true } } }, take: 10 } },
     });
+    if (!product) {
+      product = await prisma.product.findFirst({
+        where: { slugRedirects: { some: { oldSlug: slug } } },
+        include: { reviews: { include: { user: { select: { name: true } } }, take: 10 } },
+      });
+      if (product) {
+        return { ...product, requestedSlug: slug };
+      }
+    }
     if (!product) throw new NotFoundError('Product not found');
     return product;
   }
@@ -239,6 +261,24 @@ export class ProductService {
       updateData.slug = await this.ensureUniqueSlug(data.slug, id);
     } else if (data.name) {
       updateData.slug = await this.ensureUniqueSlug(this.generateSlug(data.name), id);
+    }
+
+    // Slug history: whenever the slug changes, remember the old one so
+    // already-indexed URLs keep resolving (301) to the new canonical URL.
+    if (updateData.slug && updateData.slug !== product.slug) {
+      await prisma.slugRedirect.create({
+        data: { oldSlug: product.slug, productId: id },
+      }).catch(async () => {
+        // oldSlug is unique — if it's already recorded for this product,
+        // nothing to do; if recorded for another product, drop that entry
+        // (latest owner wins) and retry once.
+        await prisma.slugRedirect.deleteMany({ where: { oldSlug: product.slug, productId: { not: id } } });
+        await prisma.slugRedirect.upsert({
+          where: { oldSlug: product.slug },
+          update: { productId: id },
+          create: { oldSlug: product.slug, productId: id },
+        });
+      });
     }
 
     const updated = await prisma.product.update({ where: { id }, data: updateData as Prisma.ProductUncheckedUpdateInput });

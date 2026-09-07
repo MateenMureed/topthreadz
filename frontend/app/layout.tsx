@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { Inter, Outfit, Plus_Jakarta_Sans } from 'next/font/google';
@@ -10,6 +10,7 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import CategorySubnav from '@/components/CategorySubnav';
 import AuthRouteHandler from '@/components/AuthRouteHandler';
 import WhatsAppButton from '@/components/WhatsAppButton';
+import Analytics from '@/components/Analytics';
 import './globals.css';
 
 const inter = Inter({
@@ -45,7 +46,7 @@ export const metadata: Metadata = {
     default: 'Top Threadz | Official Store | Unstitched & Stitched Men\'s Fabric Pakistan',
     template: '%s | Top Threadz',
   },
-  description: 'Official Top Threadz Store. Shop premium unstitched men\'s fabric in Pakistan. Visit our flagship store at Zamzama Commercial Area DHA Phase 5 Karachi. Free delivery nationwide on orders over PKR 10,000.',
+  description: 'Shop premium men\'s unstitched fabric, wash & wear suits and stitched wear at Top Threadz — nationwide delivery across Pakistan.',
 
   // NOTE: no global canonical here. A layout-level canonical is inherited by
   // every page that doesn't define its own, which told Google all pages were
@@ -94,6 +95,10 @@ export const metadata: Metadata = {
     apple: '/favicon-full-512.png',
   },
   category: 'fashion',
+};
+
+export const viewport: Viewport = {
+  colorScheme: 'light',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -145,7 +150,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     sameAs: [
       'https://www.topthreadz.com.pk',
       'https://www.facebook.com/topthreadz',
-      'https://www.instagram.com/topthreadz',
+      'https://www.instagram.com/top.threadz',
     ],
   };
 
@@ -192,7 +197,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       className={`scroll-smooth light ${inter.variable} ${outfit.variable} ${plusJakartaSans.variable}`}
-      style={{ colorScheme: 'light' }}
     >
       <body className={`${inter.className} min-h-screen flex flex-col bg-[#fafafa] text-surface-900`}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(zamzamaStoreJsonLd) }} />
@@ -215,6 +219,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <CartDrawer />
           <AuthModal />
           <WhatsAppButton />
+          {/* GA4 + Facebook Pixel (loads only when env IDs are set) */}
+          <Analytics />
         </Providers>
         <div id="plusCursor" aria-hidden="true" />
       </body>

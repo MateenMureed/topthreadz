@@ -229,6 +229,11 @@ button {
   animation: shimmer 1.5s infinite;
 }
 
+/* Image zoom origin for product cards (was inline style; now a utility) */
+.transform-origin-center {
+  transform-origin: 50% 50%;
+}
+
 /* ============================================================
    PRODUCT CARD LAZY-LOAD BRAND PLACEHOLDER
    Animated "TOP THREADZ" text shown while images load.

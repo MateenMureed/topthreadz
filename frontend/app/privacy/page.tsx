@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useQuery } from '@tanstack/react-query';
 import api from '@/services/api';
 import Link from 'next/link';
 import { FiArrowLeft, FiShield } from 'react-icons/fi';
+import ObfuscatedEmail from '@/components/ObfuscatedEmail';
 
 export default function PrivacyPolicyPage() {
   const { data: settingsData } = useQuery({
@@ -14,6 +15,7 @@ export default function PrivacyPolicyPage() {
 
   const customPolicy = settingsData?.privacyPolicy;
   const contactEmail = settingsData?.email || 'support@topthreadz.pk';
+  void contactEmail; // reserved; email link uses ObfuscatedEmail
 
   return (
     <div className="min-h-screen bg-surface-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -40,7 +42,7 @@ export default function PrivacyPolicyPage() {
             </h1>
 
             <p className="text-xs text-surface-500 mt-1">
-              Top Threadz • Premium Unstitched Men&apos;s Fabric
+              Top Threadz â€¢ Premium Unstitched Men&apos;s Fabric
             </p>
           </div>
         </div>
@@ -481,12 +483,7 @@ export default function PrivacyPolicyPage() {
 
                 <p className="mt-1">
                   <strong>Email:</strong>{' '}
-                  <a
-                    href={`mailto:${contactEmail}`}
-                    className="text-black font-semibold underline"
-                  >
-                    {contactEmail}
-                  </a>
+                  <ObfuscatedEmail className="text-black font-semibold underline" />
                 </p>
               </div>
 

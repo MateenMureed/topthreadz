@@ -253,6 +253,7 @@ model Product {
   compareItems  CompareItem[]
   savedForLater SavedForLaterItem[]
   alerts        ProductAlert[]
+  slugRedirects SlugRedirect[]
 
   @@index([category])
   @@index([subcategory])
@@ -711,6 +712,19 @@ model SiteSetting {
   key       String   @id
   value     String
   updatedAt DateTime @default(now()) @updatedAt
+}
+
+// Permanent slug history: when a product's slug changes, the previous slug is
+// recorded here so old URLs (e.g. already indexed by Google) keep resolving
+// via 301 redirect to the product's current canonical URL.
+model SlugRedirect {
+  id          String   @id @default(uuid())
+  oldSlug     String   @unique
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId   String
+  createdAt   DateTime @default(now())
+
+  @@index([productId])
 }
 
 // ═══════════════════════════════════════════════════════════

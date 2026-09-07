@@ -15,6 +15,31 @@ const SITE_URL = 'https://www.topthreadz.com.pk';
 const BRAND_NAME = 'Top Threadz';
 const SITE_DESCRIPTION = 'Discover premium men\'s fashion at Top Threadz, featuring luxury fabrics, unstitched and stitched wear, elegant waistcoats and sophisticated suits, crafted for timeless Pakistani style.';
 
+// Self-contained FAQ pairs for the visible homepage section. Mirrored as
+// FAQPage structured data below so AI engines can lift answers verbatim.
+const HOME_FAQS: { question: string; answer: string }[] = [
+  {
+    question: 'What does Top Threadz sell?',
+    answer: 'Top Threadz is a multi-category menswear retailer. We sell premium unstitched wash & wear fabric by the suit length, stitched menswear, coordinated two-piece and three-piece suits, waistcoats, and a kids\' collection — all with nationwide delivery across Pakistan.',
+  },
+  {
+    question: 'How long does delivery take across Pakistan?',
+    answer: 'Orders typically arrive within 2–5 working days anywhere in Pakistan, from Karachi to Khyber. Dispatch usually happens within 24 hours, and you receive tracking details by SMS or WhatsApp once the parcel leaves our warehouse.',
+  },
+  {
+    question: 'Is Cash on Delivery available?',
+    answer: 'Yes. Cash on Delivery is available for eligible orders nationwide. Online payment and bank transfer options are also offered at checkout, and shipping is free on orders above PKR 10,000.',
+  },
+  {
+    question: 'Can I exchange or return a product?',
+    answer: 'Yes — within 7 days of delivery, provided the item is unused, unwashed, unaltered, and has its original tags and packaging. Contact our support team with your order number and we arrange the exchange through our courier partner.',
+  },
+  {
+    question: 'Is the wash & wear fabric really wrinkle-free?',
+    answer: 'Our signature wash & wear line is woven specifically to resist wrinkles and hold its crease through a full day — from the office to evening wear. Each product page lists the exact fabric composition, feel, and care instructions so you know precisely what you are buying.',
+  },
+];
+
 export async function generateMetadata(): Promise<Metadata> {
   const [categories, settings, heroBanner] = await Promise.all([
     fetchServerCategories(),
@@ -415,16 +440,95 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homeStructuredData) }}
       />
+      {/* FAQPage structured data — mirrors the visible FAQ section so AI
+          engines can lift the Q&A pairs directly. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: HOME_FAQS.map((faq) => ({
+              '@type': 'Question',
+              name: faq.question,
+              acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+            })),
+          }),
+        }}
+      />
       <HeroBanner
         heroBanner={heroBanner}
         buttonLink={heroBannerText?.buttonLink || '/products'}
       />
+      {/* Semantic H1 for SEO — exactly one per page, contains the primary
+          keyword. Visually rendered as a compact hero caption above the
+          client grid so crawlers see it in the raw HTML. */}
+      <h1 className="sr-only">
+        Top Threadz — Premium Men&apos;s Unstitched Fabric &amp; Stitched Wear in Pakistan
+      </h1>
       <HomePageClient
         initialCategories={categories}
         initialProducts={products}
         initialHeroBanner={heroBanner}
         initialSettings={settings}
       />
+      {/* Brand content section — 150-300 words of crawlable, human-readable
+          copy below the product grid. Fixes "thin content" on the homepage. */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+        <h2 className="text-xl sm:text-2xl font-display font-bold text-surface-950 mb-4">
+          Premium Men&apos;s Fashion, Tailored for Pakistan
+        </h2>
+        <div className="space-y-4 text-[13.5px] sm:text-sm leading-relaxed text-surface-600">
+          <p>
+            Top Threadz is a multi-category menswear house built around one promise: fabric and
+            garments that look sharp on the rack and stay sharp through real life. Our signature{' '}
+            <strong className="text-surface-900 font-semibold">wash &amp; wear unstitched fabric</strong>{' '}
+            is woven for the Pakistani climate — wrinkle-resistant, color-fast, and soft enough for
+            full-day comfort from the office to Jummah. Each suit length is inspected by hand before
+            it reaches our shelves.
+          </p>
+          <p>
+            Alongside our fabric heritage, we curate{' '}
+            <strong className="text-surface-900 font-semibold">stitched menswear</strong>,{' '}
+            <strong className="text-surface-900 font-semibold">two and three-piece suits</strong>, and
+            a growing kids&apos; collection — each piece cut from premium yarns with a finish that
+            rivals big-brand labels at a fair price. Whether you are dressing for a wedding, work, or
+            Eid gatherings, the collection is designed to mix tradition with a modern silhouette.
+          </p>
+          <p>
+            Order online with Cash on Delivery and we deliver nationwide — Karachi to Khyber — with
+            free shipping on orders over PKR 10,000. Need guidance on fabric weight, sizing, or care?
+            Our WhatsApp support team answers within minutes during business hours. Visit our Zamzama
+            flagship store in DHA Phase 5, Karachi, or browse the full collection online and
+            experience why thousands of men across Pakistan trust Top Threadz for their most
+            important looks.
+          </p>
+        </div>
+      </section>
+
+      {/* Visible FAQ section — self-contained Q&A pairs for conversational
+          (AI-driven) search queries; mirrored as FAQPage structured data. */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-12 sm:pb-16">
+        <h2 className="text-xl sm:text-2xl font-display font-bold text-surface-950 mb-5">
+          Frequently Asked Questions
+        </h2>
+        <div className="space-y-3">
+          {HOME_FAQS.map((faq) => (
+            <details
+              key={faq.question}
+              className="group rounded-xl border border-surface-200 bg-white px-4 sm:px-5 py-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
+            >
+              <summary className="flex items-center justify-between gap-3 cursor-pointer list-none text-[13.5px] sm:text-sm font-bold text-surface-900 [&::-webkit-details-marker]:hidden">
+                {faq.question}
+                <span className="shrink-0 text-surface-400 transition-transform duration-200 group-open:rotate-45 text-lg leading-none">+</span>
+              </summary>
+              <p className="mt-2.5 text-[13px] sm:text-[13.5px] leading-relaxed text-surface-600">
+                {faq.answer}
+              </p>
+            </details>
+          ))}
+        </div>
+      </section>
     </>
   );
 }

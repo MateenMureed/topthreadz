@@ -41,7 +41,12 @@ export default function LoginPageClient() {
       setUser(user);
       toast.success('Welcome back!');
       if (user.role === 'ADMIN') {
-        router.push('/admin');
+        // Full navigation (not client-side router.push): the /admin RSC
+        // payload may have been prefetched pre-authentication, and client
+        // navigation to it races the just-issued session cookie — causing
+        // "This page couldn't load" until a manual refresh. window.location
+        // guarantees a fresh server render with the new cookie.
+        window.location.href = '/admin';
       } else {
         router.push(redirectTo);
       }

@@ -123,7 +123,7 @@ export default function CategoryPageContent({ slug }: Props) {
             <div className="rounded-xl bg-white/10 border border-white/15 px-3.5 py-2 hidden sm:block">
               <p className="text-[9px] font-bold uppercase tracking-widest text-white/50">Pieces</p>
               <p className="text-sm font-bold text-white leading-none mt-0.5">
-                {isLoading ? '—' : totalItems.toLocaleString()}
+                {isLoading ? '—' : totalItems.toLocaleString('en-US')}
               </p>
             </div>
 

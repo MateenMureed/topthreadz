@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -15,13 +15,14 @@ import {
   FiX,
 } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
+import ObfuscatedEmail from '@/components/ObfuscatedEmail';
 
 const FAQS_LIST = [
   {
     category: 'Product & Quality',
     question: 'What does Top Threadz sell?',
     answer:
-      'Top Threadz is a multi-category menswear retailer. Our collections include unstitched fabrics, stitched garments, two-piece and three-piece suits, and kids\u2019 wear — designed for men who value premium quality and modern style.',
+      'Top Threadz is a multi-category menswear retailer. Our collections include unstitched fabrics, stitched garments, two-piece and three-piece suits, and kids\u2019 wear â€” designed for men who value premium quality and modern style.',
   },
   {
     category: 'Product & Quality',
@@ -33,7 +34,7 @@ const FAQS_LIST = [
     category: 'Product & Quality',
     question: 'Do you only sell unstitched fabric?',
     answer:
-      'No. While unstitched fabric remains one of our signature categories, we now offer a full range of menswear — including stitched garments, two-piece and three-piece suits, and kids\u2019 collections.',
+      'No. While unstitched fabric remains one of our signature categories, we now offer a full range of menswear â€” including stitched garments, two-piece and three-piece suits, and kids\u2019 collections.',
   },
   {
     category: 'Product & Quality',
@@ -205,6 +206,7 @@ export default function FAQPage() {
   const cleanWhatsapp = whatsappNumber.replace(/\D/g, '');
   const phoneNumber = settings?.phoneNumber || '+92 300 1234567';
   const email = settings?.email || 'support@topthreadz.pk';
+  void email; // reserved; contact link uses ObfuscatedEmail
 
   const filteredFaqs = FAQS_LIST.filter((faq) => {
     const matchesCategory = activeCategory === 'All' || faq.category === activeCategory;
@@ -362,12 +364,10 @@ export default function FAQPage() {
             >
               <FiPhone className="w-4 h-4" /> Call
             </a>
-            <a
-              href={`mailto:${email}`}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-full bg-white/10 px-4 py-2.5 text-xs font-bold text-white border border-white/20 hover:bg-white/20 transition-all"
-            >
+            {/* Obfuscated email â€” assembled at runtime; raw HTML stays clean */}
+            <ObfuscatedEmail className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-full bg-white/10 px-4 py-2.5 text-xs font-bold text-white border border-white/20 hover:bg-white/20 transition-all">
               <FiMail className="w-4 h-4" /> Email
-            </a>
+            </ObfuscatedEmail>
           </div>
         </div>
       </div>

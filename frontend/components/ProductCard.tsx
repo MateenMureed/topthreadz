@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react';
 import Link from 'next/link';
@@ -28,7 +28,7 @@ interface ProductCardProps {
   colors?: string[];
   slug?: string;
   imageMeta?: ProductImageMeta[];
-  /** "full" shows the entire product image (no crop) — used on category pages */
+  /** "full" shows the entire product image (no crop) â€” used on category pages */
   imageFit?: 'cover' | 'full';
 }
 
@@ -144,7 +144,7 @@ export default function ProductCard({
             onClick={() => toast.dismiss(t.id)}
             className="rounded-lg bg-emerald-700 px-2.5 py-1 text-white font-bold shrink-0 hover:bg-emerald-800"
           >
-            Checkout →
+            Checkout â†’
           </Link>
         </div>
       ), { duration: 4000 });
@@ -188,7 +188,7 @@ export default function ProductCard({
       } catch {}
 
       setIsWishlisted(nextState);
-      toast.success(nextState ? 'Added to wishlist ❤️' : 'Removed from wishlist');
+      toast.success(nextState ? 'Added to wishlist â¤ï¸' : 'Removed from wishlist');
     } catch {
       toast.error('Could not update wishlist');
     } finally {
@@ -203,7 +203,7 @@ export default function ProductCard({
         {/* Image container */}
         <div className="relative aspect-[3/4] overflow-hidden bg-[#f4f2ee] rounded-xl cursor-pointer">
 
-      {/* Product image — object-cover object-top so model and suit are always centered & sharp */}
+      {/* Product image â€” object-cover object-top so model and suit are always centered & sharp */}
   <div className="absolute inset-0">
     {frontSrc ? (
       <>
@@ -227,8 +227,7 @@ export default function ProductCard({
           decoding="async"
           unoptimized={isBackendUploadUrl(frontSrc)}
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className={`h-full w-full ${imageFit === 'full' ? 'object-contain object-center p-0.5 bg-white' : 'object-cover object-top'} transition-[opacity,transform] duration-500 ease-out will-change-transform group-hover:scale-[1.05] ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
-          style={{ transformOrigin: '50% 50%' }}
+          className={`h-full w-full transform-origin-center ${imageFit === 'full' ? 'object-contain object-center p-0.5 bg-white' : 'object-cover object-top'} transition-[opacity,transform] duration-500 ease-out will-change-transform group-hover:scale-[1.05] ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
           onLoad={() => setImageState('loaded')}
           onError={() => setImageState('error')}
           draggable={false}
@@ -243,7 +242,7 @@ export default function ProductCard({
           {/* Subtle dark tint on hover */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 pointer-events-none" />
 
-          {/* Wishlist button — 44x44px touch target, appears on hover or touch */}
+          {/* Wishlist button â€” 44x44px touch target, appears on hover or touch */}
           <button
             type="button"
             onClick={handleToggleWishlist}
@@ -258,7 +257,7 @@ export default function ProductCard({
             <FiHeart className={`h-4 w-4 ${isWishlisted ? 'fill-current text-[#B91C2B]' : 'text-[#0F1F3D] stroke-[2.2]'}`} />
           </button>
 
-          {/* Add to Cart — Desktop hover only, solid primary red #B91C2B */}
+          {/* Add to Cart â€” Desktop hover only, solid primary red #B91C2B */}
           <div
             className="absolute inset-x-0 bottom-0 z-20 hidden sm:flex items-center justify-center pb-3 pt-10 sm:translate-y-full sm:group-hover:translate-y-0 transition-transform duration-150 ease-out pointer-events-none group-hover:pointer-events-auto"
             style={{ background: 'linear-gradient(to top, rgba(15,31,61,0.6) 0%, transparent 100%)' }}
@@ -289,11 +288,11 @@ export default function ProductCard({
           {/* Price & discount row */}
           <div className="mt-1.5 flex items-center gap-2 flex-wrap">
             <span className="text-[14px] sm:text-[15px] font-black leading-none text-[#1A1A1A]">
-              PKR {Math.round(effectivePrice).toLocaleString()}
+              PKR {Math.round(effectivePrice).toLocaleString('en-US')}
             </span>
             {discount > 0 ? (
               <span className="text-[11px] sm:text-[12px] font-semibold leading-none text-[#6B7280] line-through">
-                PKR {price.toLocaleString()}
+                PKR {price.toLocaleString('en-US')}
               </span>
             ) : null}
             {discount > 0 ? (

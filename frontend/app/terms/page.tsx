@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useQuery } from '@tanstack/react-query';
 import api from '@/services/api';
 import Link from 'next/link';
 import { FiArrowLeft, FiFileText } from 'react-icons/fi';
+import ObfuscatedEmail from '@/components/ObfuscatedEmail';
 
 export default function TermsOfServicePage() {
   const { data: settingsData } = useQuery({
@@ -46,7 +47,7 @@ export default function TermsOfServicePage() {
             <section>
               <h2 className="text-lg font-bold text-surface-900 mb-2">2. Products &amp; Pricing</h2>
               <p>
-                We describe all products — including unstitched fabrics, stitched garments, two-piece and three-piece suits, and kids&apos; wear — as accurately as possible. Prices are subject to change without notice, and we reserve the right to modify or discontinue any product at any time.
+                We describe all products â€” including unstitched fabrics, stitched garments, two-piece and three-piece suits, and kids&apos; wear â€” as accurately as possible. Prices are subject to change without notice, and we reserve the right to modify or discontinue any product at any time.
               </p>
             </section>
 
@@ -67,7 +68,7 @@ export default function TermsOfServicePage() {
             <section>
               <h2 className="text-lg font-bold text-surface-900 mb-2">5. Intellectual Property</h2>
               <p>
-                All content on this website — including product photography, descriptions, branding and design — belongs to Top Threadz and may not be copied, reproduced or used commercially without written permission.
+                All content on this website â€” including product photography, descriptions, branding and design â€” belongs to Top Threadz and may not be copied, reproduced or used commercially without written permission.
               </p>
             </section>
 
@@ -96,9 +97,7 @@ export default function TermsOfServicePage() {
               <h2 className="text-lg font-bold text-surface-900 mb-2">9. Contact Information</h2>
               <p>
                 Questions about these Terms of Service may be sent to{' '}
-                <a href={`mailto:${settingsData?.email || 'support@topthreadz.pk'}`} className="text-black font-semibold underline underline-offset-2">
-                  {settingsData?.email || 'support@topthreadz.pk'}
-                </a>.
+                <ObfuscatedEmail className="text-black font-semibold underline underline-offset-2" />.
               </p>
             </section>
           </div>

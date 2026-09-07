@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { notFound, redirect } from 'next/navigation';
 import ProductDetailClient from '@/components/ProductDetailClient';
 import { fetchServerProduct } from '@/lib/serverData';
 import { resolveImageUrl } from '@/lib/images';
@@ -81,6 +82,19 @@ export default async function ProductDetailPage({ params }: Props) {
   const resolvedParams = await params;
   const product = await fetchServerProduct(resolvedParams.id);
 
+  // Missing/unpublished product → real 404 (with correct status code) so
+  // Google drops dead URLs instead of hitting a 500 SSR crash.
+  if (!product) {
+    notFound();
+  }
+
+  // Slug history: when the backend resolved this request through a legacy
+  // slug (already indexed by Google), 301-redirect to the current canonical
+  // URL so search engines consolidate ranking signals onto one URL.
+  if (product.requestedSlug && product.requestedSlug !== product.slug) {
+    redirect(`/products/${product.slug}`);
+  }
+
   const cleanDesc = stripHtml(product?.description || '');
   const effectivePrice = product
     ? Math.round(product.price * (1 - (product.discount || 0) / 100))
@@ -89,10 +103,10 @@ export default async function ProductDetailPage({ params }: Props) {
   const images = (product?.images || []).map((img: string) => resolveImageUrl(img));
 
   // Product Schema (JSON-LD) — uses curated/AI fields with safe fallbacks.
-  const jsonLdDescription = product.metaDescription?.trim()
-    || stripHtml(product.shortDescription || '')
+  const jsonLdDescription = product?.metaDescription?.trim()
+    || stripHtml(product?.shortDescription || '')
     || cleanDesc
-    || product.name;
+    || product?.name;
 
   const productJsonLd = product
     ? {
@@ -109,17 +123,95 @@ export default async function ProductDetailPage({ params }: Props) {
         ...(Array.isArray(product.highlights) && product.highlights.length > 0
           ? { additionalProperty: product.highlights.slice(0, 8).map((h: string) => ({ '@type': 'PropertyValue', name: 'Highlight', value: h })) }
           : {}),
+        // Only emit aggregateRating/review when the product has REAL user
+        // reviews. Fabricated ratings violate Google guidelines and can
+        // trigger manual actions; omitting them is valid and merely keeps
+        // the "improve appearance" warning quiet until genuine reviews exist.
+        ...(Array.isArray(product.reviews) && product.reviews.length > 0
+          ? (() => {
+              const ratings = product.reviews.map((r: any) => Number(r.rating)).filter((n: number) => n > 0);
+              if (ratings.length === 0) return {};
+              const avg = ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length;
+              return {
+                aggregateRating: {
+                  '@type': 'AggregateRating',
+                  ratingValue: Math.round(avg * 10) / 10,
+                  reviewCount: ratings.length,
+                  bestRating: 5,
+                  worstRating: 1,
+                },
+                review: product.reviews
+                  .filter((r: any) => r.rating > 0 && (r.comment || '').trim())
+                  .slice(0, 5)
+                  .map((r: any) => ({
+                    '@type': 'Review',
+                    reviewRating: {
+                      '@type': 'Rating',
+                      ratingValue: r.rating,
+                      bestRating: 5,
+                      worstRating: 1,
+                    },
+                    author: { '@type': 'Person', name: r.user?.name || 'Verified Buyer' },
+                    datePublished: r.createdAt ? new Date(r.createdAt).toISOString().slice(0, 10) : undefined,
+                    reviewBody: String(r.comment || '').slice(0, 500),
+                  })),
+              };
+            })()
+          : {}),
         offers: {
           '@type': 'Offer',
           url: `https://www.topthreadz.com.pk/products/${product.slug || product.id}`,
           priceCurrency: 'PKR',
           price: effectivePrice,
+          // Offer validity window — Google prefers an explicit start; the
+          // product's listing date when available, else today.
+          validFrom: (product.createdAt ? new Date(product.createdAt) : new Date())
+            .toISOString()
+            .slice(0, 10),
           priceValidUntil: new Date(new Date().getFullYear() + 1, 11, 31).toISOString().slice(0, 10),
           availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
           itemCondition: 'https://schema.org/NewCondition',
           seller: {
             '@type': 'Organization',
             name: 'Top Threadz',
+          },
+          // 7-day exchange window per the storefront Returns policy page.
+          hasMerchantReturnPolicy: {
+            '@type': 'MerchantReturnPolicy',
+            applicableCountry: 'PK',
+            returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+            merchantReturnDays: 7,
+            returnMethod: 'https://schema.org/ReturnByMail',
+            returnFees: 'https://schema.org/FreeReturn',
+          },
+          // Nationwide delivery with a flat PKR 250 fee (free over 10k) per
+          // the storefront Delivery policy page.
+          shippingDetails: {
+            '@type': 'OfferShippingDetails',
+            shippingRate: {
+              '@type': 'MonetaryAmount',
+              value: 250,
+              currency: 'PKR',
+            },
+            shippingDestination: {
+              '@type': 'DefinedRegion',
+              addressCountry: 'PK',
+            },
+            deliveryTime: {
+              '@type': 'ShippingDeliveryTime',
+              handlingTime: {
+                '@type': 'QuantitativeValue',
+                minValue: 0,
+                maxValue: 1,
+                unitCode: 'DAY',
+              },
+              transitTime: {
+                '@type': 'QuantitativeValue',
+                minValue: 2,
+                maxValue: 5,
+                unitCode: 'DAY',
+              },
+            },
           },
         },
       }

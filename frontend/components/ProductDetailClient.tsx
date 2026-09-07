@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -99,7 +99,7 @@ export function FormattedProductDescription({ content }: { content?: string }) {
   for (let i = 0; i < rawLines.length; i++) {
     const line = rawLines[i];
     const nextLine = rawLines[i + 1];
-    const cleanLine = line.replace(/^[-*•✓✔▸▪]\s*/, '').trim();
+    const cleanLine = line.replace(/^[-*â€¢âœ“âœ”â–¸â–ª]\s*/, '').trim();
 
     if (isHeading(cleanLine, nextLine)) {
       flushList();
@@ -107,7 +107,7 @@ export function FormattedProductDescription({ content }: { content?: string }) {
       continue;
     }
 
-    const hasBulletPrefix = /^[-*•✓✔▸▪]\s*/.test(line) || /^\d+[\.\)]\s*/.test(line);
+    const hasBulletPrefix = /^[-*â€¢âœ“âœ”â–¸â–ª]\s*/.test(line) || /^\d+[\.\)]\s*/.test(line);
     const lastBlock = blocks[blocks.length - 1];
     const isFollowingHeading = lastBlock?.type === 'heading';
 
@@ -189,8 +189,8 @@ export function FormattedCareInstructions({ content }: { content?: string }) {
     .trim();
 
   const items = cleaned
-    .split(/\r?\n|•|;/)
-    .map((s) => s.trim().replace(/^[-*•\d.)\s]+/, ''))
+    .split(/\r?\n|â€¢|;/)
+    .map((s) => s.trim().replace(/^[-*â€¢\d.)\s]+/, ''))
     .filter((s) => s.length > 0);
 
   if (items.length === 0) return null;
@@ -393,7 +393,7 @@ export default function ProductDetailClient({ initialProduct, productId }: Produ
     <div className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
       {/* Main Product Container */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-10">
-        {/* Left Column: Image Gallery — compact */}
+        {/* Left Column: Image Gallery â€” compact */}
         <div className="lg:col-span-5">
           <ProductImageGallery images={galleryImages} name={product.name} category={product.category} />
         </div>
@@ -419,12 +419,12 @@ export default function ProductDetailClient({ initialProduct, productId }: Produ
             {/* Pricing Section */}
             <div className="mt-3 flex items-baseline gap-3">
               <span className="text-2xl sm:text-3xl font-black text-surface-950">
-                PKR {Math.round(effectivePrice).toLocaleString()}
+                PKR {Math.round(effectivePrice).toLocaleString('en-US')}
               </span>
               {product.discount > 0 && (
                 <>
                   <span className="text-base text-surface-400 line-through">
-                    PKR {product.price?.toLocaleString()}
+                    PKR {product.price?.toLocaleString('en-US')}
                   </span>
                   <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[#B91C2B] text-white">
                     {product.discount}% OFF
@@ -441,7 +441,7 @@ export default function ProductDetailClient({ initialProduct, productId }: Produ
                 </span>
               ) : isLowStock ? (
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" /> Only {product.stock} left in stock — order soon
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" /> Only {product.stock} left in stock â€” order soon
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600">
@@ -533,7 +533,7 @@ export default function ProductDetailClient({ initialProduct, productId }: Produ
                 className="flex-1 btn-primary h-11 flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider disabled:opacity-50"
               >
                 <FiShoppingBag className="w-4 h-4" />
-                <span>{addedInline ? 'Added ✓' : isOutOfStock ? 'Out of Stock' : 'Add to Cart'}</span>
+                <span>{addedInline ? 'Added âœ“' : isOutOfStock ? 'Out of Stock' : 'Add to Cart'}</span>
               </button>
 
               <button
@@ -569,7 +569,7 @@ export default function ProductDetailClient({ initialProduct, productId }: Produ
               className="w-full flex items-center justify-between text-left py-2 font-display font-bold text-base text-surface-950"
             >
               <span>Product Description & Fabric Specs</span>
-              <span>{detailsExpanded ? '−' : '+'}</span>
+              <span>{detailsExpanded ? 'âˆ’' : '+'}</span>
             </button>
             {detailsExpanded && (
               <div className="pt-2">
@@ -587,7 +587,7 @@ export default function ProductDetailClient({ initialProduct, productId }: Produ
                 className="w-full flex items-center justify-between text-left py-2 font-display font-bold text-base text-surface-950"
               >
                 <span>Care Instructions</span>
-                <span>{careExpanded ? '−' : '+'}</span>
+                <span>{careExpanded ? 'âˆ’' : '+'}</span>
               </button>
               {careExpanded && (
                 <FormattedCareInstructions content={product.careInstructions} />
@@ -646,7 +646,7 @@ export default function ProductDetailClient({ initialProduct, productId }: Produ
             </p>
             <div className="flex items-center gap-1.5 leading-none mt-0.5">
               <span className="text-[13px] font-black text-white">
-                PKR {Math.round(effectivePrice).toLocaleString()}
+                PKR {Math.round(effectivePrice).toLocaleString('en-US')}
               </span>
               {selectedSize && (
                 <span className="text-[10px] text-white font-bold bg-white/20 px-1.5 py-0.5 rounded">
@@ -663,7 +663,7 @@ export default function ProductDetailClient({ initialProduct, productId }: Produ
           className="min-h-[40px] px-5 rounded-full bg-[#B91C2B] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#8F1620] active:scale-95 transition-all shadow-md shrink-0 flex items-center gap-1.5 disabled:bg-[#D1D5DB]"
         >
           <FiShoppingBag className="w-3.5 h-3.5 stroke-[2.5]" />
-          <span>{addedInline ? 'Added ✓' : isOutOfStock ? 'Sold Out' : 'Add to Bag'}</span>
+          <span>{addedInline ? 'Added âœ“' : isOutOfStock ? 'Sold Out' : 'Add to Bag'}</span>
         </button>
       </aside>
     </div>

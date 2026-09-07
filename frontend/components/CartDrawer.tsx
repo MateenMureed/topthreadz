@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { FiX, FiMinus, FiPlus, FiShoppingBag, FiTrash2, FiArrowRight } from 'react-icons/fi';
 import Link from 'next/link';
@@ -84,8 +84,8 @@ export default function CartDrawer() {
                     )}
 
                     <div className="mt-1 flex items-center gap-2 text-sm">
-                      {item.discount > 0 ? <span className="line-through text-surface-400 text-xs">PKR {oldPrice.toLocaleString()}</span> : null}
-                      <span className="font-black text-surface-950">PKR {finalPrice.toLocaleString()}</span>
+                      {item.discount > 0 ? <span className="line-through text-surface-400 text-xs">PKR {oldPrice.toLocaleString('en-US')}</span> : null}
+                      <span className="font-black text-surface-950">PKR {finalPrice.toLocaleString('en-US')}</span>
                     </div>
 
                     <div className="mt-2 flex items-center gap-3">
@@ -125,7 +125,7 @@ export default function CartDrawer() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-surface-500">Total Price</p>
-                <p className="text-lg sm:text-xl font-black text-surface-950 leading-none mt-0.5">PKR {total.toLocaleString()}</p>
+                <p className="text-lg sm:text-xl font-black text-surface-950 leading-none mt-0.5">PKR {total.toLocaleString('en-US')}</p>
               </div>
 
               <Link
