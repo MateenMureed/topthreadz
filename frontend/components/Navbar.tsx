@@ -25,6 +25,7 @@ import { useAuthModalStore } from '@/store/authModalStore';
 import { productService } from '@/services/product.service';
 import { authService } from '@/services/auth.service';
 import { useHydration } from '@/hooks/useHydration';
+import ThemeToggle from '@/components/ThemeToggle';
 import toast from 'react-hot-toast';
 
 interface SearchProduct {
@@ -173,9 +174,10 @@ export default function Navbar() {
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? 'bg-white/95 backdrop-blur-xl shadow-soft border-b border-surface-300'
-            : 'bg-white border-b border-surface-300'
+            ? 'backdrop-blur-xl shadow-soft'
+            : ''
         }`}
+        style={{ backgroundColor: 'var(--navbar-bg)', borderBottom: '1px solid var(--navbar-border)' }}
       >
         <div className="max-w-7xl mx-auto px-4">
           <div className="h-16 grid grid-cols-[auto_1fr_auto] lg:grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
@@ -215,12 +217,15 @@ export default function Navbar() {
             <div className="flex items-center justify-end gap-1.5 sm:gap-2">
               <button
                 type="button"
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-surface-300 text-surface-800 hover:bg-surface-100 hover:text-navy transition-colors flex items-center justify-center"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-surface-300 dark:border-[#2D3340] text-surface-800 dark:text-[#CBD5E1] hover:bg-surface-100 dark:hover:bg-[#1E2228] hover:text-navy transition-colors flex items-center justify-center"
                 onClick={handleOpenSearch}
                 aria-label="Open search"
               >
                 <FiSearch className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
               </button>
+
+              {/* Dark mode toggle — visible on all screen sizes */}
+              <ThemeToggle />
 
               <div className="hidden lg:flex items-center gap-2">
                 {isAuthed && !isAdmin ? (

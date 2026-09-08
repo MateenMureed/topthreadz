@@ -211,14 +211,14 @@ export default function ProductCard({
     <Link href={productHref} className="block">
       <article className="group">
         {/* Image container */}
-        <div className="relative aspect-[3/4] overflow-hidden bg-[#f4f2ee] rounded-xl cursor-pointer">
+        <div className="relative aspect-[3/4] overflow-hidden dark:bg-[#1e2228] bg-[#f4f2ee] rounded-xl cursor-pointer">
 
       {/* Product image â€” object-cover object-top so model and suit are always centered & sharp */}
   <div className="absolute inset-0">
     {frontSrc ? (
       <>
         {imageState === 'loading' && (
-          <div className="absolute inset-0 bg-stone-100 flex flex-col items-center justify-center gap-1.5" aria-hidden="true">
+          <div className="absolute inset-0 dark:bg-[#1e2228] bg-stone-100 flex flex-col items-center justify-center gap-1.5" aria-hidden="true">
             <div className="shimmer absolute inset-0" />
             <span className="relative text-[11px] sm:text-xs font-black tracking-[0.28em] text-stone-400 select-none brand-loading-anim">
               TOP THREADZ
@@ -294,13 +294,13 @@ export default function ProductCard({
           </p>
 
           {/* Title with clean 2-line clamp */}
-          <h3 className="mt-1 line-clamp-2 text-[13px] sm:text-[14px] font-bold leading-snug text-[#1A1A1A] group-hover:text-[#0F1F3D] transition-colors">
+          <h3 className="mt-1 line-clamp-2 text-[13px] sm:text-[14px] font-bold leading-snug text-[#1A1A1A] dark:text-[#F1F5F9] group-hover:text-[#0F1F3D] dark:group-hover:text-white transition-colors">
             {name}
           </h3>
 
           {/* Price & discount row */}
           <div className="mt-1.5 flex items-center gap-2 flex-wrap">
-            <span className="text-[14px] sm:text-[15px] font-black leading-none text-[#1A1A1A]">
+            <span className="text-[14px] sm:text-[15px] font-black leading-none text-[#1A1A1A] dark:text-[#F1F5F9]">
               PKR {Math.round(effectivePrice).toLocaleString('en-US')}
             </span>
             {discount > 0 ? (

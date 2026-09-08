@@ -196,9 +196,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`scroll-smooth light ${inter.variable} ${outfit.variable} ${plusJakartaSans.variable}`}
+      className={`scroll-smooth ${inter.variable} ${outfit.variable} ${plusJakartaSans.variable}`}
+      suppressHydrationWarning
     >
-      <body className={`${inter.className} min-h-screen flex flex-col bg-[#fafafa] text-surface-900`}>
+      {/* Anti-flash: runs synchronously before first paint to apply saved theme */}
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('topthreadz_theme');if(t==='dark'){document.documentElement.classList.add('dark');}else{document.documentElement.classList.add('light');}}catch(e){}})();`,
+          }}
+        />
+      </head>
+      <body className={`${inter.className} min-h-screen flex flex-col`} style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)' }}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(zamzamaStoreJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />

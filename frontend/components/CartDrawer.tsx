@@ -29,14 +29,14 @@ export default function CartDrawer() {
       <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm cursor-pointer transition-opacity duration-300" onClick={closeCart} />
 
       {/* Dynamic Bottom Sheet on Mobile, Right Sidebar on Desktop */}
-      <div className={`fixed bottom-0 inset-x-0 z-[105] w-full sm:top-0 sm:bottom-0 sm:right-0 sm:left-auto sm:max-w-[420px] sm:h-full sm:max-h-none ${mobileSheetHeightClass} bg-white shadow-[0_-12px_45px_rgba(0,0,0,0.25)] sm:shadow-[0_0_40px_rgba(0,0,0,0.2)] rounded-t-[28px] sm:rounded-none flex flex-col overflow-hidden transition-all duration-300 ease-out`}>
+      <div className={`fixed bottom-0 inset-x-0 z-[105] w-full sm:top-0 sm:bottom-0 sm:right-0 sm:left-auto sm:max-w-[420px] sm:h-full sm:max-h-none ${mobileSheetHeightClass} shadow-[0_-12px_45px_rgba(0,0,0,0.25)] sm:shadow-[0_0_40px_rgba(0,0,0,0.2)] rounded-t-[28px] sm:rounded-none flex flex-col overflow-hidden transition-all duration-300 ease-out`} style={{ backgroundColor: 'var(--bg-card)' }}>
         {/* Mobile Drag Indicator Handle */}
         <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
           <div className="w-10 h-1 bg-surface-300 rounded-full" />
         </div>
 
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between px-4.5 py-3 border-b border-surface-200 bg-white">
+        <div className="flex shrink-0 items-center justify-between px-4.5 py-3 border-b border-surface-200 dark:border-[#2D3340]" style={{ backgroundColor: 'var(--bg-card)' }}>
           <div className="flex items-center gap-2">
             <FiShoppingBag className="w-4 h-4 text-surface-950" />
             <h2 className="font-display text-base font-bold uppercase tracking-tight text-surface-900">Your Bag ({count})</h2>
@@ -130,7 +130,7 @@ export default function CartDrawer() {
 
         {/* Footer / Pill Action Bar */}
         {items.length > 0 && (
-          <div className="shrink-0 border-t border-surface-200 bg-white/95 backdrop-blur-md px-4 py-3.5 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          <div className="shrink-0 border-t border-surface-200 dark:border-[#2D3340] backdrop-blur-md px-4 py-3.5 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] pb-[calc(1rem+env(safe-area-inset-bottom))]" style={{ backgroundColor: 'var(--bg-card)' }}>
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-surface-500">Total Price</p>

@@ -2,15 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Light mode tokens ── */
 :root {
-  color-scheme: light !important;
+  color-scheme: light;
   --bg-main: #FAFAF8;
+  --bg-secondary: #F3F4F6;
+  --bg-card: #FFFFFF;
+  --bg-subtle: #F9FAFB;
   --text-main: #1A1A1A;
+  --text-secondary: #374151;
+  --text-muted: #6B7280;
   --primary-red: #B91C2B;
   --primary-hover: #8F1620;
   --navy-blue: #0F1F3D;
   --border-light: #E5E7EB;
-  --text-muted: #6B7280;
+  --border-medium: #D1D5DB;
   --success-green: #16A34A;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
@@ -21,33 +27,52 @@
   --radius-lg: 16px;
   --radius-xl: 24px;
   --radius-full: 9999px;
+  --navbar-bg: rgba(255,255,255,0.97);
+  --navbar-border: #E5E7EB;
+  --input-bg: #FFFFFF;
+  --input-border: #E5E7EB;
 }
 
-@media (prefers-color-scheme: dark) {
-
-  :root,
-  html,
-  body {
-    color-scheme: light !important;
-    background-color: #FAFAF8 !important;
-    color: #1A1A1A !important;
-  }
+/* ── Dark mode tokens (class="dark" on <html>) ── */
+.dark {
+  color-scheme: dark;
+  --bg-main: #111418;
+  --bg-secondary: #1A1E24;
+  --bg-card: #1E2228;
+  --bg-subtle: #16191F;
+  --text-main: #F1F5F9;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --primary-red: #E03547;
+  --primary-hover: #B91C2B;
+  --navy-blue: #3B82F6;
+  --border-light: #2D3340;
+  --border-medium: #374151;
+  --success-green: #22C55E;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.30);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.40);
+  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.50);
+  --navbar-bg: rgba(17, 20, 24, 0.97);
+  --navbar-border: #2D3340;
+  --input-bg: #1E2228;
+  --input-border: #2D3340;
 }
 
 html {
-  color-scheme: light !important;
-  background-color: #FAFAF8 !important;
-  color: #1A1A1A !important;
+  background-color: var(--bg-main);
+  color: var(--text-main);
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 body {
-  color-scheme: light !important;
-  background-color: #FAFAF8 !important;
-  color: #1A1A1A !important;
+  background-color: var(--bg-main);
+  color: var(--text-main);
   min-height: 100vh;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 svg {
@@ -58,8 +83,10 @@ input,
 select,
 textarea,
 button {
-  color-scheme: light !important;
+  color-scheme: inherit;
 }
+
+
 
 /* ============================================================
    MODERN PILL BUTTON SYSTEM
@@ -1110,4 +1137,138 @@ option {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ============================================================
+   DARK MODE — Component Overrides
+   Ecommerce-appropriate: neutral charcoal backgrounds, crisp
+   text, reduced glare — not neon or fancy.
+   ============================================================ */
+
+/* Navbar */
+.dark nav {
+  background-color: var(--navbar-bg) !important;
+  border-color: var(--navbar-border) !important;
+}
+
+/* Category subnav */
+.dark [aria-label="Categories"] {
+  background-color: var(--bg-subtle) !important;
+  border-color: var(--border-light) !important;
+}
+
+/* Cards */
+.dark .card-modern,
+.dark .sidebar-line-card {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+}
+
+/* Product images — keep natural white bg in dark mode */
+.dark .bg-\[\#f4f2ee\] {
+  background-color: #1e2228 !important;
+}
+.dark .bg-white {
+  background-color: var(--bg-card);
+}
+.dark .bg-\[\#fafafa\] {
+  background-color: var(--bg-main);
+}
+.dark .bg-\[\#f8f8f8\] {
+  background-color: var(--bg-secondary);
+}
+.dark .bg-surface-100 {
+  background-color: var(--bg-secondary);
+}
+.dark .bg-surface-200 {
+  background-color: var(--bg-secondary);
+}
+
+/* Text */
+.dark .text-surface-900,
+.dark .text-surface-950 {
+  color: var(--text-main);
+}
+.dark .text-surface-700,
+.dark .text-surface-800 {
+  color: var(--text-secondary);
+}
+.dark .text-surface-500,
+.dark .text-surface-600 {
+  color: var(--text-muted);
+}
+.dark .text-\[\#1A1A1A\] {
+  color: var(--text-main) !important;
+}
+
+/* Borders */
+.dark .border-surface-200,
+.dark .border-surface-300 {
+  border-color: var(--border-light);
+}
+
+/* Inputs */
+.dark .admin-input,
+.dark .input-pill,
+.dark .textarea-pill,
+.dark .select-pill {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-main);
+}
+
+/* Mobile nav pill */
+.dark .lg\:hidden.fixed.bottom-3 {
+  background-color: rgba(30, 34, 40, 0.97) !important;
+  border-color: var(--border-light) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Cart Drawer */
+.dark .bg-\[\#f7f7f7\] {
+  background-color: var(--bg-card) !important;
+}
+
+/* Auth Modal */
+.dark .bg-\[\#f7f7f7\] {
+  background-color: var(--bg-card) !important;
+}
+.dark .border-surface-300.bg-white {
+  background-color: var(--bg-card) !important;
+}
+
+/* Footer stays dark in both modes — no override needed */
+
+/* Product page shimmer in dark */
+.dark .shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.04) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Qty chip dark */
+.dark .qty-chip {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+}
+.dark .qty-chip button {
+  color: var(--text-secondary) !important;
+}
+.dark .qty-chip span {
+  color: var(--text-main) !important;
+}
+
+/* pill-secondary dark */
+.dark .pill-secondary {
+  color: var(--text-main);
+  border-color: var(--border-medium);
+}
+.dark .pill-secondary:hover:not(:disabled) {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--text-muted);
 }

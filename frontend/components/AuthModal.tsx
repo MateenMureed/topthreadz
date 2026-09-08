@@ -108,11 +108,11 @@ export default function AuthModal() {
         aria-label="Close authentication popup"
       />
 
-      <div className="relative w-full h-full sm:h-auto sm:max-w-md sm:rounded-2xl sm:border border-surface-300 bg-[#f7f7f7] p-5 sm:p-6 sm:shadow-soft-lg animate-slide-up flex flex-col justify-center">
+      <div className="relative w-full h-full sm:h-auto sm:max-w-md sm:rounded-2xl sm:border dark:border-[#2D3340] border-surface-300 p-5 sm:p-6 sm:shadow-soft-lg animate-slide-up flex flex-col justify-center" style={{ backgroundColor: 'var(--bg-card)' }}>
         <button
           type="button"
           onClick={closeModal}
-          className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-surface-300 bg-white text-surface-700 hover:bg-surface-100"
+          className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-surface-300 dark:border-[#2D3340] text-surface-700 dark:text-[#94A3B8] hover:bg-surface-100 dark:hover:bg-[#16191F]"
           aria-label="Close"
         >
           <FiX className="h-4 w-4" />
@@ -140,7 +140,7 @@ export default function AuthModal() {
                   type="email"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
-                  className="w-full rounded-xl border border-surface-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-surface-500"
+                  className="w-full rounded-xl border border-surface-300 dark:border-[#2D3340] py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-surface-500 dark:focus:border-[#94A3B8]" style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-main)' }}
                   placeholder="you@email.com"
                   required
                 />
@@ -155,7 +155,7 @@ export default function AuthModal() {
                   type={showPassword ? 'text' : 'password'}
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full rounded-xl border border-surface-300 bg-white py-2.5 pl-10 pr-10 text-sm outline-none transition focus:border-surface-500"
+                  className="w-full rounded-xl border border-surface-300 dark:border-[#2D3340] py-2.5 pl-10 pr-10 text-sm outline-none transition focus:border-surface-500 dark:focus:border-[#94A3B8]" style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-main)' }}
                   placeholder="Your password"
                   required
                 />
@@ -208,7 +208,7 @@ export default function AuthModal() {
                 type="text"
                 value={signupForm.name}
                 onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
-                className="w-full rounded-xl border border-surface-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-surface-500"
+                className="w-full rounded-xl border border-surface-300 dark:border-[#2D3340] py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-surface-500 dark:focus:border-[#94A3B8]" style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-main)' }}
                 placeholder="Full name"
                 required
               />
@@ -220,7 +220,7 @@ export default function AuthModal() {
                 type="email"
                 value={signupForm.email}
                 onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
-                className="w-full rounded-xl border border-surface-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-surface-500"
+                className="w-full rounded-xl border border-surface-300 dark:border-[#2D3340] py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-surface-500 dark:focus:border-[#94A3B8]" style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-main)' }}
                 placeholder="Email"
                 required
               />
@@ -232,7 +232,7 @@ export default function AuthModal() {
                 type="tel"
                 value={signupForm.phone}
                 onChange={(e) => setSignupForm({ ...signupForm, phone: e.target.value })}
-                className="w-full rounded-xl border border-surface-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-surface-500"
+                className="w-full rounded-xl border border-surface-300 dark:border-[#2D3340] py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-surface-500 dark:focus:border-[#94A3B8]" style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-main)' }}
                 placeholder="Phone"
                 required
               />
@@ -244,7 +244,7 @@ export default function AuthModal() {
                 type={showPassword ? 'text' : 'password'}
                 value={signupForm.password}
                 onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
-                className="w-full rounded-xl border border-surface-300 bg-white py-2.5 pl-10 pr-10 text-sm outline-none transition focus:border-surface-500"
+                className="w-full rounded-xl border border-surface-300 dark:border-[#2D3340] py-2.5 pl-10 pr-10 text-sm outline-none transition focus:border-surface-500 dark:focus:border-[#94A3B8]" style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-main)' }}
                 placeholder="Password"
                 required
               />

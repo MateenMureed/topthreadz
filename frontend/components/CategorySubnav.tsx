@@ -25,7 +25,8 @@ export default function CategorySubnav() {
   return (
     <nav
       aria-label="Categories"
-      className="fixed top-16 left-0 right-0 z-40 w-full bg-white border-b border-surface-200 shadow-sm"
+      className="fixed top-16 left-0 right-0 z-40 w-full shadow-sm"
+      style={{ backgroundColor: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-light)' }}
     >
       {/* Single horizontal scrollable row — no extra hamburger, works on all screen sizes */}
       <div className="max-w-7xl mx-auto flex items-center gap-0.5 sm:gap-1 px-2 sm:px-4 overflow-x-auto scrollbar-none">
@@ -33,8 +34,8 @@ export default function CategorySubnav() {
           href="/products"
           className={`group relative flex-shrink-0 py-2.5 px-2.5 sm:px-3 text-[11px] sm:text-xs md:text-[13px] font-semibold uppercase tracking-wider transition-colors whitespace-nowrap ${
             pathname === '/products'
-              ? 'text-surface-950'
-              : 'text-surface-700 hover:text-surface-950'
+              ? 'text-surface-950 dark:text-[#F1F5F9]'
+              : 'text-surface-700 dark:text-[#94A3B8] hover:text-surface-950 dark:hover:text-[#F1F5F9]'
           }`}
         >
           <span>All</span>
