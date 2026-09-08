@@ -108,21 +108,44 @@ export class ProductService {
     const catQuery = (query.category || query.subcategory || '').trim();
     if (catQuery && catQuery !== 'All') {
       const isUnstitched = /^unstitched/i.test(catQuery);
+      const isStitched = /^stitched$/i.test(catQuery);
+
       if (isUnstitched) {
+        // Unstitched: match only categories that are truly unstitched fabric/suit lengths
         andConditions.push({
           OR: [
-            { category: { in: ['Unstitched Fabric', 'Unstitched'], mode: 'insensitive' } },
+            { category: { equals: 'Unstitched', mode: 'insensitive' } },
+            { category: { equals: 'Unstitched Fabric', mode: 'insensitive' } },
             { category: { contains: 'unstitched', mode: 'insensitive' } },
             { subcategory: { contains: 'unstitched', mode: 'insensitive' } },
           ],
         });
-      } else {
+      } else if (isStitched) {
+        // Stitched: exact-match only.
+        // `equals: 'Stitched'` will NOT match 'Unstitched' — exact equality is case-insensitive
+        // but still requires the full string to match, so 'Unstitched' != 'Stitched'.
         andConditions.push({
           OR: [
-            { category: { equals: catQuery, mode: 'insensitive' } },
-            { category: { contains: catQuery, mode: 'insensitive' } },
-            { subcategory: { equals: catQuery, mode: 'insensitive' } },
-            { collection: { equals: catQuery, mode: 'insensitive' } },
+            { category: { equals: 'Stitched', mode: 'insensitive' } },
+            { subcategory: { equals: 'Stitched', mode: 'insensitive' } },
+          ],
+        });
+      } else {
+        // All other categories: use exact equals on category or subcategory with both hyphen and space variants
+        // Avoid `contains` to prevent cross-category contamination
+        const variants = Array.from(
+          new Set([
+            catQuery,
+            catQuery.replace(/[-_]+/g, ' ').trim(),
+            catQuery.replace(/\s+/g, '-').trim(),
+          ].filter(Boolean))
+        );
+
+        andConditions.push({
+          OR: [
+            ...variants.map((v) => ({ category: { equals: v, mode: 'insensitive' as const } })),
+            ...variants.map((v) => ({ subcategory: { equals: v, mode: 'insensitive' as const } })),
+            ...variants.map((v) => ({ collection: { equals: v, mode: 'insensitive' as const } })),
           ],
         });
       }
