@@ -12,7 +12,8 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:push": "prisma db push",
     "prisma:seed": "tsx prisma/seed.ts",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "test:seo": "tsx src/modules/seo/__tests__/seo-limits.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

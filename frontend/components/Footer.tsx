@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/services/api';
-import ObfuscatedEmail from '@/components/ObfuscatedEmail';
 import {
   FiArrowUpRight,
   FiChevronDown,
@@ -14,11 +13,12 @@ import {
   FiFileText,
   FiHelpCircle,
   FiMapPin,
-  FiPhone,
   FiRefreshCw,
   FiShield,
   FiTruck,
 } from 'react-icons/fi';
+import { FaWhatsapp } from 'react-icons/fa';
+import { SiGmail } from 'react-icons/si';
 
 type SectionKey = 'shop' | 'policies' | 'contact';
 
@@ -34,9 +34,8 @@ export default function Footer() {
 
   const phoneNumber = settings?.phoneNumber || '+92 300 9070520';
   const email = settings?.email || 'support@topthreadz.pk';
-  void email; // reserved for future dynamic contact display; storefront link uses ObfuscatedEmail
   const operatingDays =
-    settings?.operatingDays || 'Mon â€“ Sat: 11:00 AM â€“ 10:30 PM | Sun: 2:00 PM â€“ 10:00 PM';
+    settings?.operatingDays || 'Mon – Sat: 11:00 AM – 10:30 PM | Sun: 2:00 PM – 10:00 PM';
 
   if (pathname?.startsWith('/admin')) return null;
 
@@ -62,7 +61,7 @@ export default function Footer() {
 
   return (
     <footer className="relative overflow-hidden bg-gradient-to-b from-[#0F1F3D] to-[#081020] text-white">
-      {/* Thread-line accent â€” a single gold hairline, evoking a stitched seam */}
+      {/* Thread-line accent — a single gold hairline, evoking a stitched seam */}
       <div className="h-px w-full bg-gradient-to-r from-transparent via-[#D4A84B]/70 to-transparent" />
 
       {/* Ambient glow */}
@@ -78,7 +77,7 @@ export default function Footer() {
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Main Footer Grid */}
         <div className="grid grid-cols-1 border-b border-white/10 py-8 sm:py-9 lg:grid-cols-[1.2fr_0.7fr_0.7fr_0.9fr] lg:gap-8 lg:py-8">
-          {/* Brand Info & Outlets â€” always visible, not part of the accordion */}
+          {/* Brand Info & Outlets — always visible, not part of the accordion */}
           <div className="relative space-y-3 pb-6 lg:pb-0 lg:pr-8">
             {/* Vertical gold divider, desktop only */}
             <div
@@ -100,7 +99,7 @@ export default function Footer() {
             </Link>
 
             <p className="max-w-sm text-[12px] leading-relaxed text-white/55">
-              Official store for premium unstitched men&apos;s fabric in Pakistan â€” exceptional
+              Official store for premium unstitched men&apos;s fabric in Pakistan — exceptional
               quality, soft finish, and timeless luxury menswear.
             </p>
 
@@ -119,15 +118,15 @@ export default function Footer() {
                 href="https://maps.google.com/?q=R28V%2BR3W,+Street+2,+DHA+Phase+5+Zamzama+Commercial+Area+Defence+V+Karachi,+75600,+Pakistan"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="tap-scale ml-7 inline-flex items-center gap-1 text-[11.5px] font-semibold text-[#E8C86A] transition-colors hover:text-white focus-visible:outline-none"
+                className="group/link inline-flex items-center gap-1 pl-7 text-[11.5px] font-semibold text-[#E8C86A] transition-colors hover:text-[#F3D78A] focus-visible:outline-none"
               >
-                View on Google Maps
-                <FiArrowUpRight className="h-3 w-3" />
+                <span>View on Google Maps</span>
+                <FiArrowUpRight className="h-3 w-3 transition-transform duration-200 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5" />
               </a>
             </div>
           </div>
 
-          {/* Shop */}
+          {/* Collections */}
           <div className="border-t border-white/10 lg:border-t-0">
             <button
               type="button"
@@ -136,7 +135,7 @@ export default function Footer() {
               aria-expanded={openSection === 'shop'}
             >
               <h2 className="font-display text-[10.5px] font-semibold uppercase tracking-[0.14em] text-white/40 lg:mb-3.5">
-                Shop
+                Collections
               </h2>
               <FiChevronDown
                 className={`h-4 w-4 text-white/40 transition-transform duration-200 lg:hidden ${openSection === 'shop' ? 'rotate-180' : ''
@@ -144,32 +143,44 @@ export default function Footer() {
               />
             </button>
             <nav
-              aria-label="Shop"
+              aria-label="Shop categories"
               className={`overflow-hidden transition-all duration-300 lg:!grid-rows-[1fr] lg:!opacity-100 ${openSection === 'shop' ? 'grid grid-rows-[1fr] opacity-100' : 'grid grid-rows-[0fr] opacity-0 lg:opacity-100'
                 }`}
             >
               <ul className="min-h-0 space-y-2.5 overflow-hidden pb-3.5 text-[12.5px] lg:pb-0">
                 <li>
-                  <Link href="/products" className={linkClass}>
-                    All Products <FiArrowUpRight className="h-3 w-3 opacity-50" />
+                  <Link href="/products?category=Unstitched" className={linkClass}>
+                    <span>Unstitched Fabric</span>
                     {underline}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/products?sortBy=newest" className={linkClass}>
-                    New Arrivals
+                  <Link href="/products?category=Stitched" className={linkClass}>
+                    <span>Stitched Suits</span>
                     {underline}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/orders" className={linkClass}>
-                    Track Order
+                  <Link href="/products?category=Two+Piece" className={linkClass}>
+                    <span>Two Piece Sets</span>
                     {underline}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/faq" className={linkClass}>
-                    FAQs
+                  <Link href="/products?category=Three+Piece" className={linkClass}>
+                    <span>Three Piece</span>
+                    {underline}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/products?category=Kurta" className={linkClass}>
+                    <span>Kurta Collection</span>
+                    {underline}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/products?category=Kids" className={linkClass}>
+                    <span>Boys &amp; Kids</span>
                     {underline}
                   </Link>
                 </li>
@@ -231,7 +242,7 @@ export default function Footer() {
             </nav>
           </div>
 
-          {/* Contact & Outlets */}
+          {/* Contact & Connect */}
           <div className="border-t border-white/10 lg:border-t-0">
             <button
               type="button"
@@ -240,7 +251,7 @@ export default function Footer() {
               aria-expanded={openSection === 'contact'}
             >
               <h2 className="font-display text-[10.5px] font-semibold uppercase tracking-[0.14em] text-white/40 lg:mb-3.5">
-                Contact &amp; Outlets
+                Contact &amp; Connect
               </h2>
               <FiChevronDown
                 className={`h-4 w-4 text-white/40 transition-transform duration-200 lg:hidden ${openSection === 'contact' ? 'rotate-180' : ''
@@ -251,32 +262,41 @@ export default function Footer() {
               className={`overflow-hidden transition-all duration-300 lg:!grid-rows-[1fr] lg:!opacity-100 ${openSection === 'contact' ? 'grid grid-rows-[1fr] opacity-100' : 'grid grid-rows-[0fr] opacity-0 lg:opacity-100'
                 }`}
             >
-              <ul className="min-h-0 space-y-2.5 overflow-hidden pb-3.5 text-[12.5px] text-white/60 lg:pb-0">
-                {phoneNumber && (
-                  <li>
-                    <a
-                      href={`tel:${phoneNumber.replace(/\s+/g, '')}`}
-                      className="group/link inline-flex items-center gap-2 transition-colors hover:text-white focus-visible:outline-none"
-                    >
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] transition-colors group-hover/link:border-[#D4A84B]/40 group-hover/link:bg-[#D4A84B]/10">
-                        <FiPhone className="h-3 w-3 text-white/50 group-hover/link:text-[#E8C86A]" />
-                      </span>
-                      <span>{phoneNumber}</span>
-                    </a>
-                  </li>
-                )}
-                <li>
-                  {/* Obfuscated contact email â€” assembled at runtime; raw
-                      HTML never contains the scrapeable address. */}
-                  <ObfuscatedEmail className="group/link inline-flex items-center gap-2 break-all transition-colors hover:text-white focus-visible:outline-none" />
-                </li>
-                <li className="inline-flex items-center gap-2 text-white/50">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04]">
-                    <FiClock className="h-3 w-3 text-white/40" />
+              <div className="min-h-0 space-y-4 overflow-hidden pb-3.5 lg:pb-0">
+                {/* Instant Action Icons for WhatsApp and Email without visible text */}
+                <div className="flex items-center gap-3 pt-1">
+                  {/* WhatsApp Icon */}
+                  <a
+                    href={`https://wa.me/${(phoneNumber || '923009070520').replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Hello Top Threadz, I have an inquiry regarding your collection.')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Contact us on WhatsApp"
+                    title="Chat on WhatsApp"
+                    className="group/wa relative flex h-11 w-11 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 shadow-sm transition-all duration-300 ease-out hover:scale-115 hover:-translate-y-1 hover:border-[#25D366] hover:bg-[#25D366] hover:text-white hover:shadow-[0_0_22px_rgba(37,211,102,0.45)] active:scale-95"
+                  >
+                    <FaWhatsapp className="h-5 w-5 transition-transform duration-300 group-hover/wa:rotate-6" />
+                  </a>
+
+                  {/* Gmail / Email Icon */}
+                  <a
+                    href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email || 'support@topthreadz.pk')}&su=${encodeURIComponent('Top Threadz Customer Inquiry')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Send email via Gmail"
+                    title="Send Email via Gmail"
+                    className="group/mail relative flex h-11 w-11 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 text-red-400 shadow-sm transition-all duration-300 ease-out hover:scale-115 hover:-translate-y-1 hover:border-[#EA4335] hover:bg-[#EA4335] hover:text-white hover:shadow-[0_0_22px_rgba(234,67,53,0.45)] active:scale-95"
+                  >
+                    <SiGmail className="h-5 w-5 transition-transform duration-300 group-hover/mail:rotate-6" />
+                  </a>
+                </div>
+
+                <div className="inline-flex items-center gap-2 text-white/50 text-[11.5px]">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04]">
+                    <FiClock className="h-2.5 w-2.5 text-white/40" />
                   </span>
                   <span>{operatingDays}</span>
-                </li>
-              </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>

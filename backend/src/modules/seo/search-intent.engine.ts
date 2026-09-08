@@ -47,14 +47,29 @@ export interface SearchIntentGroup {
 }
 
 export interface GeneratedSearchVocabulary {
+  // Page-level keyword hierarchy (Section 34)
+  primaryKeyword: string;
+  secondaryKeywords: string[];
+  supportingKeywords: string[];
+
   // Google SEO Keywords: Natural, concise, high-value keywords (6-12) for meta tags
   googleKeywords: string[];
-  // Internal Search Aliases: Comprehensive human phrases, Roman Urdu, and spelling variations
+  // Internal Search Aliases: Comprehensive human phrases, Roman Urdu, and spelling variations (max 250)
   searchAliases: string[];
   // Grouped search intents for transparency in admin and intelligent search routing
   intents: Record<SearchIntentType, string[]>;
   // Categorized breakdown for admin visualization
   intentGroups: SearchIntentGroup[];
+
+  // Stats & breakdown for Admin Validation Report (Section 39)
+  stats: {
+    totalAliases: number;
+    romanUrduCount: number;
+    spellingVariantsCount: number;
+    primaryTopic: string;
+    secondaryCount: number;
+    supportingCount: number;
+  };
 }
 
 // Color translation & synonym dictionary for Pakistan fashion context
@@ -77,21 +92,136 @@ const COLOR_SYNONYMS: Record<string, { synonyms: string[]; romanUrdu: string[] }
   cream: { synonyms: ['ivory', 'buttercream', 'vanilla'], romanUrdu: ['cream kapra', 'makhan'] },
 };
 
-function normalizeText(text: string): string {
+export function normalizeText(text: string): string {
   return String(text || '').toLowerCase().trim();
+}
+
+/**
+ * Normalizes phrases before comparing or storing to prevent duplicate alias explosion (Section 33)
+ */
+export function normalizeCanonicalPhrase(phrase: string): string {
+  return String(phrase || '')
+    .toLowerCase()
+    .replace(/['’]/g, '')             // men's -> mens
+    .replace(/&/g, 'and')             // & -> and
+    .replace(/[-_]/g, ' ')            // 2-piece -> 2 piece, wash-n-wear -> wash n wear
+    .replace(/shalwar\s+qameez/g, 'shalwar kameez') // spelling variant normalization
+    .replace(/wash\s+n\s+wear/g, 'wash and wear')
+    .replace(/wash\s+wear/g, 'wash and wear')
+    .replace(/washwear/g, 'wash and wear')
+    .replace(/readymade/g, 'ready made')
+    .replace(/ready\s+to\s+wear/g, 'ready made')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function uniq(arr: string[]): string[] {
   const seen = new Set<string>();
   const result: string[] = [];
   for (const item of arr) {
-    const cleaned = item.trim().toLowerCase();
-    if (cleaned.length >= 2 && !seen.has(cleaned)) {
-      seen.add(cleaned);
+    const norm = normalizeCanonicalPhrase(item);
+    if (norm.length >= 2 && !seen.has(norm)) {
+      seen.add(norm);
       result.push(item.trim());
     }
   }
   return result;
+}
+
+/**
+ * Evaluates phrase quality from 0-100 and applies anti-stuffing & attribute truth checks (Section 30)
+ */
+export function scoreSearchPhrase(
+  phrase: string,
+  product: ProductAttributes,
+  context: {
+    isStitched: boolean;
+    isUnstitched: boolean;
+    isKids: boolean;
+    isWashAndWear: boolean;
+    activeColors: string[];
+    effectivePrice: number;
+    allowedSeasons: string[];
+  }
+): number {
+  const norm = normalizeCanonicalPhrase(phrase);
+  const words = norm.split(' ');
+
+  // Immediate rejection for severe attribute contradictions (Section 31)
+  if (context.isStitched && (norm.includes('unstitched') || norm.includes('kapra'))) {
+    return 0;
+  }
+  if (context.isUnstitched && (norm.includes('stitched') || norm.includes('ready made'))) {
+    return 0;
+  }
+  if (!context.isKids && (norm.includes('kids') || norm.includes('boys') || norm.includes('children'))) {
+    return 0;
+  }
+  if (context.isKids && (norm.includes('mens') || norm.includes('gents') || norm.includes('male'))) {
+    return 0;
+  }
+
+  // Price contradiction check (Section 32)
+  if (context.effectivePrice > 0) {
+    if (norm.includes('under 3000') && context.effectivePrice > 3000) return 0;
+    if (norm.includes('under 4000') && context.effectivePrice > 4000) return 0;
+    if (norm.includes('under 5000') && context.effectivePrice > 5000) return 0;
+    if (norm.includes('under 6000') && context.effectivePrice > 6000) return 0;
+  }
+
+  // Season validation (Section 32)
+  if (norm.includes('summer') || norm.includes('garmi')) {
+    const hasSummer = context.allowedSeasons.some((s) => s.toLowerCase().includes('summer') || s.toLowerCase().includes('garmi'));
+    if (!hasSummer) return 0;
+  }
+  if (norm.includes('winter') || norm.includes('sardi')) {
+    const hasWinter = context.allowedSeasons.some((s) => s.toLowerCase().includes('winter') || s.toLowerCase().includes('sardi'));
+    if (!hasWinter) return 0;
+  }
+
+  // Combination explosion protection: reject phrases that string too many words (Section 29)
+  if (words.length > 5) {
+    return 0;
+  }
+
+  let score = 40; // baseline
+
+  // Exact relevance points (+25)
+  const pName = normalizeText(product.name);
+  if (pName.includes(norm) || norm.includes(pName)) score += 25;
+  else if (words.some((w) => pName.includes(w) && w.length > 3)) score += 15;
+
+  // Exact attribute relevance (+20)
+  if (context.isWashAndWear && norm.includes('wash and wear')) score += 20;
+  if (context.isUnstitched && (norm.includes('unstitched') || norm.includes('fabric'))) score += 15;
+  if (context.isStitched && (norm.includes('stitched') || norm.includes('suit'))) score += 15;
+
+  // Color relevance
+  if (context.activeColors.length > 0) {
+    const hasActiveColor = context.activeColors.some((c) => norm.includes(c.toLowerCase()));
+    if (hasActiveColor) score += 15;
+    else {
+      // Check if phrase mentions an unrelated color
+      const mentionsUnrelatedColor = Object.keys(COLOR_SYNONYMS).some(
+        (c) => norm.includes(c) && !context.activeColors.some((ac) => ac.toLowerCase() === c)
+      );
+      if (mentionsUnrelatedColor) return 0; // Contradictory color rejected
+    }
+  }
+
+  // Commercial intent (+10)
+  if (/suit|fabric|clothes|clothing|kameez|kurta|price|buy|online/i.test(norm)) score += 10;
+
+  // Pakistan relevance (+10)
+  if (/pakistan|pakistani|shalwar|kameez|kapra/i.test(norm)) score += 10;
+
+  // Natural language length bonus (2-4 words is ideal customer search)
+  if (words.length >= 2 && words.length <= 4) score += 10;
+
+  // Penalize single overly generic words (-20)
+  if (words.length === 1) score -= 20;
+
+  return Math.min(100, Math.max(0, score));
 }
 
 /**
@@ -677,44 +807,124 @@ export function generateProductSearchIntelligence(product: ProductAttributes): G
     { intent: 'ROMAN_URDU', label: 'Roman Urdu & Conversational', keywords: intents.ROMAN_URDU },
     { intent: 'USE_CASE', label: 'Use Case & Lifestyle', keywords: intents.USE_CASE },
   ];
-  const intentGroups: SearchIntentGroup[] = rawIntentGroups.filter((g) => g.keywords.length > 0);
+  const scoringContext = {
+    isStitched,
+    isUnstitched,
+    isKids,
+    isWashAndWear,
+    activeColors,
+    effectivePrice,
+    allowedSeasons: seasonKeywords,
+  };
 
-  // All combined internal search aliases
-  const allAliases = uniq([
-    ...intents.PRODUCT,
-    ...intents.FABRIC,
-    ...intents.STYLE,
-    ...intents.COLOR,
-    ...intents.ROMAN_URDU,
-    ...intents.CATEGORY,
-    ...intents.OCCASION,
-    ...intents.BUYING,
+  // Score and filter each intent group (cap each group to max 30 candidates)
+  const scoredIntentMap: Record<SearchIntentType, string[]> = {} as any;
+  for (const [intentKey, list] of Object.entries(intents)) {
+    const scoredList = (list as string[])
+      .map((phrase) => ({
+        phrase,
+        score: scoreSearchPhrase(phrase, product, scoringContext),
+      }))
+      .filter((item) => item.score >= 50)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 30) // Section 28: hard maximum 30 per intent group
+      .map((item) => item.phrase);
+
+    scoredIntentMap[intentKey as SearchIntentType] = scoredList;
+  }
+
+  const intentGroups: SearchIntentGroup[] = rawIntentGroups
+    .map((g) => ({
+      intent: g.intent,
+      label: g.label,
+      keywords: scoredIntentMap[g.intent] || [],
+    }))
+    .filter((g) => g.keywords.length > 0);
+
+  // All combined internal search aliases (strictly scored >= 50, capped at max 250 aliases - Section 28)
+  const combinedRaw = uniq([
+    ...scoredIntentMap.PRODUCT,
+    ...scoredIntentMap.FABRIC,
+    ...scoredIntentMap.STYLE,
+    ...scoredIntentMap.COLOR,
+    ...scoredIntentMap.ROMAN_URDU,
+    ...scoredIntentMap.CATEGORY,
+    ...scoredIntentMap.OCCASION,
+    ...scoredIntentMap.BUYING,
+    ...scoredIntentMap.PRICE,
+    ...scoredIntentMap.LOCATION,
   ]);
 
-  // Curate 8-12 top-tier, high-value, non-stuffed Google SEO keywords
-  const googleCandidates: string[] = [];
-  // 1. Primary product name variant
-  if (activeColors[0]) {
-    const primaryColor = activeColors[0];
-    if (isWashAndWear) googleCandidates.push(`${primaryColor} wash and wear suit`);
-    if (isUnstitched) googleCandidates.push(`${primaryColor} unstitched fabric men`);
-    if (isStitched) googleCandidates.push(`${primaryColor} stitched suit men`);
-    googleCandidates.push(`${primaryColor} shalwar kameez`);
-  }
-  if (isWashAndWear) googleCandidates.push("men's wash and wear fabric", 'wash and wear shalwar kameez');
-  if (isUnstitched) googleCandidates.push("men's unstitched fabric pakistan", 'unstitched suit for men');
-  if (isStitched) googleCandidates.push("men's stitched shalwar kameez", 'ready to wear suit for men');
-  if (isTwoPiece) googleCandidates.push("men's two piece suit pakistan");
-  if (isThreePiece) googleCandidates.push("men's three piece suit pakistan");
-  if (isKids) googleCandidates.push("boys traditional wear pakistan", 'kids shalwar kameez');
-  googleCandidates.push("pakistani men's clothing", 'buy mens clothes online pakistan');
+  const allAliasesScored = combinedRaw
+    .map((phrase) => ({
+      phrase,
+      score: scoreSearchPhrase(phrase, product, scoringContext),
+    }))
+    .filter((item) => item.score >= 50)
+    .sort((a, b) => b.score - a.score);
 
-  const googleKeywords = uniq(googleCandidates).slice(0, 12);
+  // Cap at hard maximum 250 aliases (Section 28 & 29)
+  const finalAliases = allAliasesScored.slice(0, 250).map((item) => item.phrase);
+
+  // ── PAGE-LEVEL KEYWORD HIERARCHY (Section 34) ──
+  // 1 Primary Keyword (score >= 75)
+  // 3-8 Secondary Keywords (score >= 70)
+  // 5-20 Supporting Semantic Phrases (score >= 60)
+  const highConfidenceCandidates = allAliasesScored.filter((item) => item.score >= 75);
+  const primaryKeyword =
+    highConfidenceCandidates[0]?.phrase ||
+    (isKids
+      ? 'kids shalwar kameez'
+      : isWashAndWear
+      ? "men's wash and wear fabric"
+      : isUnstitched
+      ? "men's unstitched fabric"
+      : isStitched
+      ? "men's stitched suit"
+      : "men's clothing");
+
+  const secondaryKeywords = allAliasesScored
+    .filter((item) => item.score >= 65 && item.phrase !== primaryKeyword)
+    .slice(0, 7)
+    .map((item) => item.phrase);
+
+  const supportingKeywords = allAliasesScored
+    .filter(
+      (item) =>
+        item.score >= 55 &&
+        item.phrase !== primaryKeyword &&
+        !secondaryKeywords.includes(item.phrase)
+    )
+    .slice(0, 15)
+    .map((item) => item.phrase);
+
+  // Google SEO Keywords: Natural, concise (6-12), high-value keywords without keyword-stuffing
+  const googleKeywords = uniq([
+    primaryKeyword,
+    ...secondaryKeywords.slice(0, 5),
+    ...supportingKeywords.slice(0, 4),
+  ]).slice(0, 10);
+
+  const romanUrduCount = scoredIntentMap.ROMAN_URDU?.length || 0;
+  const spellingVariantsCount = finalAliases.filter((a) =>
+    /shalwar|qameez|wash wear|washwear|2 piece|3 piece/i.test(a)
+  ).length;
 
   return {
+    primaryKeyword,
+    secondaryKeywords,
+    supportingKeywords,
     googleKeywords,
-    searchAliases: allAliases,
-    intents,
+    searchAliases: finalAliases,
+    intents: scoredIntentMap,
     intentGroups,
+    stats: {
+      totalAliases: finalAliases.length,
+      romanUrduCount,
+      spellingVariantsCount,
+      primaryTopic: primaryKeyword,
+      secondaryCount: secondaryKeywords.length,
+      supportingCount: supportingKeywords.length,
+    },
   };
 }

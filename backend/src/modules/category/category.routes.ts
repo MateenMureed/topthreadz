@@ -4,6 +4,34 @@ import { authenticate, authorize } from '../../middleware/auth.middleware';
 
 const router = Router();
 
+function parseCategoryImages(rawCover: string | null | undefined) {
+  if (!rawCover) return { cardImage: null, bannerImage: null };
+  const trimmed = rawCover.trim();
+  if (trimmed.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      return {
+        cardImage: parsed.card || parsed.coverImage || null,
+        bannerImage: parsed.banner || parsed.bannerImage || null,
+      };
+    } catch {
+      return { cardImage: trimmed, bannerImage: trimmed };
+    }
+  }
+  return { cardImage: trimmed, bannerImage: trimmed };
+}
+
+function serializeCategoryImages(cardImage?: string | null, bannerImage?: string | null, existingRaw?: string | null) {
+  const existing = parseCategoryImages(existingRaw);
+  const finalCard = cardImage !== undefined ? (cardImage ? cardImage.trim() : null) : existing.cardImage;
+  const finalBanner = bannerImage !== undefined ? (bannerImage ? bannerImage.trim() : null) : existing.bannerImage;
+
+  if (finalCard && finalBanner && finalCard !== finalBanner) {
+    return JSON.stringify({ card: finalCard, banner: finalBanner });
+  }
+  return finalBanner || finalCard || null;
+}
+
 router.get('/', async (req, res, next) => {
   try {
     const includeAll = req.query.all === 'true';
@@ -16,8 +44,9 @@ router.get('/', async (req, res, next) => {
 
     const categoriesWithFallback = await Promise.all(
       rows.map(async (cat) => {
-        const hasCustomImage = Boolean(cat.coverImage && cat.coverImage.trim() !== '');
-        let displayImage = hasCustomImage ? cat.coverImage : null;
+        const { cardImage: parsedCard, bannerImage: parsedBanner } = parseCategoryImages(cat.coverImage);
+        const hasCustomImage = Boolean(parsedCard || parsedBanner);
+        let displayImage = parsedCard || parsedBanner || null;
 
         if (!displayImage) {
           const latestProduct = await prisma.product.findFirst({
@@ -37,6 +66,8 @@ router.get('/', async (req, res, next) => {
           ...cat,
           rawCoverImage: cat.coverImage,
           coverImage: displayImage || null,
+          cardImage: parsedCard || displayImage || null,
+          bannerImage: parsedBanner || displayImage || null,
           hasCustomImage,
           isFallbackImage: !hasCustomImage && Boolean(displayImage)
         };
@@ -51,14 +82,14 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', authenticate, authorize('ADMIN'), async (req, res, next) => {
   try {
-    const { name, slug, coverImage, description, isActive = true, sortOrder = 0 } = req.body;
-    const cleanCover = coverImage && typeof coverImage === 'string' && coverImage.trim() !== '' ? coverImage.trim() : null;
+    const { name, slug, coverImage, bannerImage, description, isActive = true, sortOrder = 0 } = req.body;
+    const serialized = serializeCategoryImages(coverImage, bannerImage);
     const row = await prisma.category.create({
       data: {
         name,
         slug: slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        coverImage: cleanCover,
-        description,
+        coverImage: serialized,
+        description: description && typeof description === 'string' && description.trim() !== '' ? description.trim() : null,
         isActive,
         sortOrder
       }
@@ -71,10 +102,14 @@ router.post('/', authenticate, authorize('ADMIN'), async (req, res, next) => {
 
 router.patch('/:id', authenticate, authorize('ADMIN'), async (req, res, next) => {
   try {
-    const { coverImage, ...rest } = req.body;
+    const { coverImage, bannerImage, description, ...rest } = req.body;
+    const existing = await prisma.category.findUnique({ where: { id: String(req.params.id) } });
     const updateData: any = { ...rest };
-    if (coverImage !== undefined) {
-      updateData.coverImage = coverImage && typeof coverImage === 'string' && coverImage.trim() !== '' ? coverImage.trim() : null;
+    if (coverImage !== undefined || bannerImage !== undefined) {
+      updateData.coverImage = serializeCategoryImages(coverImage, bannerImage, existing?.coverImage);
+    }
+    if (description !== undefined) {
+      updateData.description = description && typeof description === 'string' && description.trim() !== '' ? description.trim() : null;
     }
     const row = await prisma.category.update({
       where: { id: String(req.params.id) },

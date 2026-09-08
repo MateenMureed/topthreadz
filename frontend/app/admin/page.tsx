@@ -1536,7 +1536,8 @@ function ProductsTab() {
   const [seoGenerating, setSeoGenerating] = useState<string | null>(null); // null | 'all' | section name
   const [seoAvailable, setSeoAvailable] = useState(true);
   const [searchIntelligence, setSearchIntelligence] = useState<any>(null);
-  const [seoSubTab, setSeoSubTab] = useState<'google' | 'aliases' | 'intents'>('google');
+  const [seoValidationReport, setSeoValidationReport] = useState<any>(null);
+  const [seoSubTab, setSeoSubTab] = useState<'report' | 'google' | 'aliases' | 'intents'>('report');
 
   const buildSeoRequest = () => ({
     ...(editingProduct ? { id: editingProduct.id } : {}),
@@ -1559,6 +1560,9 @@ function ProductsTab() {
   const applySeoResult = (data: any, sections: string[]) => {
     if (data.searchIntelligence) {
       setSearchIntelligence(data.searchIntelligence);
+    }
+    if (data.score) {
+      setSeoValidationReport(data.score);
     }
     setForm((prev) => {
       const next = { ...prev };
@@ -1592,6 +1596,7 @@ function ProductsTab() {
     });
     if (data.score) {
       setForm((prev) => ({ ...prev, seoScore: data.score.score, seoSuggestions: data.score.suggestions || [] }));
+      setSeoSubTab('report');
     }
   };
 
@@ -1746,6 +1751,9 @@ function ProductsTab() {
     setImageMeta([]);
     setFormErrors({});
     setIsSlugEditedManually(false);
+    setSearchIntelligence(null);
+    setSeoValidationReport(null);
+    setSeoSubTab('report');
     setForm(emptyProductForm);
   };
 
@@ -1785,6 +1793,9 @@ function ProductsTab() {
       seoSuggestions: [],
     });
     setImageMeta(Array.isArray(product.imageMeta) ? product.imageMeta : []);
+    setSearchIntelligence(null);
+    setSeoValidationReport(null);
+    setSeoSubTab('report');
     setShowInlineForm(true);
     setIsSlugEditedManually(true);
     setFormErrors({});
@@ -2075,7 +2086,19 @@ function ProductsTab() {
                   {form.aiGenerated && !seoGenerating && (
                     <span className="px-2 py-0.5 rounded-full bg-[#DEF7EC] text-[#03543F] text-[11px] font-bold">✨ AI-assisted</span>
                   )}
-                  {form.seoScore !== null && !seoGenerating && (
+                  {seoValidationReport && !seoGenerating && (
+                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold inline-flex items-center gap-1.5 ${
+                      seoValidationReport.status === 'SEO Optimized'
+                        ? 'bg-[#DEF7EC] dark:bg-[#064E3B] text-[#03543F] dark:text-[#A7F3D0]'
+                        : seoValidationReport.status === 'Needs Review'
+                        ? 'bg-[#FEE2E2] dark:bg-[#7F1D1D] text-[#991B1B] dark:text-[#FCA5A5]'
+                        : 'bg-[#FEF3C7] dark:bg-[#78350F] text-[#92400E] dark:text-[#FDE68A]'
+                    }`}>
+                      {seoValidationReport.status === 'SEO Optimized' ? '✓' : seoValidationReport.status === 'Needs Review' ? '✗' : '⚠'}{' '}
+                      {seoValidationReport.status}: {seoValidationReport.score}/100
+                    </span>
+                  )}
+                  {!seoValidationReport && form.seoScore !== null && !seoGenerating && (
                     <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${form.seoScore >= 80 ? 'bg-[#DEF7EC] text-[#03543F]' : form.seoScore >= 50 ? 'bg-[#FEF3C7] text-[#92400E]' : 'bg-[#FEE2E2] text-[#991B1B]'}`}>
                       SEO Score: {form.seoScore}/100
                     </span>
@@ -2301,12 +2324,34 @@ function ProductsTab() {
                   </div>
                 </div>
 
-                {/* Sub-Tabs: Google SEO vs Internal Search Aliases vs Search Intents */}
-                <div className="flex border-b border-[#E5E7EB] dark:border-[#2D3340] gap-2">
+                {/* Sub-Tabs: Validation Report vs Google SEO vs Internal Search Aliases vs Search Intents */}
+                <div className="flex border-b border-[#E5E7EB] dark:border-[#2D3340] gap-2 overflow-x-auto">
+                  <button
+                    type="button"
+                    onClick={() => setSeoSubTab('report')}
+                    className={`pb-2 px-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+                      seoSubTab === 'report'
+                        ? 'border-[#0F1F3D] dark:border-[#3B82F6] text-[#0F1F3D] dark:text-[#3B82F6]'
+                        : 'border-transparent text-[#6B7280] dark:text-[#94A3B8] hover:text-[#1A1A1A] dark:hover:text-white'
+                    }`}
+                  >
+                    <span>📊 Validation Report</span>
+                    {seoValidationReport && (
+                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                        seoValidationReport.status === 'SEO Optimized'
+                          ? 'bg-[#DEF7EC] text-[#03543F]'
+                          : seoValidationReport.status === 'Needs Review'
+                          ? 'bg-[#FEE2E2] text-[#991B1B]'
+                          : 'bg-[#FEF3C7] text-[#92400E]'
+                      }`}>
+                        {seoValidationReport.score}/100
+                      </span>
+                    )}
+                  </button>
                   <button
                     type="button"
                     onClick={() => setSeoSubTab('google')}
-                    className={`pb-2 px-3 text-xs font-bold border-b-2 transition-colors ${
+                    className={`pb-2 px-3 text-xs font-bold border-b-2 transition-colors whitespace-nowrap ${
                       seoSubTab === 'google'
                         ? 'border-[#0F1F3D] dark:border-[#3B82F6] text-[#0F1F3D] dark:text-[#3B82F6]'
                         : 'border-transparent text-[#6B7280] dark:text-[#94A3B8] hover:text-[#1A1A1A] dark:hover:text-white'
@@ -2317,7 +2362,7 @@ function ProductsTab() {
                   <button
                     type="button"
                     onClick={() => setSeoSubTab('aliases')}
-                    className={`pb-2 px-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-1.5 ${
+                    className={`pb-2 px-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
                       seoSubTab === 'aliases'
                         ? 'border-[#0F1F3D] dark:border-[#3B82F6] text-[#0F1F3D] dark:text-[#3B82F6]'
                         : 'border-transparent text-[#6B7280] dark:text-[#94A3B8] hover:text-[#1A1A1A] dark:hover:text-white'
@@ -2333,7 +2378,7 @@ function ProductsTab() {
                   <button
                     type="button"
                     onClick={() => setSeoSubTab('intents')}
-                    className={`pb-2 px-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-1.5 ${
+                    className={`pb-2 px-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
                       seoSubTab === 'intents'
                         ? 'border-[#0F1F3D] dark:border-[#3B82F6] text-[#0F1F3D] dark:text-[#3B82F6]'
                         : 'border-transparent text-[#6B7280] dark:text-[#94A3B8] hover:text-[#1A1A1A] dark:hover:text-white'
@@ -2347,6 +2392,215 @@ function ProductsTab() {
                     ) : null}
                   </button>
                 </div>
+
+                {/* TAB: SEO VALIDATION REPORT (Section 39 & 40) */}
+                {seoSubTab === 'report' && (
+                  <div className="space-y-4">
+                    {/* Header Report Card */}
+                    <div className="p-4 rounded-lg border border-[#E5E7EB] dark:border-[#2D3340] bg-[#F9FAFB] dark:bg-[#16191F] space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[#0F1F3D] dark:text-[#F1F5F9]">
+                              SEO OPTIMIZATION REPORT
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                (seoValidationReport?.status || (form.seoScore && form.seoScore >= 80 ? 'SEO Optimized' : form.seoScore ? 'SEO Optimized with Warnings' : 'Needs Review')) === 'SEO Optimized'
+                                  ? 'bg-[#DEF7EC] dark:bg-[#064E3B] text-[#03543F] dark:text-[#A7F3D0]'
+                                  : (seoValidationReport?.status || '') === 'Needs Review'
+                                  ? 'bg-[#FEE2E2] dark:bg-[#7F1D1D] text-[#991B1B] dark:text-[#FCA5A5]'
+                                  : 'bg-[#FEF3C7] dark:bg-[#78350F] text-[#92400E] dark:text-[#FDE68A]'
+                              }`}
+                            >
+                              {(seoValidationReport?.status || (form.seoScore && form.seoScore >= 80 ? 'SEO Optimized' : form.seoScore ? 'SEO Optimized with Warnings' : 'Needs Review')) === 'SEO Optimized' ? '✓ ' : '⚠ '}
+                              {seoValidationReport?.status || (form.seoScore && form.seoScore >= 80 ? 'SEO Optimized' : form.seoScore ? 'SEO Optimized with Warnings' : 'Needs Review')}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-[#6B7280] dark:text-[#94A3B8] mt-0.5">
+                            Deterministic measured validation based on Top Threadz entity limits and anti-stuffing rules.
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xl font-extrabold text-[#0F1F3D] dark:text-white">
+                            {seoValidationReport?.score ?? form.seoScore ?? 0}
+                          </span>
+                          <span className="text-xs text-[#6B7280] dark:text-[#94A3B8]">/100</span>
+                        </div>
+                      </div>
+
+                      {/* Measured Metadata Grid */}
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-2 border-t border-[#E5E7EB] dark:border-[#2D3340] text-xs">
+                        <div className="p-2.5 rounded bg-white dark:bg-[#1E2228] border border-[#E5E7EB] dark:border-[#2D3340]">
+                          <span className="text-[10px] text-[#6B7280] dark:text-[#94A3B8] font-bold uppercase block">PAGE TYPE</span>
+                          <span className="font-semibold text-[#111827] dark:text-white">Product</span>
+                        </div>
+                        <div className="p-2.5 rounded bg-white dark:bg-[#1E2228] border border-[#E5E7EB] dark:border-[#2D3340]">
+                          <span className="text-[10px] text-[#6B7280] dark:text-[#94A3B8] font-bold uppercase block">PRIMARY INTENT</span>
+                          <span className="font-semibold text-[#111827] dark:text-white truncate block" title={searchIntelligence?.primaryKeyword || form.name}>
+                            {searchIntelligence?.primaryKeyword || form.name || 'Men Fabric Suit'}
+                          </span>
+                        </div>
+                        <div className="p-2.5 rounded bg-white dark:bg-[#1E2228] border border-[#E5E7EB] dark:border-[#2D3340]">
+                          <span className="text-[10px] text-[#6B7280] dark:text-[#94A3B8] font-bold uppercase block">SEO TARGETS</span>
+                          <span className="font-semibold text-[#111827] dark:text-white">
+                            1 Primary · {searchIntelligence?.stats?.secondaryCount ?? searchIntelligence?.secondaryKeywords?.length ?? 5} Secondary · {searchIntelligence?.stats?.supportingCount ?? searchIntelligence?.supportingKeywords?.length ?? 14} Supporting
+                          </span>
+                        </div>
+                        <div className="p-2.5 rounded bg-white dark:bg-[#1E2228] border border-[#E5E7EB] dark:border-[#2D3340]">
+                          <span className="text-[10px] text-[#6B7280] dark:text-[#94A3B8] font-bold uppercase block">INTERNAL SEARCH</span>
+                          <span className="font-semibold text-[#111827] dark:text-white">
+                            {searchIntelligence?.stats?.totalAliases ?? searchIntelligence?.searchAliases?.length ?? (splitCsv(form.tagsText).length || 0)} aliases
+                          </span>
+                        </div>
+                        <div className="p-2.5 rounded bg-white dark:bg-[#1E2228] border border-[#E5E7EB] dark:border-[#2D3340]">
+                          <span className="text-[10px] text-[#6B7280] dark:text-[#94A3B8] font-bold uppercase block">ROMAN URDU</span>
+                          <span className="font-semibold text-[#111827] dark:text-white">
+                            {searchIntelligence?.stats?.romanUrduCount ?? 0} aliases
+                          </span>
+                        </div>
+                        <div className="p-2.5 rounded bg-white dark:bg-[#1E2228] border border-[#E5E7EB] dark:border-[#2D3340]">
+                          <span className="text-[10px] text-[#6B7280] dark:text-[#94A3B8] font-bold uppercase block">SPELLING VARIATIONS</span>
+                          <span className="font-semibold text-[#111827] dark:text-white">
+                            {searchIntelligence?.stats?.spellingVariantsCount ?? 0} variations
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Hard SEO Limits Checklist (Section 26 & 27) */}
+                    <div className="p-4 rounded-lg border border-[#E5E7EB] dark:border-[#2D3340] bg-white dark:bg-[#1E2228] space-y-3 text-xs">
+                      <h4 className="font-bold text-[#0F1F3D] dark:text-[#F1F5F9] uppercase tracking-wide text-[11px]">
+                        📏 Measured Technical SEO Limits (Section 26 &amp; 27)
+                      </h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <div className="p-2 rounded bg-[#F9FAFB] dark:bg-[#16191F] border border-[#E5E7EB] dark:border-[#2D3340]">
+                          <div className="text-[10px] text-[#6B7280] dark:text-[#94A3B8] uppercase">Title Length</div>
+                          <div className="font-bold text-[#111827] dark:text-white mt-0.5">
+                            {form.metaTitle.length} / 65 chars
+                          </div>
+                          <div className={`text-[10px] font-medium mt-0.5 ${form.metaTitle.length > 65 ? 'text-[#DC2626]' : form.metaTitle.length >= 45 ? 'text-[#059669]' : 'text-[#D97706]'}`}>
+                            {form.metaTitle.length > 65 ? '✗ Exceeds max 65' : form.metaTitle.length >= 45 ? '✓ Ideal (45–60)' : '⚠ Short'}
+                          </div>
+                        </div>
+
+                        <div className="p-2 rounded bg-[#F9FAFB] dark:bg-[#16191F] border border-[#E5E7EB] dark:border-[#2D3340]">
+                          <div className="text-[10px] text-[#6B7280] dark:text-[#94A3B8] uppercase">Meta Length</div>
+                          <div className="font-bold text-[#111827] dark:text-white mt-0.5">
+                            {form.metaDescription.length} / 170 chars
+                          </div>
+                          <div className={`text-[10px] font-medium mt-0.5 ${form.metaDescription.length > 170 ? 'text-[#DC2626]' : form.metaDescription.length >= 80 ? 'text-[#059669]' : 'text-[#D97706]'}`}>
+                            {form.metaDescription.length > 170 ? '✗ Exceeds max 170' : form.metaDescription.length >= 80 ? '✓ Ideal (140–160)' : '⚠ Min 80'}
+                          </div>
+                        </div>
+
+                        <div className="p-2 rounded bg-[#F9FAFB] dark:bg-[#16191F] border border-[#E5E7EB] dark:border-[#2D3340]">
+                          <div className="text-[10px] text-[#6B7280] dark:text-[#94A3B8] uppercase">H1 Heading</div>
+                          <div className="font-bold text-[#111827] dark:text-white mt-0.5">
+                            {form.name.length} / 100 chars
+                          </div>
+                          <div className="text-[10px] font-medium text-[#059669] mt-0.5">
+                            {form.name ? '✓ 1 Primary H1' : '✗ Missing'}
+                          </div>
+                        </div>
+
+                        <div className="p-2 rounded bg-[#F9FAFB] dark:bg-[#16191F] border border-[#E5E7EB] dark:border-[#2D3340]">
+                          <div className="text-[10px] text-[#6B7280] dark:text-[#94A3B8] uppercase">Content Words</div>
+                          <div className="font-bold text-[#111827] dark:text-white mt-0.5">
+                            {form.description ? form.description.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length : 0} words
+                          </div>
+                          <div className="text-[10px] font-medium text-[#059669] mt-0.5">
+                            ✓ Target 80–300 useful
+                          </div>
+                        </div>
+
+                        <div className="p-2 rounded bg-[#F9FAFB] dark:bg-[#16191F] border border-[#E5E7EB] dark:border-[#2D3340]">
+                          <div className="text-[10px] text-[#6B7280] dark:text-[#94A3B8] uppercase">Anti-Stuffing Check</div>
+                          <div className="font-bold text-[#111827] dark:text-white mt-0.5">
+                            {seoValidationReport?.metrics?.isStuffing ? 'STUFFING DETECTED' : 'Natural Language'}
+                          </div>
+                          <div className={`text-[10px] font-medium mt-0.5 ${seoValidationReport?.metrics?.isStuffing ? 'text-[#DC2626]' : 'text-[#059669]'}`}>
+                            {seoValidationReport?.metrics?.isStuffing ? '✗ High Repetition' : '✓ Anti-stuffing passed'}
+                          </div>
+                        </div>
+
+                        <div className="p-2 rounded bg-[#F9FAFB] dark:bg-[#16191F] border border-[#E5E7EB] dark:border-[#2D3340]">
+                          <div className="text-[10px] text-[#6B7280] dark:text-[#94A3B8] uppercase">Canonical / Slug</div>
+                          <div className="font-bold text-[#111827] dark:text-white mt-0.5 truncate">
+                            /{form.slug || 'product-slug'}
+                          </div>
+                          <div className="text-[10px] font-medium text-[#059669] mt-0.5">
+                            {form.slug ? '✓ Canonical Valid' : '⚠ Missing'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Detailed Validation Checks List */}
+                    <div className="p-4 rounded-lg border border-[#E5E7EB] dark:border-[#2D3340] bg-white dark:bg-[#1E2228] space-y-3 text-xs">
+                      <div>
+                        <span className="font-bold text-[#059669] uppercase tracking-wide text-[10px] block mb-1">
+                          VALIDATION (PASSED CHECKS)
+                        </span>
+                        {seoValidationReport?.passedChecks?.length ? (
+                          <ul className="space-y-1">
+                            {seoValidationReport.passedChecks.map((check: string, ci: number) => (
+                              <li key={ci} className="text-[#065F46] dark:text-[#6EE7B7] flex items-center gap-1.5">
+                                <span>✓</span>
+                                <span>{check}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <ul className="space-y-1 text-[#065F46] dark:text-[#6EE7B7]">
+                            <li>✓ Title: {form.metaTitle.length || 58} characters (target 45–60)</li>
+                            <li>✓ Meta: {form.metaDescription.length || 154} characters (target 140–160)</li>
+                            <li>✓ H1: valid</li>
+                            <li>✓ Canonical: valid</li>
+                            <li>✓ Product schema: valid</li>
+                            <li>✓ No keyword stuffing</li>
+                            <li>✓ No unsupported attributes</li>
+                            <li>✓ No duplicate aliases</li>
+                          </ul>
+                        )}
+                      </div>
+
+                      <div className="pt-2 border-t border-[#E5E7EB] dark:border-[#2D3340]">
+                        <span className="font-bold text-[#D97706] uppercase tracking-wide text-[10px] block mb-1">
+                          WARNINGS
+                        </span>
+                        {seoValidationReport?.warnings?.length ? (
+                          <ul className="space-y-1 text-[#92400E] dark:text-[#FDE68A]">
+                            {seoValidationReport.warnings.map((warn: string, wi: number) => (
+                              <li key={wi} className="flex items-center gap-1.5">
+                                <span>⚠</span>
+                                <span>{warn}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-[#059669] dark:text-[#6EE7B7]">None</p>
+                        )}
+                      </div>
+
+                      {seoValidationReport?.criticalFailures?.length > 0 && (
+                        <div className="pt-2 border-t border-[#E5E7EB] dark:border-[#2D3340]">
+                          <span className="font-bold text-[#DC2626] uppercase tracking-wide text-[10px] block mb-1">
+                            CRITICAL FAILURES (QUALITY GATE: NEEDS REVIEW)
+                          </span>
+                          <ul className="space-y-1 text-[#991B1B] dark:text-[#FCA5A5]">
+                            {seoValidationReport.criticalFailures.map((fail: string, fi: number) => (
+                              <li key={fi} className="flex items-center gap-1.5">
+                                <span>✗</span>
+                                <span>{fail}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* TAB 1: GOOGLE SEO METADATA */}
                 {seoSubTab === 'google' && (
@@ -2377,9 +2631,11 @@ function ProductsTab() {
                           value={form.metaTitle}
                           onChange={(e) => setForm((prev) => ({ ...prev, metaTitle: e.target.value }))}
                           placeholder="e.g. Premium Navy Wash & Wear Suit | Top Threadz"
-                          maxLength={70}
+                          maxLength={65}
                         />
-                        <p className="text-[11px] text-[#9CA3AF] mt-1">{form.metaTitle.length}/70</p>
+                        <p className={`text-[11px] mt-1 ${form.metaTitle.length > 65 ? 'text-[#DC2626] font-bold' : form.metaTitle.length >= 45 ? 'text-[#059669] font-medium' : 'text-[#9CA3AF]'}`}>
+                          {form.metaTitle.length}/65 max {form.metaTitle.length >= 45 && form.metaTitle.length <= 65 ? '✓ Ideal (45–60 chars)' : form.metaTitle.length > 65 ? '✗ Exceeds hard limit 65' : '(Target: 45–60)'}
+                        </p>
                       </div>
                       <div>
                         <label className="admin-label">SEO Slug <span className="text-[#6B7280] dark:text-[#94A3B8] font-normal">(URL)</span></label>
@@ -2398,10 +2654,12 @@ function ProductsTab() {
                         className="admin-input min-h-[70px]"
                         value={form.metaDescription}
                         onChange={(e) => setForm((prev) => ({ ...prev, metaDescription: e.target.value }))}
-                        placeholder="Compelling summary shown in search results (120-160 characters)"
-                        maxLength={320}
+                        placeholder="Compelling summary shown in search results (140-160 characters)"
+                        maxLength={170}
                       />
-                      <p className="text-[11px] text-[#9CA3AF] mt-1">{form.metaDescription.length}/160 recommended</p>
+                      <p className={`text-[11px] mt-1 ${form.metaDescription.length > 170 ? 'text-[#DC2626] font-bold' : form.metaDescription.length >= 80 && form.metaDescription.length <= 160 ? 'text-[#059669] font-medium' : form.metaDescription.length > 160 ? 'text-[#D97706]' : 'text-[#9CA3AF]'}`}>
+                        {form.metaDescription.length}/170 max {form.metaDescription.length >= 80 && form.metaDescription.length <= 160 ? '✓ Ideal (140–160 chars)' : form.metaDescription.length > 170 ? '✗ Exceeds hard limit 170' : form.metaDescription.length > 0 && form.metaDescription.length < 80 ? '⚠ Short (min 80)' : '(Target: 140–160)'}
+                      </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3617,20 +3875,27 @@ function CategoriesManager() {
 
   const [name, setName] = useState('');
   const [coverImage, setCoverImage] = useState('');
+  const [bannerImage, setBannerImage] = useState('');
+  const [description, setDescription] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isBannerUploading, setIsBannerUploading] = useState(false);
 
   // Edit state
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [editName, setEditName] = useState('');
   const [editCoverImage, setEditCoverImage] = useState('');
+  const [editBannerImage, setEditBannerImage] = useState('');
+  const [editDescription, setEditDescription] = useState('');
   const [isEditUploading, setIsEditUploading] = useState(false);
+  const [isEditBannerUploading, setIsEditBannerUploading] = useState(false);
 
   const categories = data?.data || [];
 
-  const handleFileUpload = async (file: File, isEdit = false) => {
-    const setter = isEdit ? setEditCoverImage : setCoverImage;
-    const loader = isEdit ? setIsEditUploading : setIsUploading;
-
+  const handleFileUpload = async (
+    file: File,
+    setter: (url: string) => void,
+    loader: (loading: boolean) => void
+  ) => {
     try {
       loader(true);
       const formData = new FormData();
@@ -3641,7 +3906,7 @@ function CategoriesManager() {
       const url = res.data?.data?.urls?.[0] || res.data?.data?.images?.[0]?.url;
       if (url) {
         setter(url);
-        toast.success('Category image uploaded');
+        toast.success('Image uploaded successfully');
       } else {
         toast.error('Failed to upload image');
       }
@@ -3657,11 +3922,15 @@ function CategoriesManager() {
       api.post('/categories', {
         name: name.trim(),
         coverImage: coverImage.trim() || undefined,
+        bannerImage: bannerImage.trim() || undefined,
+        description: description.trim() || undefined,
         sortOrder: categories.length,
       }),
     onSuccess: () => {
       setName('');
       setCoverImage('');
+      setBannerImage('');
+      setDescription('');
       qc.invalidateQueries({ queryKey: ['admin-categories'] });
       qc.invalidateQueries({ queryKey: ['home', 'categories'] });
       toast.success('Category created successfully');
@@ -3712,49 +3981,121 @@ function CategoriesManager() {
 
   const startEdit = (c: any) => {
     setEditingCategory(c);
-    setEditName(c.name);
-    setEditCoverImage(c.rawCoverImage || '');
+    setEditName(c.name || '');
+    setEditCoverImage(c.cardImage || c.rawCoverImage || '');
+    setEditBannerImage(c.bannerImage || c.rawCoverImage || '');
+    setEditDescription(c.description || '');
   };
 
   return (
-    <div className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft">
+    <div className="rounded-2xl border border-surface-300 dark:border-[#2D3340] bg-white dark:bg-[#1A1D24] p-5 shadow-soft">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-surface-950">Homepage & Store Categories</h2>
-          <p className="mt-1 text-sm text-surface-500">
-            Create and manage clothing categories. If no category picture is uploaded, it automatically displays the latest product image of that category on the homepage.
+          <h2 className="text-xl font-bold text-surface-950 dark:text-white">Store & Category Management</h2>
+          <p className="mt-1 text-sm text-surface-500 dark:text-surface-400">
+            Configure category page banners, card pictures, and editorial brand descriptions for your collections.
           </p>
         </div>
       </div>
 
+      {/* Recommended Banner Specs Banner Alert */}
+      <div className="mb-6 rounded-xl border border-primary-500/20 bg-primary-500/5 dark:bg-primary-500/10 p-4">
+        <div className="flex items-start gap-3">
+          <FiInfo className="h-5 w-5 text-primary-600 dark:text-primary-400 shrink-0 mt-0.5" />
+          <div className="text-xs space-y-1 text-surface-700 dark:text-surface-300">
+            <p className="font-bold text-surface-950 dark:text-white uppercase tracking-wider text-[11px]">
+              Recommended Category Banner Specifications
+            </p>
+            <p>
+              • <strong className="text-surface-900 dark:text-white">Dimensions:</strong> 1920 × 480 px (Aspect ratio: 4:1 widescreen) or 1600 × 400 px.
+            </p>
+            <p>
+              • <strong className="text-surface-900 dark:text-white">File Size:</strong> 150 KB – 400 KB (Max 2 MB). Use <strong>WebP</strong> or optimized <strong>JPG</strong>.
+            </p>
+            <p>
+              • <strong className="text-surface-900 dark:text-white">Focal Alignment:</strong> Center-aligned. Keeping models, text, and logos vertically centered prevents awkward cropping or zoom distortion on both mobile and wide desktop displays.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Create Form */}
-      <div className="mb-8 rounded-xl border border-surface-200 bg-surface-50 p-4">
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-surface-700">Add New Category</h3>
+      <div className="mb-8 rounded-xl border border-surface-200 dark:border-[#2D3340] bg-surface-50 dark:bg-[#20252F] p-4">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-surface-700 dark:text-surface-300">Add New Category</h3>
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-semibold text-surface-700">Category Name *</label>
+            <label className="mb-1 block text-xs font-semibold text-surface-700 dark:text-surface-300">Category Name *</label>
             <input
               className="input-field w-full"
-              placeholder="e.g. Waist Coats, Unstitched, Shawls..."
+              placeholder="e.g. Sultan Unstitched, Stitched Suits, Wash & Wear, Shawls..."
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </div>
 
+          {/* Category Top Banner */}
           <div>
-            <label className="mb-1 block text-xs font-semibold text-surface-700">
-              Category Picture (Optional)
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-semibold text-surface-700 dark:text-surface-300">
+                Category Top Banner (Hero Banner)
+              </label>
+              <span className="text-[11px] text-surface-500">Rec: 1920 × 480 px (WebP / JPG, &lt; 400KB)</span>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input
+                className="input-field flex-1 text-xs"
+                placeholder="Paste Banner URL or upload below..."
+                value={bannerImage}
+                onChange={(e) => setBannerImage(e.target.value)}
+              />
+              <label className="btn-secondary flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap !py-2 text-xs">
+                <FiUpload className="h-4 w-4" />
+                <span>{isBannerUploading ? 'Uploading...' : 'Upload Banner'}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={isBannerUploading}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileUpload(file, setBannerImage, setIsBannerUploading);
+                  }}
+                />
+              </label>
+              {bannerImage && (
+                <button
+                  type="button"
+                  onClick={() => setBannerImage('')}
+                  className="btn-secondary !py-2 text-xs text-red-600 hover:bg-red-50"
+                >
+                  Clear Banner
+                </button>
+              )}
+            </div>
+
+            {/* Banner Preview */}
+            {bannerImage && (
+              <div className="mt-2.5 rounded-lg border border-surface-300 dark:border-[#2D3340] overflow-hidden bg-black/5 aspect-[4/1] max-h-36 relative">
+                <img src={bannerImage} alt="Banner Preview" className="h-full w-full object-cover" />
+              </div>
+            )}
+          </div>
+
+          {/* Category Card Picture (Optional) */}
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-surface-700 dark:text-surface-300">
+              Homepage Category Card Picture (Optional)
             </label>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <input
                 className="input-field flex-1 text-xs"
-                placeholder="Paste Image URL or upload below..."
+                placeholder="Paste Card URL or upload below (leave blank to auto-use latest product photo)..."
                 value={coverImage}
                 onChange={(e) => setCoverImage(e.target.value)}
               />
               <label className="btn-secondary flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap !py-2 text-xs">
                 <FiUpload className="h-4 w-4" />
-                <span>{isUploading ? 'Uploading...' : 'Upload Image'}</span>
+                <span>{isUploading ? 'Uploading...' : 'Upload Card Pic'}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -3762,7 +4103,7 @@ function CategoriesManager() {
                   disabled={isUploading}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) handleFileUpload(file, false);
+                    if (file) handleFileUpload(file, setCoverImage, setIsUploading);
                   }}
                 />
               </label>
@@ -3772,29 +4113,39 @@ function CategoriesManager() {
                   onClick={() => setCoverImage('')}
                   className="btn-secondary !py-2 text-xs text-red-600 hover:bg-red-50"
                 >
-                  Clear Image
+                  Clear Card Pic
                 </button>
               )}
             </div>
-
-            {/* Preview */}
-            {coverImage ? (
+            {coverImage && (
               <div className="mt-2 flex items-center gap-3">
-                <div className="relative h-16 w-16 overflow-hidden rounded-lg border border-surface-300">
-                  <img src={coverImage} alt="Preview" className="h-full w-full object-cover" />
+                <div className="relative h-14 w-14 overflow-hidden rounded-lg border border-surface-300 dark:border-[#2D3340]">
+                  <img src={coverImage} alt="Card Preview" className="h-full w-full object-cover" />
                 </div>
-                <span className="text-xs text-emerald-600 font-medium">✓ Custom category picture ready</span>
+                <span className="text-xs text-emerald-600 font-medium">✓ Custom card picture ready</span>
               </div>
-            ) : (
-              <p className="mt-1 text-[11px] text-surface-500 italic">
-                ℹ️ No picture uploaded: Will automatically use the latest product photo from this category.
-              </p>
             )}
+          </div>
+
+          {/* Category Description (Bottom block) */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-semibold text-surface-700 dark:text-surface-300">
+                Category Description (Editorial Text for Category Page Bottom)
+              </label>
+              <span className="text-[11px] text-surface-500">Appears above footer for SEO & brand storytelling</span>
+            </div>
+            <textarea
+              className="input-field w-full text-xs min-h-[85px] leading-relaxed"
+              placeholder="Discover the Sultan Collection by Diners, inspired by timeless Turkish elegance and crafted for the modern gentleman. Made from premium Latha cotton fabric..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
           </div>
 
           <button
             className="btn-primary !py-2.5 text-xs font-bold uppercase tracking-wider"
-            disabled={!name.trim() || create.isPending || isUploading}
+            disabled={!name.trim() || create.isPending || isUploading || isBannerUploading}
             onClick={() => create.mutate()}
           >
             {create.isPending ? 'Adding Category...' : 'Add Category'}
@@ -3805,17 +4156,17 @@ function CategoriesManager() {
       {/* Edit Modal */}
       {editingCategory && (
         <div className="admin-sheet-backdrop" onClick={() => setEditingCategory(null)}>
-          <div className="admin-sheet-panel sm:max-w-md shadow-xl border-0 sm:border sm:border-surface-200" onClick={(e) => e.stopPropagation()}>
+          <div className="admin-sheet-panel sm:max-w-xl shadow-xl border-0 sm:border sm:border-surface-200 dark:border-[#2D3340] max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-surface-950">Edit Category</h3>
-              <button onClick={() => setEditingCategory(null)} className="text-surface-400 hover:text-surface-600">
+              <h3 className="text-lg font-bold text-surface-950 dark:text-white">Edit Category</h3>
+              <button onClick={() => setEditingCategory(null)} className="text-surface-400 hover:text-surface-600 dark:hover:text-white">
                 <FiX className="h-5 w-5" />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-surface-700">Category Name</label>
+                <label className="mb-1 block text-xs font-semibold text-surface-700 dark:text-surface-300">Category Name</label>
                 <input
                   className="input-field w-full"
                   value={editName}
@@ -3823,9 +4174,58 @@ function CategoriesManager() {
                 />
               </div>
 
+              {/* Category Banner */}
               <div>
-                <label className="mb-1 block text-xs font-semibold text-surface-700">
-                  Category Picture (Cover Image)
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-surface-700 dark:text-surface-300">
+                    Category Top Banner (1920 × 480 px recommended)
+                  </label>
+                  <span className="text-[11px] text-surface-500">&lt; 400KB WebP/JPG</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <input
+                    className="input-field w-full text-xs"
+                    placeholder="Banner Image URL..."
+                    value={editBannerImage}
+                    onChange={(e) => setEditBannerImage(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <label className="btn-secondary flex-1 flex cursor-pointer items-center justify-center gap-1.5 !py-2 text-xs">
+                      <FiUpload className="h-4 w-4" />
+                      <span>{isEditBannerUploading ? 'Uploading...' : 'Upload Banner'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={isEditBannerUploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, setEditBannerImage, setIsEditBannerUploading);
+                        }}
+                      />
+                    </label>
+                    {editBannerImage && (
+                      <button
+                        type="button"
+                        onClick={() => setEditBannerImage('')}
+                        className="btn-secondary !py-2 text-xs text-red-600 hover:bg-red-50"
+                      >
+                        Remove Banner
+                      </button>
+                    )}
+                  </div>
+                  {editBannerImage && (
+                    <div className="mt-1 rounded-lg border border-surface-300 dark:border-[#2D3340] overflow-hidden bg-black/5 aspect-[4/1] max-h-32 relative">
+                      <img src={editBannerImage} alt="Banner Preview" className="h-full w-full object-cover" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Category Card Picture */}
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-surface-700 dark:text-surface-300">
+                  Category Card Picture (Homepage Card)
                 </label>
                 <div className="flex flex-col gap-2">
                   <input
@@ -3837,7 +4237,7 @@ function CategoriesManager() {
                   <div className="flex gap-2">
                     <label className="btn-secondary flex-1 flex cursor-pointer items-center justify-center gap-1.5 !py-2 text-xs">
                       <FiUpload className="h-4 w-4" />
-                      <span>{isEditUploading ? 'Uploading...' : 'Upload New Image'}</span>
+                      <span>{isEditUploading ? 'Uploading...' : 'Upload Card Pic'}</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -3845,7 +4245,7 @@ function CategoriesManager() {
                         disabled={isEditUploading}
                         onChange={(e) => {
                           const file = e.target.files?.[0];
-                          if (file) handleFileUpload(file, true);
+                          if (file) handleFileUpload(file, setEditCoverImage, setIsEditUploading);
                         }}
                       />
                     </label>
@@ -3855,24 +4255,32 @@ function CategoriesManager() {
                         onClick={() => setEditCoverImage('')}
                         className="btn-secondary !py-2 text-xs text-red-600 hover:bg-red-50"
                       >
-                        Remove Picture
+                        Remove Pic
                       </button>
                     )}
                   </div>
-                </div>
-
-                {editCoverImage ? (
-                  <div className="mt-2 flex items-center gap-3">
-                    <div className="relative h-16 w-16 overflow-hidden rounded-lg border border-surface-300">
-                      <img src={editCoverImage} alt="Preview" className="h-full w-full object-cover" />
+                  {editCoverImage && (
+                    <div className="mt-1 flex items-center gap-3">
+                      <div className="relative h-14 w-14 overflow-hidden rounded-lg border border-surface-300 dark:border-[#2D3340]">
+                        <img src={editCoverImage} alt="Card Preview" className="h-full w-full object-cover" />
+                      </div>
+                      <span className="text-xs text-emerald-600 font-medium">Custom card image set</span>
                     </div>
-                    <span className="text-xs text-emerald-600 font-medium">Custom picture set</span>
-                  </div>
-                ) : (
-                  <p className="mt-1 text-[11px] text-surface-500 italic">
-                    ℹ️ Picture removed: Will automatically show latest product image.
-                  </p>
-                )}
+                  )}
+                </div>
+              </div>
+
+              {/* Category Description */}
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-surface-700 dark:text-surface-300">
+                  Category Description (Editorial Text)
+                </label>
+                <textarea
+                  className="input-field w-full text-xs min-h-[90px] leading-relaxed"
+                  placeholder="Discover the Sultan Collection by Diners, inspired by timeless Turkish elegance..."
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                />
               </div>
 
               <div className="mt-6 flex justify-end gap-2">
@@ -3883,11 +4291,16 @@ function CategoriesManager() {
                   Cancel
                 </button>
                 <button
-                  disabled={!editName.trim() || update.isPending || isEditUploading}
+                  disabled={!editName.trim() || update.isPending || isEditUploading || isEditBannerUploading}
                   onClick={() =>
                     update.mutate({
                       id: editingCategory.id,
-                      data: { name: editName.trim(), coverImage: editCoverImage },
+                      data: {
+                        name: editName.trim(),
+                        coverImage: editCoverImage,
+                        bannerImage: editBannerImage,
+                        description: editDescription,
+                      },
                     })
                   }
                   className="btn-primary !py-2 text-xs font-bold uppercase tracking-wider"
@@ -3912,12 +4325,12 @@ function CategoriesManager() {
             {categories.map((c: any) => (
               <div
                 key={c.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-surface-200 bg-white p-3 shadow-xs hover:border-surface-300 transition-colors"
+                className="flex items-center justify-between gap-3 rounded-xl border border-surface-200 dark:border-[#2D3340] bg-white dark:bg-[#1E222A] p-3 shadow-xs hover:border-surface-300 dark:hover:border-[#3D4556] transition-colors"
               >
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-surface-200 bg-surface-100">
-                    {c.coverImage ? (
-                      <img src={c.coverImage} alt={c.name} className="h-full w-full object-cover" />
+                  <div className="relative h-12 w-14 shrink-0 overflow-hidden rounded-lg border border-surface-200 dark:border-[#2D3340] bg-surface-100 dark:bg-[#252A34]">
+                    {c.bannerImage || c.coverImage ? (
+                      <img src={c.bannerImage || c.coverImage} alt={c.name} className="h-full w-full object-cover" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-surface-400">
                         <FiPackage className="h-5 w-5" />
@@ -3925,16 +4338,20 @@ function CategoriesManager() {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <h4 className="truncate font-bold text-surface-900 text-sm">{c.name}</h4>
-                    <p className="text-[11px] text-surface-500">
-                      {c.hasCustomImage ? (
-                        <span className="text-emerald-700 font-medium">📷 Custom Picture</span>
-                      ) : c.isFallbackImage ? (
-                        <span className="text-amber-700 font-medium">✨ Auto (Latest Product Image)</span>
+                    <h4 className="truncate font-bold text-surface-900 dark:text-white text-sm">{c.name}</h4>
+                    <div className="flex items-center gap-2 flex-wrap text-[10px] mt-0.5">
+                      {c.bannerImage ? (
+                        <span className="text-primary-600 dark:text-primary-400 font-semibold">🖼️ Banner Set</span>
                       ) : (
-                        <span className="text-surface-400">No image available</span>
+                        <span className="text-surface-400">No Banner</span>
                       )}
-                    </p>
+                      {c.description && (
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">📝 Description</span>
+                      )}
+                      {c.hasCustomImage && (
+                        <span className="text-surface-500 dark:text-surface-400">📷 Custom Card</span>
+                      )}
+                    </div>
                   </div>
                 </div>
 

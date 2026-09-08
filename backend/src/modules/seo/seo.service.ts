@@ -241,6 +241,44 @@ function buildUserPrompt(
   ].join('\n');
 }
 
+export function enforceTitleLimit(rawTitle: string, productName: string, brand = 'Top Threadz'): string {
+  let t = stripHtml(rawTitle).replace(/\s+/g, ' ').trim();
+  if (t.length <= 65) return t;
+
+  // Gracefully shorten to hard max 65 characters at word boundary
+  const brandSuffix = ` | ${brand}`;
+  const maxBody = Math.max(20, 65 - brandSuffix.length);
+  let body = t.replace(new RegExp(`\\s*\\|\\s*${brand}.*$`, 'i'), '').trim();
+  if (body.length > maxBody) {
+    body = body.slice(0, maxBody);
+    const lastSpace = body.lastIndexOf(' ');
+    if (lastSpace > 20) body = body.slice(0, lastSpace);
+  }
+  const candidate = `${body}${brandSuffix}`.trim();
+  return candidate.length <= 65 ? candidate : candidate.slice(0, 65).trim();
+}
+
+export function enforceMetaLimit(rawMeta: string, fallback: string): string {
+  let m = stripHtml(rawMeta).replace(/\s+/g, ' ').trim();
+  if (m.length <= 170 && m.length >= 80) return m;
+
+  if (m.length > 170) {
+    let trimmed = m.slice(0, 169);
+    const lastPeriod = trimmed.lastIndexOf('.');
+    if (lastPeriod > 100) return trimmed.slice(0, lastPeriod + 1).trim();
+    const lastComma = trimmed.lastIndexOf(',');
+    if (lastComma > 120) return trimmed.slice(0, lastComma).trim() + '.';
+    const lastSpace = trimmed.lastIndexOf(' ');
+    if (lastSpace > 120) return trimmed.slice(0, lastSpace).trim() + '...';
+    return trimmed.slice(0, 167) + '...';
+  }
+
+  if (m.length < 80 && fallback && fallback.length >= 80) {
+    return fallback.slice(0, 165);
+  }
+  return m;
+}
+
 // ── Service ──────────────────────────────────────────────────────────────
 
 export class SeoService {
@@ -275,24 +313,35 @@ export class SeoService {
     const content = parsed.data;
 
     // Sanitize / normalize output before returning.
-    // Curate Google keywords: combine search intelligence googleKeywords with AI keywords without repetition
+    // Curate Google keywords: combine search intelligence googleKeywords with AI keywords without repetition (Section 34)
     const keywords = Array.from(
       new Set([...searchIntelligence.googleKeywords, ...content.keywords.map(sanitizeKeyword)].filter(Boolean))
-    ).slice(0, 15);
+    ).slice(0, 12);
 
     // Tags: preserve AI tags + add top search aliases for internal product discovery without stuffing Google meta
     const tags = Array.from(
       new Set([
         ...(content.tags || []).map((t) => t.trim().toLowerCase()),
-        ...searchIntelligence.searchAliases.slice(0, 15).map((a) => a.toLowerCase()),
+        ...searchIntelligence.searchAliases.slice(0, 20).map((a) => a.toLowerCase()),
       ].filter(Boolean))
     ).slice(0, 25);
+
+    // Enforce Section 26 hard limits on Title (<= 65 chars) and Meta Description (<= 170 chars, >= 80 chars)
+    const seoTitle = enforceTitleLimit(
+      content.seoTitle || `${input.name} | Top Threadz`,
+      input.name,
+      input.brand || 'Top Threadz'
+    );
+    const metaDescription = enforceMetaLimit(
+      content.metaDescription || '',
+      `Shop authentic ${input.name} at Top Threadz. Premium Pakistani men's fabric and stitched fashion with fast nationwide delivery.`
+    );
 
     const sanitized: AiSeoResponse = {
       shortDescription: truncate(stripHtml(content.shortDescription), 500),
       description: stripHtml(content.description).slice(0, 6000),
-      seoTitle: truncate(stripHtml(content.seoTitle), 70),
-      metaDescription: truncate(stripHtml(content.metaDescription), 320),
+      seoTitle,
+      metaDescription,
       keywords,
       tags,
       slug: slugify(content.slug),
@@ -301,7 +350,7 @@ export class SeoService {
         question: truncate(stripHtml(f.question), 300),
         answer: truncate(stripHtml(f.answer), 1000),
       })),
-      primaryKeyword: content.primaryKeyword ? sanitizeKeyword(content.primaryKeyword) : keywords[0],
+      primaryKeyword: searchIntelligence.primaryKeyword || (content.primaryKeyword ? sanitizeKeyword(content.primaryKeyword) : keywords[0]),
     };
 
     const score = calculateSeoScore({
@@ -313,6 +362,8 @@ export class SeoService {
       keywords: sanitized.keywords,
       shortDescription: sanitized.shortDescription,
       highlights: sanitized.highlights,
+      h1: input.name,
+      aliasesCount: searchIntelligence.searchAliases.length,
     });
 
     return {
