@@ -346,3 +346,90 @@
     min-height: 44px;
   }
 }
+
+/* ============================================================
+   ADMIN DARK MODE (Web only)
+   Ecommerce style: Slate/Charcoal #1E2228, borders #2D3340
+   ============================================================ */
+
+.dark .admin-card {
+  background-color: #1E2228;
+  border-color: #2D3340;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.dark .admin-input,
+.dark .admin-workspace input[type="text"],
+.dark .admin-workspace input[type="number"],
+.dark .admin-workspace input[type="email"],
+.dark .admin-workspace input[type="password"],
+.dark .admin-workspace input[type="search"],
+.dark .admin-workspace input[type="tel"],
+.dark .admin-workspace input[type="url"],
+.dark .admin-workspace select,
+.dark .admin-workspace textarea {
+  background-color: #16191F;
+  border-color: #2D3340;
+  color: #F1F5F9;
+}
+
+.dark .admin-input:focus,
+.dark .admin-workspace input:focus,
+.dark .admin-workspace select:focus,
+.dark .admin-workspace textarea:focus {
+  border-color: #3B82F6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+.dark .admin-label,
+.dark .admin-workspace label {
+  color: #CBD5E1;
+}
+
+.dark .admin-btn-secondary {
+  background-color: #1E2228;
+  border-color: #2D3340;
+  color: #CBD5E1;
+}
+
+.dark .admin-btn-secondary:hover:not(:disabled) {
+  background-color: #262B34;
+  border-color: #3B4252;
+  color: #FFFFFF;
+}
+
+.dark .admin-workspace thead tr,
+.dark .admin-workspace th {
+  background-color: #16191F !important;
+  color: #94A3B8 !important;
+  border-bottom: 1px solid #2D3340 !important;
+}
+
+.dark .admin-workspace tbody tr {
+  border-bottom: 1px solid #2D3340;
+}
+
+.dark .admin-workspace tbody tr:hover {
+  background-color: #222730;
+}
+
+.dark .admin-workspace tbody td {
+  color: #E2E8F0;
+}
+
+.dark .admin-sheet-panel {
+  background-color: #1E2228;
+  border-color: #2D3340;
+  color: #F1F5F9;
+}
+
+.dark .admin-ai-btn {
+  background-color: #16191F;
+  border-color: #2D3340;
+  color: #CBD5E1;
+}
+
+.dark .admin-ai-btn:hover {
+  background-color: #262B34;
+}
+

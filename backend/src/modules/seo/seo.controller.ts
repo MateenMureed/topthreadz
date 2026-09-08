@@ -18,6 +18,7 @@ export class SeoController {
         data: {
           ...result.content,
           score: result.score,
+          searchIntelligence: result.searchIntelligence,
           provider: result.meta.provider,
           model: result.meta.model,
         },

@@ -4,6 +4,51 @@ import { CreateProductInput, UpdateProductInput } from './product.schema';
 import { Prisma } from '@prisma/client';
 import { deleteFromCloudinary } from '../../config/cloudinary';
 
+function expandSearchTerms(rawQuery: string): string[] {
+  const q = rawQuery.toLowerCase().trim();
+  const terms = new Set<string>([q]);
+
+  const synonyms: Record<string, string[]> = {
+    mardon: ['men', 'gents', 'male'],
+    mardan: ['men', 'gents'],
+    kapra: ['fabric', 'unstitched', 'cloth'],
+    kapray: ['clothes', 'clothing', 'fabric'],
+    kapre: ['clothes', 'clothing'],
+    libas: ['clothes', 'suit', 'dress'],
+    kala: ['black'],
+    kaala: ['black'],
+    safed: ['white'],
+    chitta: ['white'],
+    neela: ['blue', 'navy'],
+    surmai: ['grey', 'gray', 'charcoal'],
+    bhoora: ['brown'],
+    bhura: ['brown'],
+    washwear: ['wash and wear', 'wash & wear', 'wash wear'],
+    'wash wear': ['wash and wear', 'wash & wear'],
+    'wash n wear': ['wash and wear', 'wash & wear'],
+    '2 piece': ['two piece', '2-piece'],
+    'two piece': ['2 piece', '2-piece'],
+    '3 piece': ['three piece', '3-piece'],
+    'three piece': ['3 piece', '3-piece'],
+    readymade: ['ready made', 'ready-made', 'stitched', 'ready to wear'],
+    'ready made': ['stitched', 'ready to wear'],
+    'ready to wear': ['stitched', 'ready made'],
+    'shalwar qameez': ['shalwar kameez'],
+    'shalwar kameez': ['shalwar qameez', 'suit'],
+  };
+
+  for (const [key, synList] of Object.entries(synonyms)) {
+    if (q.includes(key)) {
+      for (const syn of synList) {
+        terms.add(syn);
+        terms.add(q.replace(key, syn));
+      }
+    }
+  }
+
+  return Array.from(terms);
+}
+
 export class ProductService {
   private normalizeUnstitchedMensProduct(data: CreateProductInput | UpdateProductInput): Record<string, unknown> {
     const sizes = Array.isArray(data.sizes) && data.sizes.length > 0
@@ -121,15 +166,21 @@ export class ProductService {
     }
     const searchText = String(query.search || '').trim();
     if (searchText) {
-      andConditions.push({
-        OR: [
-          { name: { contains: searchText, mode: 'insensitive' } },
-          { description: { contains: searchText, mode: 'insensitive' } },
-          { tags: { has: searchText } },
-          { category: { contains: searchText, mode: 'insensitive' } },
-          { subcategory: { contains: searchText, mode: 'insensitive' } },
-        ],
-      });
+      const expanded = expandSearchTerms(searchText);
+      const orConditions: Prisma.ProductWhereInput[] = [];
+      for (const term of expanded.slice(0, 6)) {
+        orConditions.push(
+          { name: { contains: term, mode: 'insensitive' } },
+          { description: { contains: term, mode: 'insensitive' } },
+          { category: { contains: term, mode: 'insensitive' } },
+          { subcategory: { contains: term, mode: 'insensitive' } },
+          { brand: { contains: term, mode: 'insensitive' } },
+          { tags: { has: term } },
+          { colors: { has: term } },
+          { metaKeywords: { has: term } }
+        );
+      }
+      andConditions.push({ OR: orConditions });
     }
 
     const where: Prisma.ProductWhereInput = andConditions.length > 1 ? { AND: andConditions } : andConditions[0] || {};
@@ -330,25 +381,112 @@ export class ProductService {
   }
 
   async searchSuggestions(query: string) {
-    if (!query || query.length < 2) return [];
+    const q = (query || '').trim().toLowerCase();
+    if (!q || q.length < 2) {
+      return { phrases: [], categories: [], products: [] };
+    }
+
+    // Catalog phrase vocabulary for autocomplete suggestions
+    const VOCABULARY: string[] = [
+      'Unstitched Fabric',
+      "Men's Unstitched Fabric",
+      'Unstitched Wash & Wear',
+      'Unstitched Suit for Men',
+      'Mardon Ka Kapra',
+      'Mardon Ke Kapray',
+      'Mardon Ka Suit',
+      'Wash & Wear Fabric',
+      "Men's Wash & Wear",
+      'Wash & Wear Suit',
+      'Wash and Wear Shalwar Kameez',
+      'Stitched Suits for Men',
+      'Ready Made Shalwar Kameez',
+      'Two Piece Suit',
+      'Three Piece Suit',
+      'Black Shalwar Kameez',
+      'Black Wash & Wear',
+      'Navy Blue Suit',
+      'Charcoal Grey Suit',
+      'Off White Kurta',
+      'Summer Collection',
+      'Winter Collection',
+      'Kids Shalwar Kameez',
+      'Boys Kurta Pajama',
+    ];
+
+    const matchingPhrases: string[] = [];
+
+    // Prefix/fuzzy matching for specific prompts requested by user:
+    if (/^unstit/i.test(q)) {
+      matchingPhrases.push('Unstitched Fabric', "Men's Unstitched Fabric", 'Unstitched Wash & Wear');
+    } else if (/^wash/i.test(q)) {
+      matchingPhrases.push('Wash & Wear', "Men's Wash & Wear", 'Wash & Wear Fabric');
+    } else if (/^mardon/i.test(q)) {
+      matchingPhrases.push('Mardon Ka Kapra', 'Mardon Ke Kapray', 'Mardon Ka Suit');
+    }
+
+    for (const phrase of VOCABULARY) {
+      if (phrase.toLowerCase().includes(q) && !matchingPhrases.includes(phrase)) {
+        matchingPhrases.push(phrase);
+      }
+    }
+
+    // Matching products
+    const expanded = expandSearchTerms(q);
+    const orClauses: Prisma.ProductWhereInput[] = [];
+    for (const term of expanded.slice(0, 4)) {
+      orClauses.push(
+        { name: { contains: term, mode: 'insensitive' } },
+        { category: { contains: term, mode: 'insensitive' } },
+        { subcategory: { contains: term, mode: 'insensitive' } },
+        { tags: { has: term } }
+      );
+    }
+
     let products = await prisma.product.findMany({
       where: {
         isActive: true,
-        OR: [
-          { name: { contains: query, mode: 'insensitive' } },
-          { tags: { has: query } },
-        ],
+        OR: orClauses,
       },
-      select: { id: true, name: true, slug: true, images: true, price: true },
-      take: 5,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        images: true,
+        price: true,
+        salePrice: true,
+        discount: true,
+        category: true,
+        subcategory: true,
+      },
+      take: 6,
     });
 
     if (products.length === 0) {
-      const fallback = await this.findTypoTolerant(query, 5);
-      products = fallback.map((p) => ({ id: p.id, name: p.name, slug: p.slug, images: p.images, price: p.price }));
+      const fallback = await this.findTypoTolerant(q, 4);
+      products = fallback.map((p) => ({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        images: p.images,
+        price: p.price,
+        salePrice: p.salePrice,
+        discount: p.discount,
+        category: p.category,
+        subcategory: p.subcategory,
+      }));
     }
 
-    return products;
+    const allCategories = ['Unstitched', 'Stitched', 'Two Piece', 'Three Piece', 'Kids'];
+    const matchingCategories = allCategories.filter((cat) =>
+      cat.toLowerCase().includes(q) || (/kapra/i.test(q) && cat === 'Unstitched')
+    );
+
+    return {
+      phrases: Array.from(new Set(matchingPhrases)).slice(0, 6),
+      categories: matchingCategories,
+      products,
+    };
   }
 
   async getPopularSearches(limit = 10) {

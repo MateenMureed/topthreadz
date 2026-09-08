@@ -11,6 +11,7 @@ import { useHydration } from '@/hooks/useHydration';
 import api from '@/services/api';
 import { productService } from '@/services/product.service';
 import { FormattedProductDescription } from '@/components/ProductDetailClient';
+import ThemeToggle from '@/components/ThemeToggle';
 import {
   FiUsers,
   FiPackage,
@@ -361,22 +362,24 @@ export default function AdminPage() {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] pb-[74px] lg:pb-0">
+    <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#111418] text-[#1A1A1A] dark:text-[#F1F5F9] pb-[74px] lg:pb-0 transition-colors duration-200">
       {/* ── TOP ADMIN HEADER BAR ── */}
-      <header className="sticky top-0 z-40 bg-white border-b border-[#E5E7EB] px-3 py-2.5 sm:px-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+      <header className="sticky top-0 z-40 bg-white dark:bg-[#1A1E24] border-b border-[#E5E7EB] dark:border-[#2D3340] px-3 py-2.5 sm:px-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
         <div className="mx-auto max-w-[1440px] flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <Link href="/" className="flex items-center gap-2 group min-w-0">
-              <span className="font-display font-black text-base sm:text-lg tracking-wider text-[#0F1F3D] truncate">
+              <span className="font-display font-black text-base sm:text-lg tracking-wider text-[#0F1F3D] dark:text-[#F1F5F9] truncate">
                 TOP THREADZ
               </span>
-              <span className="shrink-0 rounded-md bg-[#0F1F3D] text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">
+              <span className="shrink-0 rounded-md bg-[#0F1F3D] dark:bg-[#2A4A7F] text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">
                 Admin
               </span>
             </Link>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle className="!w-9 !h-9" />
+
             <Link
               href="/"
               target="_blank"
@@ -387,13 +390,13 @@ export default function AdminPage() {
               <span className="hidden sm:inline">View Storefront</span>
             </Link>
 
-            <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-[#E5E7EB]">
+            <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-[#E5E7EB] dark:border-[#2D3340]">
               <div className="w-7 h-7 rounded-full bg-[#0F1F3D] text-white flex items-center justify-center text-xs font-bold">
                 {user?.name?.charAt(0) || 'A'}
               </div>
               <div className="text-left">
-                <p className="text-xs font-bold text-[#1A1A1A] leading-none">{user?.name || 'Administrator'}</p>
-                <p className="text-[10px] text-[#6B7280] font-medium">{user?.email || 'admin@topthreadz.pk'}</p>
+                <p className="text-xs font-bold text-[#1A1A1A] dark:text-[#F1F5F9] leading-none">{user?.name || 'Administrator'}</p>
+                <p className="text-[10px] text-[#6B7280] dark:text-[#94A3B8] font-medium">{user?.email || 'admin@topthreadz.pk'}</p>
               </div>
             </div>
 
@@ -1532,6 +1535,8 @@ function ProductsTab() {
   // ── AI SEO Engine state & handler ──────────────────────────────────────
   const [seoGenerating, setSeoGenerating] = useState<string | null>(null); // null | 'all' | section name
   const [seoAvailable, setSeoAvailable] = useState(true);
+  const [searchIntelligence, setSearchIntelligence] = useState<any>(null);
+  const [seoSubTab, setSeoSubTab] = useState<'google' | 'aliases' | 'intents'>('google');
 
   const buildSeoRequest = () => ({
     ...(editingProduct ? { id: editingProduct.id } : {}),
@@ -1552,6 +1557,9 @@ function ProductsTab() {
   });
 
   const applySeoResult = (data: any, sections: string[]) => {
+    if (data.searchIntelligence) {
+      setSearchIntelligence(data.searchIntelligence);
+    }
     setForm((prev) => {
       const next = { ...prev };
       const wants = (s: string) => sections.includes(s);
@@ -2265,9 +2273,18 @@ function ProductsTab() {
               </section>
 
               {/* 1b. SEO & AI Content */}
-              <section className="space-y-4 rounded-[10px] border border-[#E5E7EB] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E7EB] pb-2">
-                  <h3 className="text-sm font-bold text-[#0F1F3D] uppercase tracking-wide">1b. SEO & AI Content</h3>
+              <section className="space-y-4 rounded-[10px] border border-[#E5E7EB] dark:border-[#2D3340] bg-white dark:bg-[#1E2228] p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E7EB] dark:border-[#2D3340] pb-2">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-[#0F1F3D] dark:text-[#F1F5F9] uppercase tracking-wide">
+                      1b. SEO &amp; Human Search Engine
+                    </h3>
+                    {searchIntelligence && (
+                      <span className="px-2 py-0.5 rounded-full bg-[#E0E7FF] dark:bg-[#1E1B4B] text-[#3730A3] dark:text-[#C7D2FE] text-[10px] font-bold">
+                        🧠 Intent Intelligence Active
+                      </span>
+                    )}
+                  </div>
                   <div className="flex flex-wrap gap-1.5">
                     <button type="button" disabled={Boolean(seoGenerating)} onClick={() => runSeoGeneration(['description'], 'Description')} className="admin-btn-secondary !py-1 !px-2.5 text-[11px] font-semibold">
                       ↻ Description
@@ -2284,82 +2301,240 @@ function ProductsTab() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="admin-label">SEO Title <span className="text-[#6B7280] font-normal">(search result title)</span></label>
-                    <input
-                      className="admin-input"
-                      value={form.metaTitle}
-                      onChange={(e) => setForm((prev) => ({ ...prev, metaTitle: e.target.value }))}
-                      placeholder="e.g. Premium Navy Wash & Wear Suit | Top Threadz"
-                      maxLength={70}
-                    />
-                    <p className="text-[11px] text-[#9CA3AF] mt-1">{form.metaTitle.length}/70</p>
-                  </div>
-                  <div>
-                    <label className="admin-label">SEO Slug <span className="text-[#6B7280] font-normal">(URL)</span></label>
-                    <input
-                      className="admin-input"
-                      value={form.slug}
-                      onChange={(e) => { setIsSlugEditedManually(true); setForm((prev) => ({ ...prev, slug: makeSlug(e.target.value) })); }}
-                      placeholder="premium-navy-wash-wear-suit"
-                    />
-                  </div>
+                {/* Sub-Tabs: Google SEO vs Internal Search Aliases vs Search Intents */}
+                <div className="flex border-b border-[#E5E7EB] dark:border-[#2D3340] gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSeoSubTab('google')}
+                    className={`pb-2 px-3 text-xs font-bold border-b-2 transition-colors ${
+                      seoSubTab === 'google'
+                        ? 'border-[#0F1F3D] dark:border-[#3B82F6] text-[#0F1F3D] dark:text-[#3B82F6]'
+                        : 'border-transparent text-[#6B7280] dark:text-[#94A3B8] hover:text-[#1A1A1A] dark:hover:text-white'
+                    }`}
+                  >
+                    Google SEO Metadata
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSeoSubTab('aliases')}
+                    className={`pb-2 px-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-1.5 ${
+                      seoSubTab === 'aliases'
+                        ? 'border-[#0F1F3D] dark:border-[#3B82F6] text-[#0F1F3D] dark:text-[#3B82F6]'
+                        : 'border-transparent text-[#6B7280] dark:text-[#94A3B8] hover:text-[#1A1A1A] dark:hover:text-white'
+                    }`}
+                  >
+                    <span>Internal Search Aliases</span>
+                    {searchIntelligence?.searchAliases?.length ? (
+                      <span className="px-1.5 py-0.2 rounded-full bg-surface-200 dark:bg-[#2D3340] text-[10px]">
+                        {searchIntelligence.searchAliases.length}
+                      </span>
+                    ) : null}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSeoSubTab('intents')}
+                    className={`pb-2 px-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-1.5 ${
+                      seoSubTab === 'intents'
+                        ? 'border-[#0F1F3D] dark:border-[#3B82F6] text-[#0F1F3D] dark:text-[#3B82F6]'
+                        : 'border-transparent text-[#6B7280] dark:text-[#94A3B8] hover:text-[#1A1A1A] dark:hover:text-white'
+                    }`}
+                  >
+                    <span>Search Intent Breakdown</span>
+                    {searchIntelligence?.intentGroups?.length ? (
+                      <span className="px-1.5 py-0.2 rounded-full bg-surface-200 dark:bg-[#2D3340] text-[10px]">
+                        {searchIntelligence.intentGroups.length}
+                      </span>
+                    ) : null}
+                  </button>
                 </div>
 
-                <div>
-                  <label className="admin-label">Meta Description</label>
-                  <textarea
-                    className="admin-input min-h-[70px]"
-                    value={form.metaDescription}
-                    onChange={(e) => setForm((prev) => ({ ...prev, metaDescription: e.target.value }))}
-                    placeholder="Compelling summary shown in search results (120-160 characters)"
-                    maxLength={320}
-                  />
-                  <p className="text-[11px] text-[#9CA3AF] mt-1">{form.metaDescription.length}/160 recommended</p>
-                </div>
+                {/* TAB 1: GOOGLE SEO METADATA */}
+                {seoSubTab === 'google' && (
+                  <div className="space-y-4">
+                    {/* Live Google Search Preview Card */}
+                    <div className="rounded-lg border border-[#E5E7EB] dark:border-[#2D3340] bg-[#F9FAFB] dark:bg-[#16191F] p-3 text-xs">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#94A3B8] mb-1.5 flex items-center gap-1.5">
+                        <span>🌐 Google Search Preview</span>
+                      </p>
+                      <div className="space-y-0.5">
+                        <p className="text-[#1A0DAB] dark:text-[#8AB4F8] text-sm font-semibold hover:underline truncate cursor-pointer">
+                          {form.metaTitle || form.name || 'Product Title'} | Top Threadz
+                        </p>
+                        <p className="text-[#006621] dark:text-[#34A853] text-[11px] truncate">
+                          https://topthreadz.com.pk/products/{form.slug || 'product-slug'}
+                        </p>
+                        <p className="text-[#4D5156] dark:text-[#BDC1C6] text-xs line-clamp-2 mt-0.5">
+                          {form.metaDescription || form.shortDescription || 'Discover premium menswear and fabrics at Top Threadz Pakistan. Wrinkle-resistant wash & wear, unstitched & stitched suits.'}
+                        </p>
+                      </div>
+                    </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="admin-label">Short Description <span className="text-[#6B7280] font-normal">(cards & previews)</span></label>
-                    <textarea
-                      className="admin-input min-h-[70px]"
-                      value={form.shortDescription}
-                      onChange={(e) => setForm((prev) => ({ ...prev, shortDescription: e.target.value }))}
-                      placeholder="One-sentence hook for product cards"
-                      maxLength={500}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="admin-label">SEO Title <span className="text-[#6B7280] dark:text-[#94A3B8] font-normal">(search result title)</span></label>
+                        <input
+                          className="admin-input"
+                          value={form.metaTitle}
+                          onChange={(e) => setForm((prev) => ({ ...prev, metaTitle: e.target.value }))}
+                          placeholder="e.g. Premium Navy Wash & Wear Suit | Top Threadz"
+                          maxLength={70}
+                        />
+                        <p className="text-[11px] text-[#9CA3AF] mt-1">{form.metaTitle.length}/70</p>
+                      </div>
+                      <div>
+                        <label className="admin-label">SEO Slug <span className="text-[#6B7280] dark:text-[#94A3B8] font-normal">(URL)</span></label>
+                        <input
+                          className="admin-input"
+                          value={form.slug}
+                          onChange={(e) => { setIsSlugEditedManually(true); setForm((prev) => ({ ...prev, slug: makeSlug(e.target.value) })); }}
+                          placeholder="premium-navy-wash-wear-suit"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="admin-label">Meta Description</label>
+                      <textarea
+                        className="admin-input min-h-[70px]"
+                        value={form.metaDescription}
+                        onChange={(e) => setForm((prev) => ({ ...prev, metaDescription: e.target.value }))}
+                        placeholder="Compelling summary shown in search results (120-160 characters)"
+                        maxLength={320}
+                      />
+                      <p className="text-[11px] text-[#9CA3AF] mt-1">{form.metaDescription.length}/160 recommended</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="admin-label">Short Description <span className="text-[#6B7280] dark:text-[#94A3B8] font-normal">(cards &amp; previews)</span></label>
+                        <textarea
+                          className="admin-input min-h-[70px]"
+                          value={form.shortDescription}
+                          onChange={(e) => setForm((prev) => ({ ...prev, shortDescription: e.target.value }))}
+                          placeholder="One-sentence hook for product cards"
+                          maxLength={500}
+                        />
+                      </div>
+                      <div>
+                        <label className="admin-label">
+                          Google Target Keywords <span className="text-[#6B7280] dark:text-[#94A3B8] font-normal">(concise, high-value)</span>
+                        </label>
+                        <textarea
+                          className="admin-input min-h-[70px]"
+                          value={form.metaKeywords}
+                          onChange={(e) => setForm((prev) => ({ ...prev, metaKeywords: e.target.value }))}
+                          placeholder="mens wash and wear fabric, unstitched suit pakistan"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="admin-label">Highlights <span className="text-[#6B7280] dark:text-[#94A3B8] font-normal">(comma-separated selling points)</span></label>
+                      <input
+                        className="admin-input"
+                        value={form.highlightsText}
+                        onChange={(e) => setForm((prev) => ({ ...prev, highlightsText: e.target.value }))}
+                        placeholder="Wrinkle-resistant, Color-fast, Easy machine wash"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="admin-label">FAQs (JSON) <span className="text-[#6B7280] dark:text-[#94A3B8] font-normal">(editable)</span></label>
+                      <textarea
+                        className="admin-input min-h-[70px] font-mono text-xs"
+                        value={form.faqsJson}
+                        onChange={(e) => setForm((prev) => ({ ...prev, faqsJson: e.target.value }))}
+                        placeholder='[{"question":"...","answer":"..."}]'
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="admin-label">SEO Keywords <span className="text-[#6B7280] font-normal">(comma-separated)</span></label>
-                    <textarea
-                      className="admin-input min-h-[70px]"
-                      value={form.metaKeywords}
-                      onChange={(e) => setForm((prev) => ({ ...prev, metaKeywords: e.target.value }))}
-                      placeholder="mens wash and wear fabric, unstitched suit pakistan"
-                    />
+                )}
+
+                {/* TAB 2: INTERNAL SEARCH ALIASES */}
+                {seoSubTab === 'aliases' && (
+                  <div className="space-y-4">
+                    <div className="p-3 rounded-lg bg-[#F0FDF4] dark:bg-[#064E3B]/30 border border-[#BBF7D0] dark:border-[#065F46] text-xs">
+                      <p className="font-bold text-[#166534] dark:text-[#A7F3D0]">
+                        🛍️ Internal Search &amp; Storefront Discovery Engine
+                      </p>
+                      <p className="text-[#14532D] dark:text-[#6EE7B7] mt-0.5">
+                        These natural phrasing, Roman Urdu, and spelling variations are stored specifically for internal search, autocomplete, and product discovery. They are never stuffed into Google meta tags.
+                      </p>
+                    </div>
+
+                    {searchIntelligence?.searchAliases?.length ? (
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <label className="admin-label !mb-0">
+                            Generated Human Search Aliases ({searchIntelligence.searchAliases.length})
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const existing = splitCsv(form.tagsText);
+                              const merged = Array.from(new Set([...existing, ...searchIntelligence.searchAliases]));
+                              setForm((prev) => ({ ...prev, tagsText: merged.join(', ') }));
+                              toast.success('Search aliases merged into product tags!');
+                            }}
+                            className="text-xs text-[#0F1F3D] dark:text-[#3B82F6] font-bold hover:underline"
+                          >
+                            + Sync All into Product Tags
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5 p-3 rounded-lg border border-[#E5E7EB] dark:border-[#2D3340] bg-[#F9FAFB] dark:bg-[#16191F] max-h-56 overflow-y-auto">
+                          {searchIntelligence.searchAliases.map((alias: string, i: number) => (
+                            <span
+                              key={i}
+                              className="px-2 py-0.5 rounded-full bg-white dark:bg-[#1E2228] border border-[#D1D5DB] dark:border-[#374151] text-[#374151] dark:text-[#CBD5E1] text-xs font-medium"
+                            >
+                              {alias}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-6 text-center text-xs text-[#6B7280] dark:text-[#94A3B8] border border-dashed border-[#D1D5DB] dark:border-[#374151] rounded-lg">
+                        Click "Generate SEO with AI" above to generate comprehensive human search variations, Roman Urdu phrases, and spelling alternatives.
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
 
-                <div>
-                  <label className="admin-label">Highlights <span className="text-[#6B7280] font-normal">(comma-separated selling points)</span></label>
-                  <input
-                    className="admin-input"
-                    value={form.highlightsText}
-                    onChange={(e) => setForm((prev) => ({ ...prev, highlightsText: e.target.value }))}
-                    placeholder="Wrinkle-resistant, Color-fast, Easy machine wash"
-                  />
-                </div>
-
-                <div>
-                  <label className="admin-label">FAQs (JSON) <span className="text-[#6B7280] font-normal">(editable)</span></label>
-                  <textarea
-                    className="admin-input min-h-[70px] font-mono text-xs"
-                    value={form.faqsJson}
-                    onChange={(e) => setForm((prev) => ({ ...prev, faqsJson: e.target.value }))}
-                    placeholder='[{"question":"...","answer":"..."}]'
-                  />
-                </div>
+                {/* TAB 3: SEARCH INTENT BREAKDOWN */}
+                {seoSubTab === 'intents' && (
+                  <div className="space-y-4">
+                    {searchIntelligence?.intentGroups?.length ? (
+                      <div className="space-y-3">
+                        {searchIntelligence.intentGroups.map((group: any) => (
+                          <div key={group.intent} className="p-3 rounded-lg border border-[#E5E7EB] dark:border-[#2D3340] bg-[#F9FAFB] dark:bg-[#16191F]">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-xs font-bold text-[#0F1F3D] dark:text-[#F1F5F9] uppercase tracking-wider">
+                                {group.label}
+                              </span>
+                              <span className="text-[10px] px-2 py-0.2 rounded-full bg-[#E5E7EB] dark:bg-[#2D3340] text-[#374151] dark:text-[#CBD5E1] font-bold">
+                                {group.keywords.length} queries
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {group.keywords.slice(0, 15).map((kw: string, ki: number) => (
+                                <span
+                                  key={ki}
+                                  className="px-2 py-0.5 rounded bg-white dark:bg-[#1E2228] border border-[#E5E7EB] dark:border-[#2D3340] text-[11px] text-[#4B5563] dark:text-[#94A3B8]"
+                                >
+                                  {kw}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-6 text-center text-xs text-[#6B7280] dark:text-[#94A3B8] border border-dashed border-[#D1D5DB] dark:border-[#374151] rounded-lg">
+                        Click "Generate SEO with AI" above to view intent group classifications (Category, Fabric, Color, Style, Occasion, Buying, Roman Urdu).
+                      </div>
+                    )}
+                  </div>
+                )}
               </section>
 
               {/* 2. Pricing & Inventory (Unified Single Panel) */}

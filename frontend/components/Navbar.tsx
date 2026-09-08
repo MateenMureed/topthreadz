@@ -25,6 +25,7 @@ import { useAuthModalStore } from '@/store/authModalStore';
 import { productService } from '@/services/product.service';
 import { authService } from '@/services/auth.service';
 import { useHydration } from '@/hooks/useHydration';
+import { resolveImageUrl } from '@/lib/images';
 import ThemeToggle from '@/components/ThemeToggle';
 import toast from 'react-hot-toast';
 
@@ -80,6 +81,16 @@ export default function Navbar() {
     queryKey: ['categories-nav'],
     queryFn: () => api.get('/categories').then((r) => r.data?.data || r.data || []),
     staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: suggestionsData, isFetching: loadingSuggestions } = useQuery({
+    queryKey: ['search-suggestions', searchText],
+    queryFn: () =>
+      searchText.trim().length >= 2
+        ? api.get(`/products/suggestions?q=${encodeURIComponent(searchText.trim())}`).then((r) => r.data?.data)
+        : null,
+    enabled: searchOpen && searchText.trim().length >= 2,
+    staleTime: 30 * 1000,
   });
 
   const categories = Array.isArray(categoriesResponse) ? categoriesResponse : [];
@@ -201,6 +212,7 @@ export default function Navbar() {
             >
               <span className="sr-only">Top Threadz</span>
               <div className="relative h-11 sm:h-12 md:h-14 w-36 sm:w-44 md:w-52 flex items-center justify-center">
+                {/* Light mode logo (dark text) */}
                 <Image
                   src={logoSrc}
                   alt="Top Threadz"
@@ -208,7 +220,17 @@ export default function Navbar() {
                   height={158}
                   priority
                   unoptimized={!logoSrc.startsWith('/')}
-                  className="h-full w-auto object-contain rounded-md transition-transform duration-300 group-hover:scale-105"
+                  className="dark:hidden h-full w-auto object-contain rounded-md transition-transform duration-300 group-hover:scale-105"
+                />
+                {/* Dark mode logo (white text) */}
+                <Image
+                  src={logoSrcDark}
+                  alt="Top Threadz"
+                  width={320}
+                  height={158}
+                  priority
+                  unoptimized={!logoSrcDark.startsWith('/')}
+                  className="hidden dark:block h-full w-auto object-contain rounded-md transition-transform duration-300 group-hover:scale-105"
                 />
               </div>
             </Link>
@@ -318,9 +340,9 @@ export default function Navbar() {
             className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white shadow-2xl flex flex-col z-10 animate-slideIn">
+          <div className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white dark:bg-[#1E2228] shadow-2xl flex flex-col z-10 animate-slideIn">
             {/* Drawer Header */}
-            <div className="p-4 border-b border-surface-200 flex items-center justify-between bg-[#0F1F3D] text-white">
+            <div className="p-4 border-b border-surface-200 dark:border-[#2D3340] flex items-center justify-between bg-[#0F1F3D] text-white">
             <div className="relative h-8 w-28">
               <Image
                 src={logoSrcDark}
@@ -414,7 +436,7 @@ export default function Navbar() {
             </div>
 
             {/* Drawer Footer Account Area */}
-            <div className="p-4 border-t border-surface-200 bg-surface-50">
+            <div className="p-4 border-t border-surface-200 dark:border-[#2D3340] bg-surface-50 dark:bg-[#16191F]">
               {isAuthed ? (
                 <div className="flex items-center justify-between gap-2">
                   <Link
@@ -450,17 +472,22 @@ export default function Navbar() {
 
       {/* ── SEARCH MODAL OVERLAY ── */}
       {searchOpen ? (
-        <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px] pt-20 pb-24 md:pb-28 lg:pb-8 px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] pt-20 pb-24 md:pb-28 lg:pb-8 px-3 sm:px-4 md:px-6 lg:px-8 transition-opacity">
           <div
             ref={searchPanelRef}
-            className="mx-auto w-full max-w-5xl max-h-[calc(100vh-9rem)] lg:max-h-[70vh] rounded-3xl border-2 border-navy bg-white shadow-soft-lg overflow-auto"
+            className="mx-auto w-full max-w-5xl max-h-[calc(100vh-9rem)] lg:max-h-[75vh] rounded-3xl border-2 border-navy dark:border-[#2D3340] bg-white dark:bg-[#1A1D24] shadow-2xl overflow-auto transition-colors"
           >
             <div className="px-4 sm:px-6 md:px-8 py-5 md:py-6">
               <div className="flex items-start justify-between gap-4">
                 <div className="w-full">
-                  <p className="text-2xl sm:text-3xl font-black tracking-tight text-navy">SEARCH</p>
-                  <div className="mt-3 flex items-center gap-3 border-b border-surface-400 pb-3">
-                    <FiSearch className="w-5 h-5 text-navy" />
+                  <div className="flex items-center justify-between">
+                    <p className="text-2xl sm:text-3xl font-black tracking-tight text-navy dark:text-white">SEARCH</p>
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-surface-100 dark:bg-[#252A34] text-surface-600 dark:text-surface-300">
+                      Top Threadz Smart Search
+                    </span>
+                  </div>
+                  <div className="mt-3 flex items-center gap-3 border-b-2 border-navy/20 dark:border-[#2D3340] pb-3 focus-within:border-navy dark:focus-within:border-primary-400 transition-colors">
+                    <FiSearch className="w-5 h-5 text-navy dark:text-primary-400 shrink-0" />
                     <input
                       id="site-search"
                       name="site-search"
@@ -473,17 +500,158 @@ export default function Navbar() {
                           router.push(`/products?search=${encodeURIComponent(searchText.trim())}`);
                         }
                       }}
-                      className="w-full bg-transparent outline-none text-base sm:text-lg font-semibold text-navy placeholder:text-surface-500"
-                      placeholder="Search for products or brands... (Press enter)"
+                      className="w-full bg-transparent outline-none text-base sm:text-lg font-semibold text-navy dark:text-white placeholder:text-surface-400 dark:placeholder:text-surface-500"
+                      placeholder="Search clothes, unstitched fabric, wash & wear, kapra, color... (Press Enter)"
                       autoFocus
                     />
+                    {searchText && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchText('')}
+                        className="text-xs font-semibold text-surface-400 hover:text-navy dark:hover:text-white"
+                      >
+                        Clear
+                      </button>
+                    )}
                   </div>
+
+                  {/* Dynamic Autocomplete suggestions when searchText >= 2 */}
+                  {searchText.trim().length >= 2 ? (
+                    <div className="mt-5 space-y-5">
+                      {/* 1. Suggested Searches / Phrases */}
+                      {suggestionsData?.phrases && suggestionsData.phrases.length > 0 && (
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-wider text-surface-500 dark:text-surface-400 mb-2.5">
+                            Suggested Searches
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {suggestionsData.phrases.map((phrase: string) => (
+                              <button
+                                key={phrase}
+                                type="button"
+                                onClick={() => {
+                                  setSearchOpen(false);
+                                  router.push(`/products?search=${encodeURIComponent(phrase)}`);
+                                }}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-surface-100 dark:bg-[#252A34] text-surface-800 dark:text-surface-200 hover:bg-navy hover:text-white dark:hover:bg-primary-600 dark:hover:text-white transition-colors"
+                              >
+                                <FiSearch className="w-3 h-3 opacity-60" />
+                                <span>{phrase}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 2. Matching Categories */}
+                      {suggestionsData?.categories && suggestionsData.categories.length > 0 && (
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-wider text-surface-500 dark:text-surface-400 mb-2">
+                            Matching Categories
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {suggestionsData.categories.map((cat: any) => (
+                              <button
+                                key={cat.id || cat.slug}
+                                type="button"
+                                onClick={() => {
+                                  setSearchOpen(false);
+                                  router.push(`/category/${cat.slug || cat.id}`);
+                                }}
+                                className="px-3.5 py-1.5 rounded-lg text-xs font-bold border border-navy/30 dark:border-[#3B4252] text-navy dark:text-primary-300 hover:bg-navy/5 dark:hover:bg-[#252A34] transition-colors"
+                              >
+                                {cat.name} &rarr;
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 3. Matching Products */}
+                      {suggestionsData?.products && suggestionsData.products.length > 0 ? (
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <p className="text-xs font-black uppercase tracking-wider text-surface-500 dark:text-surface-400">
+                              Products ({suggestionsData.products.length})
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSearchOpen(false);
+                                router.push(`/products?search=${encodeURIComponent(searchText.trim())}`);
+                              }}
+                              className="text-xs font-bold text-navy dark:text-primary-400 hover:underline"
+                            >
+                              View all results &rarr;
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            {suggestionsData.products.slice(0, 6).map((item: any) => (
+                              <Link
+                                key={item.id}
+                                href={`/products/${item.slug || item.id}`}
+                                onClick={() => setSearchOpen(false)}
+                                className="flex items-center gap-3 p-2.5 rounded-xl border border-surface-200 dark:border-[#2D3340] hover:border-navy dark:hover:border-primary-500 bg-surface-50/50 dark:bg-[#20252F] transition-all group"
+                              >
+                                {item.image ? (
+                                  <div className="w-12 h-14 relative rounded-lg overflow-hidden bg-surface-200 dark:bg-[#2A303C] shrink-0">
+                                    <Image
+                                      src={resolveImageUrl(item.image)}
+                                      alt={item.name}
+                                      fill
+                                      className="object-cover group-hover:scale-105 transition-transform"
+                                      sizes="48px"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="w-12 h-14 rounded-lg bg-surface-200 dark:bg-[#2A303C] flex items-center justify-center shrink-0">
+                                    <FiShoppingBag className="w-5 h-5 text-surface-400" />
+                                  </div>
+                                )}
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-bold text-navy dark:text-white truncate group-hover:text-primary-600 dark:group-hover:text-primary-400">
+                                    {item.name}
+                                  </p>
+                                  {item.fabric && (
+                                    <p className="text-[11px] text-surface-500 dark:text-surface-400 truncate">
+                                      {item.fabric}
+                                    </p>
+                                  )}
+                                  <p className="text-xs font-black text-navy dark:text-primary-300 mt-0.5">
+                                    Rs. {Number(item.price || 0).toLocaleString()}
+                                  </p>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      ) : !loadingSuggestions ? (
+                        <div className="py-6 text-center">
+                          <p className="text-sm font-semibold text-surface-600 dark:text-surface-400">
+                            No direct product matches found for &ldquo;{searchText}&rdquo;.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSearchOpen(false);
+                              router.push(`/products?search=${encodeURIComponent(searchText.trim())}`);
+                            }}
+                            className="mt-2 text-xs font-bold text-navy dark:text-primary-400 hover:underline"
+                          >
+                            Search all store items for &ldquo;{searchText}&rdquo; &rarr;
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {/* Popular Brands */}
                   <div className="mt-6">
-                    <p className="text-navy font-bold mb-3">Popular Brands</p>
+                    <p className="text-navy dark:text-white font-bold mb-3">Popular Brands</p>
                     <div
                       ref={brandsScrollRef}
                       onScroll={handleBrandsScroll}
-                      className="overflow-x-auto hide-scrollbar border border-surface-300 rounded-xl p-3"
+                      className="overflow-x-auto hide-scrollbar border border-surface-300 dark:border-[#2D3340] rounded-xl p-3 bg-surface-50/50 dark:bg-[#1E222A]"
                     >
                       <div className="flex flex-nowrap items-center gap-2 pb-1">
                         {Array.from(new Set([...FAVORITE_BRANDS, ...brands])).map((brand) => (
@@ -494,10 +662,10 @@ export default function Navbar() {
                               setSearchOpen(false);
                               router.push(`/products?brand=${encodeURIComponent(brand)}`);
                             }}
-                            className="group relative shrink-0 px-3.5 py-1.5 text-xs font-semibold text-surface-800 hover:text-navy transition-colors"
+                            className="group relative shrink-0 px-3.5 py-1.5 text-xs font-semibold text-surface-800 dark:text-surface-300 hover:text-navy dark:hover:text-white transition-colors"
                           >
                             <span>{brand}</span>
-                            <span className="absolute bottom-0 left-3.5 right-3.5 h-[1.5px] bg-navy scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center" />
+                            <span className="absolute bottom-0 left-3.5 right-3.5 h-[1.5px] bg-navy dark:bg-primary-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center" />
                           </button>
                         ))}
                       </div>
@@ -507,10 +675,10 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setSearchOpen(false)}
-                  className="w-10 h-10 rounded-full border border-surface-300 hover:bg-surface-100 flex items-center justify-center shrink-0"
+                  className="w-10 h-10 rounded-full border border-surface-300 dark:border-[#2D3340] hover:bg-surface-100 dark:hover:bg-[#252A34] flex items-center justify-center shrink-0 text-navy dark:text-white transition-colors"
                   aria-label="Close search"
                 >
-                  <FiX className="w-5 h-5 text-navy" />
+                  <FiX className="w-5 h-5" />
                 </button>
               </div>
             </div>

@@ -2,6 +2,10 @@ import { z } from 'zod';
 import prisma from '../../utils/prisma';
 import { getSeoAiProvider, ProviderError } from './ai.provider';
 import { calculateSeoScore } from './seo-score';
+import {
+  generateProductSearchIntelligence,
+  GeneratedSearchVocabulary,
+} from './search-intent.engine';
 
 // ── Types & schemas ──────────────────────────────────────────────────────
 
@@ -80,6 +84,7 @@ export interface GenerateSeoResult {
   content: AiSeoResponse;
   score: { score: number; max: number; suggestions: string[] };
   meta: { provider: string; model: string; duplicateGuardCount: number };
+  searchIntelligence: GeneratedSearchVocabulary;
 }
 
 // ── Sanitization ─────────────────────────────────────────────────────────
@@ -167,7 +172,12 @@ function buildSystemPrompt(): string {
   ].join('\n');
 }
 
-function buildUserPrompt(product: SeoProductInput, related: Awaited<ReturnType<typeof fetchRelatedProducts>>, sections: string[]): string {
+function buildUserPrompt(
+  product: SeoProductInput,
+  related: Awaited<ReturnType<typeof fetchRelatedProducts>>,
+  sections: string[],
+  searchIntelligence: GeneratedSearchVocabulary
+): string {
   const facts: string[] = [];
   const add = (label: string, value?: string | number | null) => {
     if (value !== undefined && value !== null && String(value).trim() !== '') {
@@ -201,11 +211,23 @@ function buildUserPrompt(product: SeoProductInput, related: Awaited<ReturnType<t
     ? related.map((r, i) => `${i + 1}. "${r.name}" — meta: "${r.meta}" — starts: "${r.descriptionFirst120}" kw: ${r.keywords.join(', ')}`).join('\n')
     : '(none)';
 
+  const searchTargetLines = [
+    `- Primary target phrases: ${searchIntelligence.googleKeywords.slice(0, 6).join(', ')}`,
+    searchIntelligence.intents.CATEGORY.length ? `- Category phrasing: ${searchIntelligence.intents.CATEGORY.slice(0, 4).join(', ')}` : '',
+    searchIntelligence.intents.FABRIC.length ? `- Fabric terms: ${searchIntelligence.intents.FABRIC.slice(0, 4).join(', ')}` : '',
+    searchIntelligence.intents.STYLE.length ? `- Silhouette/Style: ${searchIntelligence.intents.STYLE.slice(0, 4).join(', ')}` : '',
+    searchIntelligence.intents.COLOR.length ? `- Color searches: ${searchIntelligence.intents.COLOR.slice(0, 4).join(', ')}` : '',
+    searchIntelligence.intents.BUYING.length ? `- Buying intent: ${searchIntelligence.intents.BUYING.slice(0, 3).join(', ')}` : '',
+  ].filter(Boolean).join('\n');
+
   return [
     'Generate SEO content for this Top Threadz product.',
     '',
     'PRODUCT DATA (the only facts you may use):',
     facts.join('\n'),
+    '',
+    'HUMAN SEARCH INTENT TARGETS (Weave naturally into sentences; NEVER stuff raw keywords):',
+    searchTargetLines,
     '',
     'RELATED EXISTING PRODUCTS — your output must be clearly different from each:',
     relatedBlock,
@@ -215,7 +237,7 @@ function buildUserPrompt(product: SeoProductInput, related: Awaited<ReturnType<t
     '',
     'Return JSON exactly as:',
     '{"shortDescription":"","description":"","seoTitle":"","metaDescription":"","keywords":[""],"tags":[""],"slug":"","primaryKeyword":"","highlights":[""],"faqs":[{"question":"","answer":""}]}',
-    'keywords: primary first, then secondary, long-tail, and semantic — 6-12 total, no duplicates.',
+    'keywords: concise, high-value Google SEO keywords only (6-12 total, no duplicates, no stuffing).',
   ].join('\n');
 }
 
@@ -235,9 +257,12 @@ export class SeoService {
     const requested = sections && sections.length > 0 ? sections : ['description', 'seo', 'keywords', 'meta', 'faqs'];
     const related = await fetchRelatedProducts(input);
 
+    // Run the Human Search Intent Engine to establish semantically accurate search targets
+    const searchIntelligence = generateProductSearchIntelligence(input);
+
     const result = await provider.generate({
       systemPrompt: buildSystemPrompt(),
-      userPrompt: buildUserPrompt(input, related, requested),
+      userPrompt: buildUserPrompt(input, related, requested, searchIntelligence),
       responseMimeType: 'application/json',
       responseSchema: SEO_JSON_SCHEMA,
       maxOutputTokens: 4096,
@@ -250,8 +275,19 @@ export class SeoService {
     const content = parsed.data;
 
     // Sanitize / normalize output before returning.
-    const keywords = Array.from(new Set(content.keywords.map(sanitizeKeyword).filter(Boolean))).slice(0, 20);
-    const tags = Array.from(new Set((content.tags || []).map((t) => t.trim().toLowerCase()).filter(Boolean))).slice(0, 20);
+    // Curate Google keywords: combine search intelligence googleKeywords with AI keywords without repetition
+    const keywords = Array.from(
+      new Set([...searchIntelligence.googleKeywords, ...content.keywords.map(sanitizeKeyword)].filter(Boolean))
+    ).slice(0, 15);
+
+    // Tags: preserve AI tags + add top search aliases for internal product discovery without stuffing Google meta
+    const tags = Array.from(
+      new Set([
+        ...(content.tags || []).map((t) => t.trim().toLowerCase()),
+        ...searchIntelligence.searchAliases.slice(0, 15).map((a) => a.toLowerCase()),
+      ].filter(Boolean))
+    ).slice(0, 25);
+
     const sanitized: AiSeoResponse = {
       shortDescription: truncate(stripHtml(content.shortDescription), 500),
       description: stripHtml(content.description).slice(0, 6000),
@@ -282,6 +318,7 @@ export class SeoService {
     return {
       content: sanitized,
       score,
+      searchIntelligence,
       meta: {
         provider: provider.name,
         model: result.model,
