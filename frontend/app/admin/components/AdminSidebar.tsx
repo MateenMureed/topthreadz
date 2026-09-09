@@ -30,6 +30,8 @@ interface AdminSidebarProps {
   activeSettingsSection: SettingsSection;
   setActiveSettingsSection: (section: SettingsSection) => void;
   onOpenProductCreate: () => void;
+  onViewProducts?: () => void;
+  productViewMode?: 'list' | 'create';
   onSelectOrdersView: (view: 'all' | 'pending') => void;
   pendingOrdersCount?: number;
   lowStockCount?: number;
@@ -42,6 +44,8 @@ export function AdminSidebar({
   activeSettingsSection,
   setActiveSettingsSection,
   onOpenProductCreate,
+  onViewProducts,
+  productViewMode = 'list',
   onSelectOrdersView,
   pendingOrdersCount = 0,
   lowStockCount = 0,
@@ -54,6 +58,7 @@ export function AdminSidebar({
 
   const handleProductsViewAll = () => {
     setActiveTab('products');
+    onViewProducts?.();
   };
 
   const handleProductCreate = () => {
@@ -126,7 +131,7 @@ export function AdminSidebar({
               <button
                 onClick={handleProductsViewAll}
                 className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-all active:scale-[0.98] ${
-                  activeTab === 'products'
+                  activeTab === 'products' && productViewMode !== 'create'
                     ? 'bg-[#E8F0FE] text-[#1A73E8] font-semibold dark:bg-[#1A365D] dark:text-[#90CDF4]'
                     : 'text-black/75 dark:text-white/75 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
                 }`}
@@ -145,10 +150,14 @@ export function AdminSidebar({
               {/* Add Product */}
               <button
                 onClick={handleProductCreate}
-                className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium text-black/75 dark:text-white/75 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-blue-600 dark:hover:text-blue-400 transition-all active:scale-[0.98]"
+                className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-all active:scale-[0.98] ${
+                  activeTab === 'products' && productViewMode === 'create'
+                    ? 'bg-[#E8F0FE] text-[#1A73E8] font-semibold dark:bg-[#1A365D] dark:text-[#90CDF4]'
+                    : 'text-black/75 dark:text-white/75 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-blue-600 dark:hover:text-blue-400'
+                }`}
               >
-                <FiPlus className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                <span className="font-semibold text-blue-600 dark:text-blue-400">Add New Product</span>
+                <FiPlus className={`w-3.5 h-3.5 ${activeTab === 'products' && productViewMode === 'create' ? 'text-[#1A73E8] dark:text-[#90CDF4]' : 'text-blue-600 dark:text-blue-400'}`} />
+                <span className={activeTab === 'products' && productViewMode === 'create' ? 'font-semibold text-[#1A73E8] dark:text-[#90CDF4]' : 'font-semibold text-blue-600 dark:text-blue-400'}>Add New Product</span>
               </button>
             </div>
           )}

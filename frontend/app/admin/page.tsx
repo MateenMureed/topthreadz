@@ -312,12 +312,32 @@ export default function AdminPage() {
     'all' | 'store' | 'shipping' | 'appearance' | 'banner' | 'branding' | 'categories' | 'accounts' | 'policies'
   >('store');
   const [ordersView, setOrdersView] = useState<'all' | 'pending'>('pending');
+  const [productViewMode, setProductViewMode] = useState<'list' | 'create'>('list');
   const [productCreateTrigger, setProductCreateTrigger] = useState(0);
+  const [productViewTrigger, setProductViewTrigger] = useState(0);
 
   const handleOpenProductCreate = useCallback(() => {
     setActiveTab('products');
+    setProductViewMode('create');
     setProductCreateTrigger((n) => n + 1);
   }, []);
+
+  const handleViewProducts = useCallback(() => {
+    setActiveTab('products');
+    setProductViewMode('list');
+    setProductViewTrigger((n) => n + 1);
+  }, []);
+
+  const handleDashboardNavigate = useCallback((tab: AdminTab, subAction?: string) => {
+    setActiveTab(tab);
+    if (tab === 'products') {
+      if (subAction === 'create') {
+        handleOpenProductCreate();
+      } else {
+        handleViewProducts();
+      }
+    }
+  }, [handleOpenProductCreate, handleViewProducts]);
 
   const handleLogout = async () => {
     try {
@@ -446,6 +466,8 @@ export default function AdminPage() {
           activeSettingsSection={activeSettingsSection}
           setActiveSettingsSection={setActiveSettingsSection}
           onOpenProductCreate={handleOpenProductCreate}
+          onViewProducts={handleViewProducts}
+          productViewMode={productViewMode}
           onSelectOrdersView={setOrdersView}
           onLogout={handleLogout}
         />
@@ -484,9 +506,15 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {activeTab === 'dashboard' && <DashboardTab onNavigate={setActiveTab} />}
+          {activeTab === 'dashboard' && <DashboardTab onNavigate={handleDashboardNavigate} />}
           {activeTab === 'orders' && <OrdersTab initialView={ordersView} />}
-          {activeTab === 'products' && <ProductsTab createTrigger={productCreateTrigger} />}
+          {activeTab === 'products' && (
+            <ProductsTab
+              createTrigger={productCreateTrigger}
+              viewTrigger={productViewTrigger}
+              onModeChange={setProductViewMode}
+            />
+          )}
           {activeTab === 'users' && <ShopifyCustomersTab />}
           {activeTab === 'payments' && <ShopifyPaymentsTab />}
           {activeTab === 'settings' && <StoreSettingsTab initialSection={activeSettingsSection} />}
@@ -1269,9 +1297,18 @@ function OrdersTab({ initialView = 'pending' }: { initialView?: 'all' | 'pending
   );
 }
 
-function ProductsTab({ createTrigger = 0 }: { createTrigger?: number }) {
+function ProductsTab({
+  createTrigger = 0,
+  viewTrigger = 0,
+  onModeChange,
+}: {
+  createTrigger?: number;
+  viewTrigger?: number;
+  onModeChange?: (mode: 'list' | 'create') => void;
+}) {
   const queryClient = useQueryClient();
   const [showInlineForm, setShowInlineForm] = useState(false);
+  const productsCatalogRef = useRef<HTMLDivElement | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [detailsProduct, setDetailsProduct] = useState<any | null>(null);
@@ -1570,6 +1607,7 @@ function ProductsTab({ createTrigger = 0 }: { createTrigger?: number }) {
       setIsSlugEditedManually(false);
       setFormErrors({});
       setForm(emptyProductForm);
+      onModeChange?.('list');
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.error || 'Failed to create product');
@@ -1587,6 +1625,7 @@ function ProductsTab({ createTrigger = 0 }: { createTrigger?: number }) {
       setIsSlugEditedManually(false);
       setFormErrors({});
       setForm(emptyProductForm);
+      onModeChange?.('list');
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.error || 'Failed to update product');
@@ -1647,9 +1686,11 @@ function ProductsTab({ createTrigger = 0 }: { createTrigger?: number }) {
     setSeoValidationReport(null);
     setSeoSubTab('report');
     setForm(emptyProductForm);
+    onModeChange?.('create');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     setTimeout(() => {
       productFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 60);
+    }, 80);
   };
 
   useEffect(() => {
@@ -1657,6 +1698,18 @@ function ProductsTab({ createTrigger = 0 }: { createTrigger?: number }) {
       openCreateInlineForm();
     }
   }, [createTrigger]);
+
+  useEffect(() => {
+    if (viewTrigger > 0) {
+      setShowInlineForm(false);
+      setEditingProduct(null);
+      onModeChange?.('list');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => {
+        productsCatalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    }
+  }, [viewTrigger]);
 
   const openEditInlineForm = (product: any) => {
     const fallbackSubcategory = subcategoryOptions[0] || 'Traditional';
@@ -1700,10 +1753,12 @@ function ProductsTab({ createTrigger = 0 }: { createTrigger?: number }) {
     setShowInlineForm(true);
     setIsSlugEditedManually(true);
     setFormErrors({});
+    onModeChange?.('create');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     // Smooth auto-scroll directly to editor section
     setTimeout(() => {
       productFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 60);
+    }, 80);
   };
 
   const openDetails = (product: any) => {
@@ -1904,7 +1959,7 @@ function ProductsTab({ createTrigger = 0 }: { createTrigger?: number }) {
 
   return (
     <>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div ref={productsCatalogRef} className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-[#0F1F3D]">Products</h2>
           <p className="text-sm text-[#6B7280]">Manage clothing items, stock, pricing, and catalog merchandising.</p>
@@ -1959,6 +2014,7 @@ function ProductsTab({ createTrigger = 0 }: { createTrigger?: number }) {
                   setShowInlineForm(false);
                   setEditingProduct(null);
                   setForm(emptyProductForm);
+                  onModeChange?.('list');
                 }}
                 className="text-xs font-bold text-blue-700 dark:text-blue-300 underline hover:text-blue-900 shrink-0"
               >
@@ -1987,6 +2043,7 @@ function ProductsTab({ createTrigger = 0 }: { createTrigger?: number }) {
                 setForm(emptyProductForm);
                 setImageMeta([]);
                 setFormErrors({});
+                onModeChange?.('list');
               }}
               className="apple-btn-secondary !h-9 !px-3.5 !text-xs"
             >
