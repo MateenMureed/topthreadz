@@ -1589,7 +1589,20 @@ function ProductsTab({
     });
   }, [form.images, form.name]);
 
+  // ── Sidebar navigation triggers (MUST be before any early return) ─────
+  const pendingActionRef = useRef<'create' | 'view' | null>(null);
 
+  useEffect(() => {
+    if (createTrigger > 0) {
+      pendingActionRef.current = 'create';
+    }
+  }, [createTrigger]);
+
+  useEffect(() => {
+    if (viewTrigger > 0) {
+      pendingActionRef.current = 'view';
+    }
+  }, [viewTrigger]);
 
   const { data, error, isError, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['admin', 'products'],
@@ -1659,6 +1672,41 @@ function ProductsTab({
 
   if (isLoading) return <div className="space-y-3">{Array(5).fill(0).map((_, i) => <div key={i} className="h-16 skeleton rounded-xl" />)}</div>;
 
+  // ── Execute any pending sidebar navigation action after data has loaded ──
+  // We read the ref synchronously on the first post-loading render.
+  // The ref was already set by the trigger useEffects above during the loading phase.
+  const _pendingAction = pendingActionRef.current;
+  if (_pendingAction) {
+    pendingActionRef.current = null; // consume it
+    // Use queueMicrotask so state updates happen after this render
+    queueMicrotask(() => {
+      if (_pendingAction === 'create') {
+        setEditingProduct(null);
+        setShowInlineForm(true);
+        setImageMeta([]);
+        setFormErrors({});
+        setIsSlugEditedManually(false);
+        setSearchIntelligence(null);
+        setSeoValidationReport(null);
+        setSeoSubTab('report');
+        setForm(emptyProductForm);
+        onModeChange?.('create');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(() => {
+          productFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+      } else if (_pendingAction === 'view') {
+        setShowInlineForm(false);
+        setEditingProduct(null);
+        onModeChange?.('list');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(() => {
+          productsCatalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+      }
+    });
+  }
+
   const products = Array.isArray(data?.data?.products) ? data.data.products : [];
   const filteredProducts = products.filter((product: any) => {
     const text = `${product.name || ''} ${product.brand || ''} ${product.sku || ''} ${product.subcategory || ''}`.toLowerCase();
@@ -1693,23 +1741,8 @@ function ProductsTab({
     }, 80);
   };
 
-  useEffect(() => {
-    if (createTrigger > 0) {
-      openCreateInlineForm();
-    }
-  }, [createTrigger]);
-
-  useEffect(() => {
-    if (viewTrigger > 0) {
-      setShowInlineForm(false);
-      setEditingProduct(null);
-      onModeChange?.('list');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      setTimeout(() => {
-        productsCatalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 80);
-    }
-  }, [viewTrigger]);
+  // NOTE: createTrigger / viewTrigger effects moved above the isLoading
+  // early return. See pendingActionRef-based useEffect above.
 
   const openEditInlineForm = (product: any) => {
     const fallbackSubcategory = subcategoryOptions[0] || 'Traditional';
