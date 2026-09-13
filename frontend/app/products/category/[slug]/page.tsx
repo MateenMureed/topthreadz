@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import CategoryPageContent from './CategoryPageContent';
+import CategoryFaqBlock, { getCategoryFaqs } from '@/components/CategoryFaqBlock';
 import { fetchServerCategories } from '@/lib/serverData';
 import { SITE_URL, DEFAULT_OG_IMAGE } from '@/lib/seo';
 
@@ -22,18 +23,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       c.name?.toLowerCase() === categoryName.toLowerCase()
   );
 
-  const title = `${categoryName} Men's Collection | Top Threadz`;
+  // Keep title strictly <= 60 characters to avoid SERP truncation
+  const brandSuffix = ' | Top Threadz';
+  let baseTitle = `${categoryName} Men's Collection`;
+  if (`${baseTitle}${brandSuffix}`.length > 60) {
+    baseTitle = `${categoryName} Collection`;
+  }
+  if (`${baseTitle}${brandSuffix}`.length > 60) {
+    baseTitle = categoryName;
+  }
+  const maxBaseLen = 60 - brandSuffix.length;
+  const title = `${baseTitle.slice(0, maxBaseLen).trim()}${brandSuffix}`;
+
   const description = `Shop exclusive ${categoryName} at Top Threadz. Premium Pakistani men's unstitched wash & wear fabrics, Boski, and tailored stitched suits with fast nationwide delivery.`;
   const ogImage = matchedCategory?.coverImage || DEFAULT_OG_IMAGE;
 
-  // Category-level keywords: admin "keywords" on the category record (if you
-  // add one — see suggestions), falling back to the category name itself.
+  // Category-level keywords
   const keywords = [
     matchedCategory?.keywords,
     categoryName,
     `${categoryName} Pakistan`,
     'Top Threadz',
-    'men\'s fabric',
+    "men's fabric",
   ]
     .flatMap((k: any) => (Array.isArray(k) ? k : typeof k === 'string' ? k.split(',') : []))
     .map((k: string) => k.trim())
@@ -93,13 +104,31 @@ export default async function CategoryPage({ params }: Props) {
     description: `Shop our premium ${categoryName} collection at Top Threadz.`,
   };
 
+  const categoryFaqs = getCategoryFaqs(categoryName);
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: categoryFaqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  };
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-8 text-slate-900 font-bold">Loading collection...</div>}>
         <CategoryPageContent slug={resolvedParams.slug} />
       </Suspense>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <CategoryFaqBlock categoryName={categoryName} />
+      </div>
     </>
   );
 }

@@ -1,9 +1,21 @@
 import type { MetadataRoute } from 'next';
+import { BLOG_POSTS } from '@/lib/blogData';
 
 const SITE_URL = 'https://www.topthreadz.com.pk';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-const STATIC_PATHS = ['/', '/products', '/faq', '/delivery', '/returns', '/privacy', '/terms'];
+const STATIC_PATHS = [
+  '/',
+  '/products',
+  '/about',
+  '/size-guide',
+  '/blog',
+  '/faq',
+  '/delivery',
+  '/returns',
+  '/privacy',
+  '/terms',
+];
 
 async function fetchAllProducts(): Promise<any[]> {
   const limit = 200;
@@ -42,9 +54,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // page as two URLs. Root is the exception: it canonicalizes to the bare
     // domain.
     url: path === '/' ? SITE_URL : `${SITE_URL}${path}`,
-    changeFrequency: 'daily',
-    priority: path === '/' ? 1 : 0.7,
+    changeFrequency: path === '/' ? 'daily' : 'weekly',
+    priority: path === '/' ? 1 : 0.8,
   }));
+
+  // Add individual blog articles
+  BLOG_POSTS.forEach((post) => {
+    entries.push({
+      url: `${SITE_URL}/blog/${post.slug}`,
+      lastModified: new Date(post.modifiedDate),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    });
+  });
 
   try {
     const [catsJson, products] = await Promise.all([

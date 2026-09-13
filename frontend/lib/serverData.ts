@@ -67,6 +67,12 @@ export async function fetchServerHeroBanners() {
   return Array.isArray(data) ? data : [];
 }
 
+export async function fetchServerHeroBannerMobile() {
+  const data = await fetchServerData<any>('/settings/hero-banner-mobile', 120);
+  return (data?.url as string | undefined) ?? null;
+}
+
+
 export async function fetchServerStoreSettings() {
   return fetchServerData<any>('/settings/store', 120);
 }

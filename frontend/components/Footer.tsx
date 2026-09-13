@@ -103,7 +103,7 @@ export default function Footer() {
               quality, soft finish, and timeless luxury menswear.
             </p>
 
-            <div className="max-w-sm space-y-1.5 border-t border-white/10 pt-3">
+            <address className="not-italic max-w-sm space-y-1.5 border-t border-white/10 pt-3">
               <p className="flex items-center gap-2 font-display text-[10px] font-semibold uppercase tracking-[0.14em] text-[#E8C86A]">
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[#D4A84B]/40 bg-[#D4A84B]/10">
                   <FiMapPin className="h-2.5 w-2.5 text-[#E8C86A]" />
@@ -123,7 +123,7 @@ export default function Footer() {
                 <span>View on Google Maps</span>
                 <FiArrowUpRight className="h-3 w-3 transition-transform duration-200 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5" />
               </a>
-            </div>
+            </address>
           </div>
 
           {/* Collections */}
@@ -305,6 +305,27 @@ export default function Footer() {
         <div className="flex flex-col items-center justify-between gap-2.5 py-4 text-[11.5px] text-white/35 sm:flex-row">
           <p>© {new Date().getFullYear()} Top Threadz. All rights reserved.</p>
           <div className="flex flex-wrap items-center justify-center gap-4 text-[11.5px]">
+            <Link
+              href="/about"
+              className="group/link relative inline-flex items-center gap-1 text-white/40 transition-colors hover:text-white focus-visible:outline-none focus-visible:text-white"
+            >
+              About Us
+              {underline}
+            </Link>
+            <Link
+              href="/size-guide"
+              className="group/link relative inline-flex items-center gap-1 text-white/40 transition-colors hover:text-white focus-visible:outline-none focus-visible:text-white"
+            >
+              Size Guide
+              {underline}
+            </Link>
+            <Link
+              href="/blog"
+              className="group/link relative inline-flex items-center gap-1 text-white/40 transition-colors hover:text-white focus-visible:outline-none focus-visible:text-white"
+            >
+              Blog
+              {underline}
+            </Link>
             <Link
               href="/faq"
               className="group/link relative inline-flex items-center gap-1.5 text-white/40 transition-colors hover:text-white focus-visible:outline-none focus-visible:text-white"

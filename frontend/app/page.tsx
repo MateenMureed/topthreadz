@@ -2,10 +2,12 @@ import type { Metadata } from 'next';
 import HomePageClient from '@/components/HomePageClient';
 import HeroBanner from '@/components/HeroBanner';
 import CustomerReviewsSection from '@/components/CustomerReviewsSection';
+import CategoryExploreGrid from '@/components/CategoryExploreGrid';
 import {
   fetchServerCategories,
   fetchServerProducts,
   fetchServerHeroBanner,
+  fetchServerHeroBannerMobile,
   fetchServerHeroBannerText,
   fetchServerStoreSettings,
 } from '@/lib/serverData';
@@ -160,10 +162,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [categories, products, heroBanner, heroBannerText, settings] = await Promise.all([
+  const [categories, products, heroBanner, heroBannerMobile, heroBannerText, settings] = await Promise.all([
     fetchServerCategories(),
     fetchServerProducts({ limit: 50, sortBy: 'newest' }),
     fetchServerHeroBanner(),
+    fetchServerHeroBannerMobile(),
     fetchServerHeroBannerText(),
     fetchServerStoreSettings(),
   ]);
@@ -459,8 +462,11 @@ export default async function HomePage() {
       />
       <HeroBanner
         heroBanner={heroBanner}
+        heroBannerMobile={heroBannerMobile}
         buttonLink={heroBannerText?.buttonLink || '/products'}
       />
+      {/* Category explore grid — "What Would You Like to Explore?" */}
+      <CategoryExploreGrid categories={categories} />
       {/* Semantic H1 for SEO — exactly one per page, contains the primary
           keyword. Visually rendered as a compact hero caption above the
           client grid so crawlers see it in the raw HTML. */}

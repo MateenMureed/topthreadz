@@ -217,7 +217,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </Suspense>
           <Navbar />
           <CategorySubnav />
-          <main className="flex-1 pt-[108px] pb-24 lg:pb-0">
+          <main className="flex-1 pt-16 lg:pt-[108px] pb-24 lg:pb-0">
             <Suspense fallback={null}>
               <Breadcrumbs />
             </Suspense>

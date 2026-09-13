@@ -373,6 +373,80 @@ export class AdminController {
     } catch (error) { next(error); }
   }
 
+  // ── Mobile Hero Banner (portrait 1080×1350 for smartphones) ─────────────
+  async uploadHeroBannerMobile(req: Request, res: Response, next: NextFunction) {
+    try {
+      const file = (req as any).file as Express.Multer.File | undefined;
+      const directUrl = (req.body?.url as string | undefined)?.trim();
+
+      let imageUrl = '';
+      let publicId = '';
+
+      if (file) {
+        if (isCloudinaryConfigured()) {
+          const uploaded = await uploadToCloudinary(file.buffer, 'topthreadz-hero-mobile');
+          imageUrl = uploaded.url;
+          publicId = uploaded.publicId;
+        } else {
+          throw new Error('Cloudinary keys are missing on the backend. Please add Cloudinary keys or paste an Image URL.');
+        }
+      } else if (directUrl) {
+        imageUrl = directUrl;
+      } else {
+        throw new Error('Please select an image file or enter a direct image URL.');
+      }
+
+      // Delete old mobile banner from Cloudinary if exists
+      try {
+        const existing = await prisma.siteSetting.findUnique({ where: { key: 'hero_banner_mobile' } });
+        if (existing) {
+          try {
+            const old = JSON.parse(existing.value);
+            if (old.publicId) await deleteFromCloudinary(old.publicId);
+          } catch { /* ignore parse errors */ }
+        }
+      } catch { /* ignore DB search errors */ }
+
+      const payload = { url: imageUrl, publicId };
+
+      try {
+        await prisma.siteSetting.upsert({
+          where: { key: 'hero_banner_mobile' },
+          update: { value: JSON.stringify(payload) },
+          create: { key: 'hero_banner_mobile', value: JSON.stringify(payload) },
+        });
+      } catch (dbErr) {
+        logger.warn('Could not save mobile hero banner to DB, returning payload to client', dbErr);
+      }
+
+      res.json({ success: true, data: payload });
+    } catch (error) { next(error); }
+  }
+
+  async deleteHeroBannerMobile(_req: Request, res: Response, next: NextFunction) {
+    try {
+      try {
+        const existing = await prisma.siteSetting.findUnique({ where: { key: 'hero_banner_mobile' } });
+        if (existing) {
+          try {
+            const old = JSON.parse(existing.value);
+            if (old.publicId) await deleteFromCloudinary(old.publicId);
+          } catch { /* ignore */ }
+          await prisma.siteSetting.delete({ where: { key: 'hero_banner_mobile' } });
+        }
+      } catch { /* ignore */ }
+      res.json({ success: true, data: null });
+    } catch (error) { next(error); }
+  }
+
+  async getHeroBannerMobile(_req: Request, res: Response, next: NextFunction) {
+    try {
+      const setting = await prisma.siteSetting.findUnique({ where: { key: 'hero_banner_mobile' } });
+      res.json({ success: true, data: setting ? JSON.parse(setting.value) : null });
+    } catch (error) { next(error); }
+  }
+
+
   // ── Site Logo (auto-resized variants for header/footer/favicon) ───────
   // The logo is uploaded once; Cloudinary transformation URLs generate
   // header/footer-sized and favicon-sized variants on demand. The stored

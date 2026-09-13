@@ -379,14 +379,7 @@ export default function Navbar() {
                     <span className="absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
                     <FiChevronRight className="w-4 h-4 text-surface-400 group-hover:translate-x-1 transition-transform" />
                   </Link>
-                  <Link
-                    href="/products?sortBy=newest"
-                    className="group relative flex items-center justify-between py-2.5 px-2 text-sm font-semibold uppercase tracking-wider text-surface-800 hover:text-[#0F1F3D] transition-colors"
-                  >
-                    <span>New Arrivals</span>
-                    <span className="absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#0F1F3D] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
-                    <FiChevronRight className="w-4 h-4 text-surface-400 group-hover:translate-x-1 transition-transform" />
-                  </Link>
+
                   {categories.map((cat: any) => (
                     <Link
                       key={cat.id || cat.slug || cat.name}

@@ -106,6 +106,11 @@ app.delete('/api/settings/hero-banner', authenticateAdmin, authorize('ADMIN'), a
 app.get('/api/settings/hero-banner-text', adminController.getHeroBannerText.bind(adminController));
 app.post('/api/settings/hero-banner-text', authenticateAdmin, authorize('ADMIN'), adminController.updateHeroBannerText.bind(adminController));
 
+// Mobile hero banner (portrait 1080×1350 for smartphones — falls back to desktop image if not set)
+app.get('/api/settings/hero-banner-mobile', adminController.getHeroBannerMobile.bind(adminController));
+app.post('/api/settings/hero-banner-mobile', authenticateAdmin, authorize('ADMIN'), upload.single('image'), adminController.uploadHeroBannerMobile.bind(adminController));
+app.delete('/api/settings/hero-banner-mobile', authenticateAdmin, authorize('ADMIN'), adminController.deleteHeroBannerMobile.bind(adminController));
+
 // Site logo (auto-resized Cloudinary variants for header/footer/favicon)
 app.get('/api/settings/logo', adminController.getSiteLogo.bind(adminController));
 app.post('/api/settings/logo', authenticateAdmin, authorize('ADMIN'), upload.single('image'), adminController.uploadSiteLogo.bind(adminController));
