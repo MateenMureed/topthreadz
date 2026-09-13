@@ -124,13 +124,16 @@ export default async function ProductDetailPage({ params }: Props) {
           ? { additionalProperty: product.highlights.slice(0, 8).map((h: string) => ({ '@type': 'PropertyValue', name: 'Highlight', value: h })) }
           : {}),
         // Provide aggregateRating and review so Google Merchant Center and Search Console
-        // award full star-rating rich snippets. Uses product-specific reviews when available,
-        // or verified store baseline reviews for brand new products.
+        // award full star-rating rich snippets. Uses product-specific reviews when available.
+        // If review data is not tracked or has no reviews for this product, omit aggregateRating
+        // and review rather than fabricating fake baseline reviews.
         ...(() => {
           const hasReviews = Array.isArray(product.reviews) && product.reviews.length > 0;
           if (hasReviews) {
             const ratings = product.reviews.map((r: any) => Number(r.rating)).filter((n: number) => n > 0);
             const avg = ratings.length > 0 ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length : 5;
+            const validReviews = product.reviews
+              .filter((r: any) => r.rating > 0 && (r.comment || '').trim());
             return {
               aggregateRating: {
                 '@type': 'AggregateRating',
@@ -139,47 +142,25 @@ export default async function ProductDetailPage({ params }: Props) {
                 bestRating: 5,
                 worstRating: 1,
               },
-              review: product.reviews
-                .filter((r: any) => r.rating > 0 && (r.comment || '').trim())
-                .slice(0, 5)
-                .map((r: any) => ({
-                  '@type': 'Review',
-                  reviewRating: {
-                    '@type': 'Rating',
-                    ratingValue: r.rating,
-                    bestRating: 5,
-                    worstRating: 1,
-                  },
-                  author: { '@type': 'Person', name: r.userName || r.user?.name || 'Verified Buyer' },
-                  datePublished: r.createdAt ? new Date(r.createdAt).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
-                  reviewBody: String(r.comment || 'Excellent fabric and stitching quality. Highly recommended.').slice(0, 500),
-                })),
+              ...(validReviews.length > 0
+                ? {
+                    review: validReviews.slice(0, 5).map((r: any) => ({
+                      '@type': 'Review',
+                      reviewRating: {
+                        '@type': 'Rating',
+                        ratingValue: r.rating,
+                        bestRating: 5,
+                        worstRating: 1,
+                      },
+                      author: { '@type': 'Person', name: r.userName || r.user?.name || 'Verified Buyer' },
+                      datePublished: r.createdAt ? new Date(r.createdAt).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+                      reviewBody: String(r.comment).slice(0, 500),
+                    })),
+                  }
+                : {}),
             };
           }
-          // Default store collection rating baseline for new products
-          return {
-            aggregateRating: {
-              '@type': 'AggregateRating',
-              ratingValue: 4.9,
-              reviewCount: 48,
-              bestRating: 5,
-              worstRating: 1,
-            },
-            review: [
-              {
-                '@type': 'Review',
-                reviewRating: {
-                  '@type': 'Rating',
-                  ratingValue: 5,
-                  bestRating: 5,
-                  worstRating: 1,
-                },
-                author: { '@type': 'Person', name: 'Verified Customer' },
-                datePublished: (product.createdAt ? new Date(product.createdAt) : new Date()).toISOString().slice(0, 10),
-                reviewBody: 'Top Threadz premium menswear fabrics offer unmatched comfort and lasting elegance. Delivered nationwide.',
-              },
-            ],
-          };
+          return {};
         })(),
         offers: {
           '@type': 'Offer',

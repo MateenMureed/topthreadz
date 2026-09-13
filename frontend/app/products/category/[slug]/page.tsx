@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import CategoryPageContent from './CategoryPageContent';
 import CategoryFaqBlock, { getCategoryFaqs } from '@/components/CategoryFaqBlock';
-import { fetchServerCategories } from '@/lib/serverData';
+import { fetchServerCategories, fetchServerProducts } from '@/lib/serverData';
 import { SITE_URL, DEFAULT_OG_IMAGE } from '@/lib/seo';
 
 interface Props {
@@ -86,6 +86,21 @@ export default async function CategoryPage({ params }: Props) {
 
   const canonicalUrl = `${SITE_URL}/products/category/${encodeURIComponent(resolvedParams.slug)}`;
 
+  const [categories, categoryProducts] = await Promise.all([
+    fetchServerCategories(),
+    fetchServerProducts({ category: categoryName, limit: 30, sortBy: 'newest' }),
+  ]);
+
+  const matchedCategory = categories.find(
+    (c: any) =>
+      c.slug?.toLowerCase() === rawSlug.toLowerCase() ||
+      c.name?.toLowerCase() === categoryName.toLowerCase()
+  );
+
+  const categoryDescription =
+    matchedCategory?.description ||
+    `Shop our premium ${categoryName} collection at Top Threadz. Fine fabric, cut to your signature look.`;
+
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -100,8 +115,17 @@ export default async function CategoryPage({ params }: Props) {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: `${categoryName} Collection`,
+    description: categoryDescription,
     url: canonicalUrl,
-    description: `Shop our premium ${categoryName} collection at Top Threadz.`,
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: (categoryProducts || []).map((product: any, index: number) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: `${SITE_URL}/products/${encodeURIComponent(product.slug || product.id)}`,
+        name: product.name,
+      })),
+    },
   };
 
   const categoryFaqs = getCategoryFaqs(categoryName);

@@ -315,15 +315,6 @@ export default async function HomePage() {
         parentOrganization: {
           '@id': `${SITE_URL}#organization`,
         },
-        makesOffer: categories.map((cat: any) => ({
-          '@type': 'Offer',
-          itemOffered: {
-            '@type': 'Product',
-            name: cat.name,
-            description: cat.description || `${cat.name} collection at ${BRAND_NAME}`,
-            url: getCategoryUrl(cat),
-          },
-        })),
         hasOfferCatalog: {
           '@type': 'OfferCatalog',
           name: 'Men\'s Fashion Collections',
@@ -333,6 +324,14 @@ export default async function HomePage() {
             name: cat.name,
             url: getCategoryUrl(cat),
           })),
+        },
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: '4.8',
+          reviewCount: '1250',
+          ratingCount: '1250',
+          bestRating: '5',
+          worstRating: '1',
         },
       },
 
@@ -345,12 +344,6 @@ export default async function HomePage() {
         logo: `${SITE_URL}/images/topthreadz-logo.jpg`,
         description: SITE_DESCRIPTION,
         slogan: 'Premium Men\'s Fashion Since 2020',
-        aggregateRating: {
-          '@type': 'AggregateRating',
-          ratingValue: '4.8',
-          reviewCount: 1250,
-          ratingCount: 1250,
-        },
       },
 
       // Category ItemList
@@ -401,8 +394,49 @@ export default async function HomePage() {
               '@type': 'Offer',
               price: product.price || product.salePrice || 0,
               priceCurrency: 'PKR',
-              availability: product.inStock ? 'InStock' : 'OutOfStock',
+              availability: product.inStock !== false ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
               url: getProductUrl(product),
+              priceValidUntil: new Date(new Date().getFullYear() + 1, 11, 31).toISOString().slice(0, 10),
+              itemCondition: 'https://schema.org/NewCondition',
+              seller: {
+                '@type': 'Organization',
+                name: BRAND_NAME,
+              },
+              hasMerchantReturnPolicy: {
+                '@type': 'MerchantReturnPolicy',
+                applicableCountry: 'PK',
+                returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+                merchantReturnDays: 7,
+                returnMethod: 'https://schema.org/ReturnByMail',
+                returnFees: 'https://schema.org/FreeReturn',
+              },
+              shippingDetails: {
+                '@type': 'OfferShippingDetails',
+                shippingRate: {
+                  '@type': 'MonetaryAmount',
+                  value: 250,
+                  currency: 'PKR',
+                },
+                shippingDestination: {
+                  '@type': 'DefinedRegion',
+                  addressCountry: 'PK',
+                },
+                deliveryTime: {
+                  '@type': 'ShippingDeliveryTime',
+                  handlingTime: {
+                    '@type': 'QuantitativeValue',
+                    minValue: 0,
+                    maxValue: 1,
+                    unitCode: 'DAY',
+                  },
+                  transitTime: {
+                    '@type': 'QuantitativeValue',
+                    minValue: 2,
+                    maxValue: 5,
+                    unitCode: 'DAY',
+                  },
+                },
+              },
             },
           },
         })),

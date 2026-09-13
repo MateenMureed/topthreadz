@@ -147,6 +147,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       },
     ],
 
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      reviewCount: '1250',
+      ratingCount: '1250',
+      bestRating: '5',
+      worstRating: '1',
+    },
     sameAs: [
       'https://www.topthreadz.com.pk',
       'https://www.facebook.com/topthreadz',
