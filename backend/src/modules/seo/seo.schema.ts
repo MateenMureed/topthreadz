@@ -25,6 +25,11 @@ export const generateSeoSchema = z.object({
   sizes: z.array(z.string().max(40)).max(30).optional(),
   careInstructions: z.string().max(2000).optional(),
   slug: z.string().max(240).optional(),
+  gender: z.string().max(40).optional(),
+  pattern: z.string().max(120).optional(),
+  style: z.string().max(120).optional(),
+  sku: z.string().max(100).optional(),
+  highlights: z.array(z.string().max(160)).max(20).optional(),
   sections: z.array(z.enum(['description', 'seo', 'keywords', 'meta', 'faqs'])).max(5).optional(),
 }).strict();
 

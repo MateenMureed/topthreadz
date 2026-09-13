@@ -1223,6 +1223,9 @@ function ProductsTab({
     sizes: splitCsv(form.sizesText).length ? splitCsv(form.sizesText) : undefined,
     careInstructions: form.careInstructions || undefined,
     slug: form.slug || undefined,
+    gender: (form as any).gender || 'MALE',
+    sku: form.sku || undefined,
+    highlights: splitCsv(form.highlightsText).length ? splitCsv(form.highlightsText) : undefined,
   });
 
   const applySeoResult = (data: any, sections: string[]) => {
@@ -1231,6 +1234,14 @@ function ProductsTab({
     }
     if (data.score) {
       setSeoValidationReport(data.score);
+    }
+    if (data.imageAltText) {
+      setImageMeta((prev) =>
+        prev.map((img, idx) => ({
+          ...img,
+          alt: idx === 0 ? data.imageAltText : `${data.imageAltText} - View ${idx + 1}`,
+        }))
+      );
     }
     setForm((prev) => {
       const next = { ...prev };
@@ -2454,6 +2465,39 @@ function ProductsTab({
                           value={form.metaKeywords}
                           onChange={(e) => setForm((prev) => ({ ...prev, metaKeywords: e.target.value }))}
                           placeholder="mens wash and wear fabric, unstitched suit pakistan"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="admin-label">
+                          Primary Product Keyword <span className="text-[#6B7280] dark:text-[#94A3B8] font-normal">(core intent phrase)</span>
+                        </label>
+                        <input
+                          className="admin-input"
+                          value={searchIntelligence?.primaryKeyword || ''}
+                          readOnly
+                          placeholder="e.g. dark brown wash and wear stitched suit"
+                        />
+                      </div>
+                      <div>
+                        <label className="admin-label">
+                          Image Alt Text <span className="text-[#6B7280] dark:text-[#94A3B8] font-normal">(SEO image description)</span>
+                        </label>
+                        <input
+                          className="admin-input"
+                          value={imageMeta?.[0]?.alt || ''}
+                          onChange={(e) => {
+                            const newAlt = e.target.value;
+                            setImageMeta((prev) =>
+                              prev.map((img, idx) => ({
+                                ...img,
+                                alt: idx === 0 ? newAlt : img.alt,
+                              }))
+                            );
+                          }}
+                          placeholder="e.g. Dark Brown Wash & Wear Stitched Suit for Men | Top Threadz"
                         />
                       </div>
                     </div>

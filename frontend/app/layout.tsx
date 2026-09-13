@@ -170,6 +170,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     alternateName: ['Top Threadz Pakistan', 'Top Threadz Official Store'],
     url: 'https://www.topthreadz.com.pk/',
     logo: 'https://www.topthreadz.com.pk/images/topthreadz-logo.png',
+    image: 'https://www.topthreadz.com.pk/images/topthreadz-logo.png',
     email: 'support@topthreadz.pk',
     telephone: '+92-300-9070520',
     address: {
