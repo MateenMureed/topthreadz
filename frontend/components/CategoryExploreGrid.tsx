@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { FiArrowRight } from 'react-icons/fi';
 import { resolveImageUrl } from '@/lib/images';
 
 interface Category {
@@ -18,130 +17,106 @@ interface CategoryExploreGridProps {
   products?: any[];
 }
 
-// Fallback high-fashion Pakistani menswear imagery matching the reference mockup
+// Fallback high-fashion Pakistani menswear imagery matching Diners aesthetic
 const DEFAULT_CATEGORY_IMAGES: Record<string, string> = {
   unstitched: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg',
   stitched: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614550/ecommerce-products/miz32cpgjlvw0ejejplp.jpg',
   waistcoat: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614812/ecommerce-products/krkdpdqc0a4mf437lzr1.jpg',
-  'two-piece': 'https://res.cloudinary.com/fmxzphak/image/upload/v1788630568/ecommerce-products/qddnzjm16r9mljo8gihe.jpg',
   kids: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788295698/ecommerce-products/dtxydgwby9kpeoo6w0qu.jpg',
 };
 
-export default function CategoryExploreGrid({ categories, products = [] }: CategoryExploreGridProps) {
-  // Ensure we display the 5 core categories from reference design if available
-  const baseCategories = (categories && categories.length > 0) ? categories : [
-    { name: 'Unstitched Fabric', slug: 'unstitched-fabric' },
-    { name: 'Stitched', slug: 'stitched' },
-    { name: 'Waistcoats', slug: 'waist-coats' },
-    { name: 'Two Piece', slug: 'two-piece' },
-    { name: 'Kids', slug: 'kids-section' },
-  ];
+const EXPLORE_ITEMS = [
+  { name: 'UNSTITCHED FABRIC', slug: 'unstitched-fabric', fallbackKey: 'unstitched' },
+  { name: 'STITCHED KURTA', slug: 'stitched', fallbackKey: 'stitched' },
+  { name: 'WAISTCOATS', slug: 'waist-coats', fallbackKey: 'waistcoat' },
+  { name: 'KIDS SECTION', slug: 'kids-section', fallbackKey: 'kids' },
+];
 
-  // Show up to 5 categories matching reference layout
-  const displayed = baseCategories.slice(0, 5);
-
+export default function CategoryExploreGrid({ categories = [], products = [] }: CategoryExploreGridProps) {
   return (
     <section
-      aria-label="Shop By Category"
-      className="w-full bg-[#FAFAF8] py-12 md:py-16 border-b border-surface-200/60"
+      aria-label="What would you like to explore"
+      className="w-full bg-white pt-10 pb-8 sm:pt-14 sm:pb-10 border-b border-surface-200/50"
     >
-      {/* Luxury Heading matching reference mockup */}
-      <div className="text-center mb-8 md:mb-12 px-4">
-        <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.26em] text-[#8C93A0] mb-2">
+      {/* Diners Style Clean Heading */}
+      <div className="text-center mb-7 sm:mb-9 px-4">
+        <h2 className="text-xs sm:text-sm md:text-[15px] font-bold uppercase tracking-[0.24em] text-[#1E2229]">
           WHAT WOULD YOU LIKE TO EXPLORE?
-        </p>
-        <div className="flex items-center justify-center gap-3 sm:gap-4">
-          <span className="h-[1.5px] w-8 sm:w-14 bg-[#C5A262]" />
-          <h2
-            className="text-2xl sm:text-3xl md:text-4xl font-serif text-[#1E2229] tracking-normal font-normal"
-          >
-            Shop By Category
-          </h2>
-          <span className="h-[1.5px] w-8 sm:w-14 bg-[#C5A262]" />
-        </div>
+        </h2>
       </div>
 
-      {/* Category cards grid: 5 columns on desktop, 2-3 on tablet/mobile */}
+      {/* 4 Clean Cards matching Diners layout */}
       <div className="max-w-[1536px] mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
-          {displayed.map((cat, idx) => {
-            const slug = cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-');
-            const href = `/products/category/${encodeURIComponent(slug)}`;
-            let rawImg = cat.coverImage || cat.image;
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-5 md:gap-6">
+          {EXPLORE_ITEMS.map((item, idx) => {
+            // Check if backend categories has a matching category
+            const matchedCat = categories.find((c) => {
+              const cName = (c.name || '').toLowerCase();
+              const cSlug = (c.slug || '').toLowerCase();
+              if (item.fallbackKey === 'unstitched') return cName.includes('unstitched') || cSlug.includes('unstitched');
+              if (item.fallbackKey === 'stitched') return cName === 'stitched' || cSlug === 'stitched';
+              if (item.fallbackKey === 'waistcoat') return cName.includes('waist') || cSlug.includes('waist');
+              if (item.fallbackKey === 'kids') return cName.includes('kid') || cSlug.includes('kid');
+              return false;
+            });
 
-            // Auto-fetch latest product image from category if missing
+            const href = `/products/category/${encodeURIComponent(matchedCat?.slug || item.slug)}`;
+
+            let rawImg = matchedCat?.coverImage || matchedCat?.image;
+
+            // If category doesn't have an image, look up from latest matching product
             if (!rawImg && Array.isArray(products) && products.length > 0) {
-              const isUnstitched = /unstitched/i.test(cat.name) || /unstitched/i.test(slug);
-              const isStitched = /^stitched$/i.test(cat.name) || /^stitched$/i.test(slug);
-              const isWaistcoat = /waistcoat/i.test(cat.name) || /waist/i.test(slug);
-              const isTwoPiece = /two/i.test(cat.name) || /two/i.test(slug);
-              const isKids = /kid/i.test(cat.name) || /kid/i.test(slug);
-
               const matchedProd = products.find((p: any) => {
                 const pCat = String(p.category || '').toLowerCase();
                 const pSub = String(p.subcategory || '').toLowerCase();
-                if (isUnstitched) return pCat.includes('unstitched') || pSub.includes('unstitched');
-                if (isStitched) return pCat === 'stitched' || pSub === 'stitched';
-                if (isWaistcoat) return pCat.includes('waist') || pSub.includes('waist');
-                if (isTwoPiece) return pCat.includes('two') || pSub.includes('two');
-                if (isKids) return pCat.includes('kid') || pSub.includes('kid');
-                const catLower = cat.name.toLowerCase();
-                return pCat.includes(catLower) || pSub.includes(catLower);
+                if (item.fallbackKey === 'unstitched') return pCat.includes('unstitched') || pSub.includes('unstitched');
+                if (item.fallbackKey === 'stitched') return pCat === 'stitched' || pSub === 'stitched';
+                if (item.fallbackKey === 'waistcoat') return pCat.includes('waist') || pSub.includes('waist');
+                if (item.fallbackKey === 'kids') return pCat.includes('kid') || pSub.includes('kid');
+                return false;
               });
-
               if (matchedProd?.images?.[0]) {
                 rawImg = matchedProd.images[0];
               }
             }
 
-            // Fallback to reference collection photography
             if (!rawImg) {
-              const nameLower = cat.name.toLowerCase();
-              if (nameLower.includes('unstitched')) rawImg = DEFAULT_CATEGORY_IMAGES.unstitched;
-              else if (nameLower.includes('stitched')) rawImg = DEFAULT_CATEGORY_IMAGES.stitched;
-              else if (nameLower.includes('waist')) rawImg = DEFAULT_CATEGORY_IMAGES.waistcoat;
-              else if (nameLower.includes('two')) rawImg = DEFAULT_CATEGORY_IMAGES['two-piece'];
-              else if (nameLower.includes('kid')) rawImg = DEFAULT_CATEGORY_IMAGES.kids;
-              else rawImg = DEFAULT_CATEGORY_IMAGES.unstitched;
+              rawImg = DEFAULT_CATEGORY_IMAGES[item.fallbackKey];
             }
 
-            const imgSrc = rawImg ? resolveImageUrl(rawImg) : null;
+            const imgSrc = resolveImageUrl(rawImg);
 
             return (
               <Link
-                key={cat.id || slug || idx}
+                key={item.slug}
                 href={href}
-                className="group relative block w-full overflow-hidden rounded-2xl bg-stone-100 shadow-xs hover:shadow-md transition-all duration-300"
+                className="group flex flex-col items-center cursor-pointer"
               >
-                {/* 3:4 portrait card aspect ratio matching mockup */}
-                <div className="relative aspect-[3/4] w-full overflow-hidden">
+                {/* Image card: square aspect ratio with smooth hover zoom matching Diners */}
+                <div className="relative aspect-square w-full overflow-hidden bg-[#F4F2EE]">
                   {imgSrc ? (
                     <Image
                       src={imgSrc}
-                      alt={cat.name}
+                      alt={item.name}
                       fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                      className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
-                      loading={idx === 0 ? 'eager' : 'lazy'}
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
+                      className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
+                      loading={idx < 2 ? 'eager' : 'lazy'}
                     />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-stone-200">
-                      <span className="text-4xl font-serif text-stone-400 uppercase">
-                        {cat.name?.[0] || '?'}
-                      </span>
+                    <div className="absolute inset-0 flex items-center justify-center bg-stone-100">
+                      <span className="text-2xl font-serif text-stone-400 uppercase">{item.name[0]}</span>
                     </div>
                   )}
+                  {/* Subtle dark tint on hover */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 pointer-events-none" />
+                </div>
 
-                  {/* Dark bottom gradient overlay matching reference mockup */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent transition-opacity duration-300 group-hover:from-black/90" />
-
-                  {/* Category Name & Arrow pinned inside at bottom */}
-                  <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4 md:p-5 flex items-center justify-between text-white">
-                    <span className="text-xs sm:text-[13px] font-bold uppercase tracking-[0.14em] drop-shadow-sm group-hover:translate-x-0.5 transition-transform">
-                      {cat.name}
-                    </span>
-                    <FiArrowRight className="w-4 h-4 text-white/90 shrink-0 transform group-hover:translate-x-1 transition-transform" />
-                  </div>
+                {/* Diners Style Centered Label Underneath Image */}
+                <div className="mt-3 sm:mt-3.5 text-center">
+                  <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.14em] text-[#1E2229] group-hover:text-[#0F1F3D] transition-colors">
+                    {item.name}
+                  </span>
                 </div>
               </Link>
             );
@@ -151,3 +126,4 @@ export default function CategoryExploreGrid({ categories, products = [] }: Categ
     </section>
   );
 }
+
