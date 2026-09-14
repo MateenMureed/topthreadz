@@ -39,8 +39,9 @@ export default function HeroBanner({
     ? getOptimizedCloudinaryUrl(rawMobile, { width: 750, quality: 'auto', format: 'auto' })
     : resolveImageUrl(rawMobile);
 
+  // 2x cap at 828px (414px device × 2 DPR) — saves ~60 KB vs w_1500 on mobile
   const mobileSrcSet = mobileIsCloudinary
-    ? `${mobileSrc1x} 1x, ${getOptimizedCloudinaryUrl(rawMobile, { width: 1500, quality: 'auto', format: 'auto' })} 2x`
+    ? `${mobileSrc1x} 750w, ${getOptimizedCloudinaryUrl(rawMobile, { width: 828, quality: 'auto', format: 'auto' })} 828w`
     : undefined;
 
   return (
@@ -54,12 +55,14 @@ export default function HeroBanner({
           <source
             media="(max-width: 639px)"
             srcSet={mobileSrcSet || mobileSrc1x}
+            sizes="100vw"
             width={750}
             height={938}
           />
           <source
             media="(min-width: 640px)"
             srcSet={desktopSrc}
+            sizes="100vw"
             width={1920}
             height={700}
           />

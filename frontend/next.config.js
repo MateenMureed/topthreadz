@@ -44,7 +44,7 @@ const nextConfig = {
   },
   experimental: {
     optimizeCss: true,
-    optimizePackageImports: ['react-icons'],
+    optimizePackageImports: ['react-icons', '@tanstack/react-query', 'react-hot-toast'],
   },
   async headers() {
     return [
