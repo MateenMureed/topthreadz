@@ -230,14 +230,14 @@ export default function CategoryPageContent({ slug }: Props) {
           </div>
         )}
 
-        {/* ── 3. DYNAMIC PRODUCTS GRID (Zero Space Between Grids) ── */}
+        {/* ── 3. DYNAMIC PRODUCTS GRID (Tight Compact Spacing Like Reference Image) ── */}
         {isLoading ? (
-          /* Seamless skeleton with gap-0 and dividing borders */
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0 border-t border-l border-surface-200 dark:border-[#2D3340]">
+          /* Seamless skeleton with matching compact gap */
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-2.5 md:gap-3 lg:gap-3.5">
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
-                className="border-b border-r border-surface-200 dark:border-[#2D3340] p-3 sm:p-4 bg-white dark:bg-[#1A1D24]"
+                className="p-2 sm:p-3 bg-white dark:bg-[#1A1D24] rounded-xl"
               >
                 <div className="aspect-[3/4] bg-surface-100 dark:bg-[#252A34] relative overflow-hidden rounded-lg">
                   <div className="absolute inset-0 shimmer" />
@@ -270,20 +270,20 @@ export default function CategoryPageContent({ slug }: Props) {
             </Link>
           </div>
         ) : (
-          /* Seamless Product Grid with dynamic desktop columns and zero gap */
+          /* Product Grid matching reference image tight gap */
           <div
-            className={`grid grid-cols-2 ${desktopGridCols} gap-0 border-t border-l border-surface-200 dark:border-[#2D3340]`}
+            className={`grid grid-cols-2 ${desktopGridCols} gap-2 sm:gap-2.5 md:gap-3 lg:gap-3.5`}
           >
             {products.map((product, i) => (
               <div
                 key={product.id}
-                className="border-b border-r border-surface-200 dark:border-[#2D3340] p-2.5 sm:p-4 bg-white dark:bg-[#1A1D24] transition-colors"
+                className="transition-colors"
               >
                 <ScrollReveal
                   delay={(i % 4) * 80}
                   animation="slide-up"
                 >
-                  <ProductCard {...product} imageFit="full" />
+                  <ProductCard {...product} imageFit="cover" />
                 </ScrollReveal>
               </div>
             ))}

@@ -74,7 +74,7 @@ export default function ProductGrid({
           : 'sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
 
   const isSparse = uniqueProducts.length > 0 && uniqueProducts.length < gridCols;
-  const gridClass = `grid grid-cols-2 gap-3.5 sm:gap-4 md:gap-5 lg:gap-6 ${desktopGridClass} ${isSparse ? 'justify-center mx-auto max-w-5xl' : ''}`;
+  const gridClass = `grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 lg:gap-3.5 ${desktopGridClass} ${isSparse ? 'justify-center mx-auto max-w-5xl' : ''}`;
 
   const renderSkeletonGrid = () => (
     <div className={gridClass}>

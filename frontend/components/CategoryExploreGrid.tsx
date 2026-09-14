@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { FiArrowRight } from 'react-icons/fi';
 import { resolveImageUrl } from '@/lib/images';
 
 interface Category {
@@ -17,61 +18,73 @@ interface CategoryExploreGridProps {
   products?: any[];
 }
 
-export default function CategoryExploreGrid({ categories, products = [] }: CategoryExploreGridProps) {
-  if (!categories || categories.length === 0) return null;
+// Fallback high-fashion Pakistani menswear imagery matching the reference mockup
+const DEFAULT_CATEGORY_IMAGES: Record<string, string> = {
+  unstitched: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg',
+  stitched: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614550/ecommerce-products/miz32cpgjlvw0ejejplp.jpg',
+  waistcoat: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614812/ecommerce-products/krkdpdqc0a4mf437lzr1.jpg',
+  'two-piece': 'https://res.cloudinary.com/fmxzphak/image/upload/v1788630568/ecommerce-products/qddnzjm16r9mljo8gihe.jpg',
+  kids: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788295698/ecommerce-products/dtxydgwby9kpeoo6w0qu.jpg',
+};
 
-  // Show up to 4 categories
-  const displayed = categories.slice(0, 4);
+export default function CategoryExploreGrid({ categories, products = [] }: CategoryExploreGridProps) {
+  // Ensure we display the 5 core categories from reference design if available
+  const baseCategories = (categories && categories.length > 0) ? categories : [
+    { name: 'Unstitched Fabric', slug: 'unstitched-fabric' },
+    { name: 'Stitched', slug: 'stitched' },
+    { name: 'Waistcoats', slug: 'waist-coats' },
+    { name: 'Two Piece', slug: 'two-piece' },
+    { name: 'Kids', slug: 'kids-section' },
+  ];
+
+  // Show up to 5 categories matching reference layout
+  const displayed = baseCategories.slice(0, 5);
 
   return (
     <section
-      aria-label="Explore categories"
-      className="w-full bg-white py-10 md:py-14"
+      aria-label="Shop By Category"
+      className="w-full bg-[#FAFAF8] py-12 md:py-16 border-b border-surface-200/60"
     >
-      {/* Heading */}
-      <div className="text-center mb-8 md:mb-10 px-4">
-        <h2
-          className="text-xl md:text-2xl lg:text-3xl font-light tracking-[0.22em] uppercase text-surface-900"
-          style={{ fontFamily: 'var(--font-outfit, var(--font-inter, sans-serif))' }}
-        >
-          What Would You Like to
-          <br className="sm:hidden" />
-          {' '}Explore?
-        </h2>
+      {/* Luxury Heading matching reference mockup */}
+      <div className="text-center mb-8 md:mb-12 px-4">
+        <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.26em] text-[#8C93A0] mb-2">
+          WHAT WOULD YOU LIKE TO EXPLORE?
+        </p>
+        <div className="flex items-center justify-center gap-3 sm:gap-4">
+          <span className="h-[1.5px] w-8 sm:w-14 bg-[#C5A262]" />
+          <h2
+            className="text-2xl sm:text-3xl md:text-4xl font-serif text-[#1E2229] tracking-normal font-normal"
+          >
+            Shop By Category
+          </h2>
+          <span className="h-[1.5px] w-8 sm:w-14 bg-[#C5A262]" />
+        </div>
       </div>
 
-      {/* Category cards grid */}
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div
-          className={`grid gap-3 sm:gap-4 md:gap-5 ${
-            displayed.length === 4
-              ? 'grid-cols-2 sm:grid-cols-4'
-              : displayed.length === 3
-              ? 'grid-cols-3'
-              : displayed.length === 2
-              ? 'grid-cols-2'
-              : 'grid-cols-1'
-          }`}
-        >
+      {/* Category cards grid: 5 columns on desktop, 2-3 on tablet/mobile */}
+      <div className="max-w-[1536px] mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
           {displayed.map((cat, idx) => {
             const slug = cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-');
             const href = `/products/category/${encodeURIComponent(slug)}`;
             let rawImg = cat.coverImage || cat.image;
 
-            // Fallback: auto-fetch latest image from loaded products if category image is missing
+            // Auto-fetch latest product image from category if missing
             if (!rawImg && Array.isArray(products) && products.length > 0) {
               const isUnstitched = /unstitched/i.test(cat.name) || /unstitched/i.test(slug);
               const isStitched = /^stitched$/i.test(cat.name) || /^stitched$/i.test(slug);
+              const isWaistcoat = /waistcoat/i.test(cat.name) || /waist/i.test(slug);
+              const isTwoPiece = /two/i.test(cat.name) || /two/i.test(slug);
+              const isKids = /kid/i.test(cat.name) || /kid/i.test(slug);
 
               const matchedProd = products.find((p: any) => {
                 const pCat = String(p.category || '').toLowerCase();
                 const pSub = String(p.subcategory || '').toLowerCase();
-                if (isUnstitched) {
-                  return pCat.includes('unstitched') || pSub.includes('unstitched');
-                }
-                if (isStitched) {
-                  return pCat === 'stitched' || pSub === 'stitched';
-                }
+                if (isUnstitched) return pCat.includes('unstitched') || pSub.includes('unstitched');
+                if (isStitched) return pCat === 'stitched' || pSub === 'stitched';
+                if (isWaistcoat) return pCat.includes('waist') || pSub.includes('waist');
+                if (isTwoPiece) return pCat.includes('two') || pSub.includes('two');
+                if (isKids) return pCat.includes('kid') || pSub.includes('kid');
                 const catLower = cat.name.toLowerCase();
                 return pCat.includes(catLower) || pSub.includes(catLower);
               });
@@ -81,45 +94,55 @@ export default function CategoryExploreGrid({ categories, products = [] }: Categ
               }
             }
 
+            // Fallback to reference collection photography
+            if (!rawImg) {
+              const nameLower = cat.name.toLowerCase();
+              if (nameLower.includes('unstitched')) rawImg = DEFAULT_CATEGORY_IMAGES.unstitched;
+              else if (nameLower.includes('stitched')) rawImg = DEFAULT_CATEGORY_IMAGES.stitched;
+              else if (nameLower.includes('waist')) rawImg = DEFAULT_CATEGORY_IMAGES.waistcoat;
+              else if (nameLower.includes('two')) rawImg = DEFAULT_CATEGORY_IMAGES['two-piece'];
+              else if (nameLower.includes('kid')) rawImg = DEFAULT_CATEGORY_IMAGES.kids;
+              else rawImg = DEFAULT_CATEGORY_IMAGES.unstitched;
+            }
+
             const imgSrc = rawImg ? resolveImageUrl(rawImg) : null;
 
             return (
               <Link
                 key={cat.id || slug || idx}
                 href={href}
-                className="group flex flex-col items-center gap-3"
+                className="group relative block w-full overflow-hidden rounded-2xl bg-stone-100 shadow-xs hover:shadow-md transition-all duration-300"
               >
-                {/* Portrait image card */}
-                <div className="relative w-full overflow-hidden bg-surface-100">
-                  {/* Aspect ratio: 3:4 portrait (similar to reference) */}
-                  <div className="aspect-[3/4] w-full relative">
-                    {imgSrc ? (
-                      <Image
-                        src={imgSrc}
-                        alt={cat.name}
-                        fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 320px"
-                        className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-                        loading={idx === 0 ? 'eager' : 'lazy'}
-                        priority={idx === 0}
-                      />
-                    ) : (
-                      /* Elegant placeholder with initial letter */
-                      <div className="absolute inset-0 flex items-center justify-center bg-surface-100">
-                        <span className="text-5xl md:text-7xl font-bold text-surface-300 uppercase select-none">
-                          {cat.name?.[0] || '?'}
-                        </span>
-                      </div>
-                    )}
-                    {/* Subtle hover overlay */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500 pointer-events-none" />
+                {/* 3:4 portrait card aspect ratio matching mockup */}
+                <div className="relative aspect-[3/4] w-full overflow-hidden">
+                  {imgSrc ? (
+                    <Image
+                      src={imgSrc}
+                      alt={cat.name}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                      className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+                      loading={idx === 0 ? 'eager' : 'lazy'}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-stone-200">
+                      <span className="text-4xl font-serif text-stone-400 uppercase">
+                        {cat.name?.[0] || '?'}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Dark bottom gradient overlay matching reference mockup */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent transition-opacity duration-300 group-hover:from-black/90" />
+
+                  {/* Category Name & Arrow pinned inside at bottom */}
+                  <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4 md:p-5 flex items-center justify-between text-white">
+                    <span className="text-xs sm:text-[13px] font-bold uppercase tracking-[0.14em] drop-shadow-sm group-hover:translate-x-0.5 transition-transform">
+                      {cat.name}
+                    </span>
+                    <FiArrowRight className="w-4 h-4 text-white/90 shrink-0 transform group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
-
-                {/* Category name */}
-                <p className="text-[11px] sm:text-xs md:text-[13px] font-semibold uppercase tracking-[0.18em] text-surface-800 group-hover:text-surface-950 transition-colors text-center">
-                  {cat.name}
-                </p>
               </Link>
             );
           })}

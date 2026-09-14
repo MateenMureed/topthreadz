@@ -303,7 +303,7 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="flex flex-col items-center justify-between gap-2.5 py-4 text-[11.5px] text-white/35 sm:flex-row">
-          <p>© {new Date().getFullYear()} Top Threadz. All rights reserved.</p>
+          <p suppressHydrationWarning>© {new Date().getFullYear()} Top Threadz. All rights reserved.</p>
           <div className="flex flex-wrap items-center justify-center gap-4 text-[11.5px]">
             <Link
               href="/about"

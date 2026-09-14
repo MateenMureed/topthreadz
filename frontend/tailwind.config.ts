@@ -13,6 +13,7 @@ const config: Config = {
         sans: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
         display: ['var(--font-outfit)', 'Outfit', 'Inter', 'system-ui', 'sans-serif'],
         jakarta: ['var(--font-plus-jakarta-sans)', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-serif)', 'Playfair Display', 'Georgia', 'Cambria', 'serif'],
       },
       colors: {
         // Primary brand red for CTAs, sale badges, active states

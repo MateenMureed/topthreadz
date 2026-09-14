@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { Inter, Outfit } from 'next/font/google';
+import { Inter, Outfit, Playfair_Display } from 'next/font/google';
 import { Providers } from '@/lib/providers';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -25,6 +25,14 @@ const outfit = Outfit({
   display: 'swap',
   variable: '--font-outfit',
   weight: ['500', '700'],
+});
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-serif',
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
 });
 
 const CartDrawer = dynamic(() => import('@/components/CartDrawer'));
@@ -107,7 +115,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     image: 'https://www.topthreadz.com.pk/images/topthreadz-logo.jpg',
     description: 'Top Threadz Flagship Store at Zamzama Commercial Area Karachi. Offering premium unstitched menswear fabrics, Boski, and blended wash n wear suits.',
     telephone: '+92-300-9070520',
-    email: 'support@topthreadz.pk',
+    email: 'mail@topthreadz.pk',
     priceRange: 'PKR 2,500 - PKR 15,000',
     currenciesAccepted: 'PKR',
     paymentAccepted: 'Cash, Credit Card, Debit Card, Online Transfer',
@@ -198,7 +206,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`scroll-smooth ${inter.variable} ${outfit.variable}`}
+      className={`scroll-smooth ${inter.variable} ${outfit.variable} ${playfair.variable}`}
       suppressHydrationWarning
     >
       {/* Anti-flash: runs synchronously before first paint to apply saved theme */}
@@ -209,7 +217,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className={`${inter.className} min-h-screen flex flex-col`} style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)' }}>
+      <body
+        suppressHydrationWarning
+        className={`${inter.className} min-h-screen flex flex-col`}
+        style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)' }}
+      >
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(zamzamaStoreJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />

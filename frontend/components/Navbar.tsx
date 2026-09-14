@@ -39,16 +39,6 @@ interface SearchProduct {
   brand?: string;
 }
 
-const FAVORITE_BRANDS = [
-  'Gul Ahmed', 'Alkaram Studio', 'Bonanza Satrangi', 'Junaid Jamshed (J.)', 'Khaadi',
-  'Nishat Linen', 'Sapphire', 'Ideas by Gul Ahmed', 'Shaffer', 'Master Fabrics',
-  'Pasha Fabrics', 'Dynasty Fabrics', 'Orient Textiles', 'Kamal Fabrics', 'JNG Fabrics',
-  'Sheikh Gulzar Fabrics', 'Hilltop Fabrics', 'Alamgir Fabrics', 'Jeeva Textiles', 'Asco Fabrics',
-  'Cambridge', 'Edenrobe', 'Diners', 'Zellbury', 'Saya', 'Bin Saeed', 'Firdous',
-  'Al Zohaib', 'Resham Ghar', 'Narkins', 'Tawakkal Fabrics', 'Lawrencepur', 'Bareeze',
-  'Istor', 'Moosa Jee', 'Kingdom Fabrics', 'Zain G Fabrics',
-];
-
 export default function Navbar() {
   // Dynamic store logo (admin-uploadable, slot-based). Falls back to bundled assets.
   // Desktop navbar is light → light slot (black text); dark drawer → dark slot (white text).
@@ -70,12 +60,7 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
-  const [brands, setBrands] = useState<string[]>([]);
-  const [brandPage, setBrandPage] = useState(1);
-  const [hasMoreBrands, setHasMoreBrands] = useState(true);
-  const [loadingBrands, setLoadingBrands] = useState(false);
   const searchPanelRef = useRef<HTMLDivElement>(null);
-  const brandsScrollRef = useRef<HTMLDivElement>(null);
 
   const { data: categoriesResponse } = useQuery({
     queryKey: ['categories-nav'],
@@ -94,35 +79,6 @@ export default function Navbar() {
   });
 
   const categories = Array.isArray(categoriesResponse) ? categoriesResponse : [];
-
-  const fetchBrandPage = async (pageToLoad: number, reset = false) => {
-    if (loadingBrands) return;
-
-    try {
-      setLoadingBrands(true);
-      const response = await productService.getAll({ page: pageToLoad, limit: 24, sortBy: 'recommended' });
-      const products = (response?.data?.products || response?.products || []) as SearchProduct[];
-      const pagination = response?.data?.pagination || response?.pagination;
-
-      const nextBrands = products
-        .map((item) => String(item.brand || '').trim())
-        .filter(Boolean);
-
-      setBrands((prev) => {
-        const merged = reset ? nextBrands : [...prev, ...nextBrands];
-        return Array.from(new Set(merged));
-      });
-
-      const totalPages = Number(pagination?.totalPages || pageToLoad);
-      setBrandPage(pageToLoad);
-      setHasMoreBrands(pageToLoad < totalPages);
-    } catch {
-      if (reset) setBrands([]);
-      setHasMoreBrands(false);
-    } finally {
-      setLoadingBrands(false);
-    }
-  };
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 16);
@@ -159,21 +115,17 @@ export default function Navbar() {
     toast.success('Signed out successfully');
   };
 
-  const handleOpenSearch = () => {
-    setSearchOpen(true);
-    if (brands.length === 0) {
-      fetchBrandPage(1, true);
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const query = searchText.trim();
+    if (query.length > 0) {
+      setSearchOpen(false);
+      router.push(`/products?search=${encodeURIComponent(query)}`);
     }
   };
 
-  const handleBrandsScroll = async () => {
-    const container = brandsScrollRef.current;
-    if (!container || !hasMoreBrands || loadingBrands) return;
-
-    const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 24;
-    if (nearBottom) {
-      await fetchBrandPage(brandPage + 1);
-    }
+  const handleOpenSearch = () => {
+    setSearchOpen(true);
   };
 
   const itemCount = hydrated ? getItemCount() : 0;
@@ -479,34 +431,73 @@ export default function Navbar() {
                       Top Threadz Smart Search
                     </span>
                   </div>
-                  <div className="mt-3 flex items-center gap-3 border-b-2 border-navy/20 dark:border-[#2D3340] pb-3 focus-within:border-navy dark:focus-within:border-primary-400 transition-colors">
-                    <FiSearch className="w-5 h-5 text-navy dark:text-primary-400 shrink-0" />
-                    <input
-                      id="site-search"
-                      name="site-search"
-                      type="search"
-                      value={searchText}
-                      onChange={(e) => setSearchText(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && searchText.trim().length > 0) {
-                          setSearchOpen(false);
-                          router.push(`/products?search=${encodeURIComponent(searchText.trim())}`);
-                        }
-                      }}
-                      className="w-full bg-transparent outline-none text-base sm:text-lg font-semibold text-navy dark:text-white placeholder:text-surface-400 dark:placeholder:text-surface-500"
-                      placeholder="Search clothes, unstitched fabric, wash & wear, kapra, color... (Press Enter)"
-                      autoFocus
-                    />
-                    {searchText && (
+                  {/* Search Input Form */}
+                  <form onSubmit={handleSearchSubmit} className="mt-3">
+                    <div className="flex items-center gap-3 border-b-2 border-navy/20 dark:border-[#2D3340] pb-3 focus-within:border-navy dark:focus-within:border-primary-400 transition-colors">
+                      <FiSearch className="w-5 h-5 text-navy dark:text-primary-400 shrink-0" />
+                      <input
+                        id="site-search"
+                        name="site-search"
+                        type="search"
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        className="w-full bg-transparent outline-none text-base sm:text-lg font-semibold text-navy dark:text-white placeholder:text-surface-400 dark:placeholder:text-surface-500"
+                        placeholder="Search unstitched fabric, wash & wear, stitched kurta, color..."
+                        autoFocus
+                      />
+                      {searchText && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchText('')}
+                          className="text-xs font-semibold text-surface-400 hover:text-navy dark:hover:text-white px-2 py-1"
+                        >
+                          Clear
+                        </button>
+                      )}
                       <button
-                        type="button"
-                        onClick={() => setSearchText('')}
-                        className="text-xs font-semibold text-surface-400 hover:text-navy dark:hover:text-white"
+                        type="submit"
+                        className="px-4 py-2 bg-[#0F1F3D] hover:bg-navy-800 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors shrink-0 shadow-xs"
                       >
-                        Clear
+                        Search
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  </form>
+
+                  {/* Empty state: Trending & Recommended Searches */}
+                  {searchText.trim().length < 2 && (
+                    <div className="mt-6">
+                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-surface-500 dark:text-surface-400 mb-3">
+                        Trending Searches
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          'Unstitched Fabric',
+                          'Wash & Wear',
+                          'Stitched Suits',
+                          'Kurta Collection',
+                          'Two Piece',
+                          'Waistcoats',
+                          'Boski',
+                          'Black Wash & Wear',
+                          'Off White Kurta',
+                          'Summer Collection',
+                        ].map((term) => (
+                          <button
+                            key={term}
+                            type="button"
+                            onClick={() => {
+                              setSearchOpen(false);
+                              router.push(`/products?search=${encodeURIComponent(term)}`);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-surface-100 dark:bg-[#252A34] text-surface-800 dark:text-surface-200 hover:bg-[#0F1F3D] hover:text-white dark:hover:bg-primary-600 dark:hover:text-white transition-colors"
+                          >
+                            <FiSearch className="w-3 h-3 opacity-60" />
+                            <span>{term}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Dynamic Autocomplete suggestions when searchText >= 2 */}
                   {searchText.trim().length >= 2 ? (
@@ -549,7 +540,7 @@ export default function Navbar() {
                                 type="button"
                                 onClick={() => {
                                   setSearchOpen(false);
-                                  router.push(`/category/${cat.slug || cat.id}`);
+                                  router.push(`/products/category/${encodeURIComponent(cat.slug || cat.name || cat.id)}`);
                                 }}
                                 className="px-3.5 py-1.5 rounded-lg text-xs font-bold border border-navy/30 dark:border-[#3B4252] text-navy dark:text-primary-300 hover:bg-navy/5 dark:hover:bg-[#252A34] transition-colors"
                               >
@@ -637,33 +628,6 @@ export default function Navbar() {
                       ) : null}
                     </div>
                   ) : null}
-
-                  {/* Popular Brands */}
-                  <div className="mt-6">
-                    <p className="text-navy dark:text-white font-bold mb-3">Popular Brands</p>
-                    <div
-                      ref={brandsScrollRef}
-                      onScroll={handleBrandsScroll}
-                      className="overflow-x-auto hide-scrollbar border border-surface-300 dark:border-[#2D3340] rounded-xl p-3 bg-surface-50/50 dark:bg-[#1E222A]"
-                    >
-                      <div className="flex flex-nowrap items-center gap-2 pb-1">
-                        {Array.from(new Set([...FAVORITE_BRANDS, ...brands])).map((brand) => (
-                          <button
-                            key={brand}
-                            type="button"
-                            onClick={() => {
-                              setSearchOpen(false);
-                              router.push(`/products?brand=${encodeURIComponent(brand)}`);
-                            }}
-                            className="group relative shrink-0 px-3.5 py-1.5 text-xs font-semibold text-surface-800 dark:text-surface-300 hover:text-navy dark:hover:text-white transition-colors"
-                          >
-                            <span>{brand}</span>
-                            <span className="absolute bottom-0 left-3.5 right-3.5 h-[1.5px] bg-navy dark:bg-primary-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
                 </div>
                 <button
                   type="button"
