@@ -138,7 +138,7 @@ function resolveImageUrl(url?: string): string {
   return `${BACKEND_BASE}/${url}`;
 }
 
-type Tab = 'dashboard' | 'orders' | 'products' | 'customers' | 'payments' | 'settings';
+type Tab = 'dashboard' | 'orders' | 'products' | 'customers' | 'payments' | 'settings' | 'homepage';
 
 function formatPkr(amount?: number | string): string {
   const num = Number(amount || 0);
@@ -530,6 +530,7 @@ function AdminMain() {
         {activeTab === 'customers' && <CustomersView />}
         {activeTab === 'payments' && <PaymentsView />}
         {activeTab === 'settings' && <SettingsView onLogout={handleLogout} />}
+        {activeTab === 'homepage' && <HomepageView />}
       </View>
 
       {/* Floating Liquid Glass Bottom Pill Navigation Bar */}
@@ -570,6 +571,12 @@ function AdminMain() {
             label="Settings"
             active={activeTab === 'settings'}
             onPress={() => setActiveTab('settings')}
+          />
+          <TabButton
+            icon="🏠"
+            label="Homepage"
+            active={activeTab === 'homepage'}
+            onPress={() => setActiveTab('homepage')}
           />
         </View>
       </View>
@@ -3623,6 +3630,26 @@ function SettingsView({ onLogout }: { onLogout: () => void }) {
         </TouchableOpacity>
       </View>
 
+      {/* Homepage Editor — dedicated tab shortcut */}
+      <View style={[styles.cardSection, themed.cardSection]}>
+        <Text style={[styles.cardSectionTitle, themed.cardSectionTitle]}>Homepage Section Images</Text>
+        <Text style={{ fontSize: 12, color: '#6B7280', marginBottom: 12, lineHeight: 17 }}>
+          Upload images for Category Cards, Collection Banners, and Showcase Cards. Use the 🏠 Homepage tab below.
+        </Text>
+        <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+          {[
+            { label: '🃏 Category Cards', ratio: '3:5' },
+            { label: '🗂️ Collections', ratio: '3:4' },
+            { label: '🖼️ Showcase', ratio: '4:3' },
+          ].map((item) => (
+            <View key={item.label} style={{ backgroundColor: '#F3F4F6', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 10, marginBottom: 4 }}>
+              <Text style={{ fontSize: 11, color: '#374151', fontWeight: '600' }}>{item.label}</Text>
+              <Text style={{ fontSize: 10, color: '#6B7280', marginTop: 1 }}>Ratio: {item.ratio}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
       {/* Store Branding — Logo */}
       <LogoManagerCard />
 
@@ -3699,6 +3726,426 @@ function SettingsView({ onLogout }: { onLogout: () => void }) {
         onClose={() => setShowBannerModal(false)}
         onUpdated={() => {}}
       />
+    </ScrollView>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HOMEPAGE VIEW — full editor for every homepage image section
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface HpCard {
+  id: string;
+  label: string;
+  subtitle?: string;
+  href?: string;
+  imageUrl: string;
+  badge?: string;
+  title?: string;
+  cta?: string;
+}
+
+interface HomepageSettings {
+  heroBanner: {
+    desktop: { url: string; publicId: string };
+    mobile: { url: string; publicId: string };
+    heading: string;
+    subheading: string;
+    buttonText: string;
+    buttonLink: string;
+  };
+  categoryCards: HpCard[];
+  collectionSections: HpCard[];
+  showcaseCards: HpCard[];
+}
+
+const HP_DEFAULTS: HomepageSettings = {
+  heroBanner: {
+    desktop: { url: '', publicId: '' },
+    mobile: { url: '', publicId: '' },
+    heading: 'Shop Our Newest Collection',
+    subheading: 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
+    buttonText: 'Shop Now',
+    buttonLink: '/products',
+  },
+  categoryCards: [
+    { id: 'two-piece',    label: 'TWO PIECE',            subtitle: "Men's",         href: '/products/category/two-piece',         imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788630568/ecommerce-products/qddnzjm16r9mljo8gihe.jpg' },
+    { id: 'three-piece',  label: 'THREE PIECE',           subtitle: "Men's",         href: '/products/category/three-piece',        imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614812/ecommerce-products/krkdpdqc0a4mf437lzr1.jpg' },
+    { id: 'wash-wear',    label: 'WASH & WEAR',           subtitle: "Men's",         href: '/products/category/unstitched-fabric',  imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788890028/ecommerce-products/gpj4ravzcy5jdfewlhx9.jpg' },
+    { id: 'stitched',     label: 'SHALWAR KAMEEZ & KURTA', subtitle: "Men's Stitched", href: '/products/category/stitched',           imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614550/ecommerce-products/miz32cpgjlvw0ejejplp.jpg' },
+  ],
+  collectionSections: [
+    { id: 'unstitched-collection', label: 'UNSTITCHED FABRIC COLLECTION', href: '/products/category/unstitched-fabric', imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg' },
+    { id: 'stitched-collection',   label: 'STITCHED KURTA COLLECTION',    href: '/products/category/stitched',          imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614550/ecommerce-products/miz32cpgjlvw0ejejplp.jpg' },
+    { id: 'waistcoat-collection',  label: 'WAISTCOAT & SUITS COLLECTION', href: '/products/category/waist-coats',       imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614812/ecommerce-products/krkdpdqc0a4mf437lzr1.jpg' },
+  ],
+  showcaseCards: [
+    { id: 'showcase-left',  badge: 'ROYAL HERITAGE',  title: 'Luxury Boski & Formal Fabrics', cta: 'DISCOVER COLLECTION', href: '/products/category/unstitched-fabric', imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788890028/ecommerce-products/gpj4ravzcy5jdfewlhx9.jpg', label: 'Showcase Left' },
+    { id: 'showcase-right', badge: 'SIGNATURE WEAR',  title: 'Summer Wash & Wear Edit',       cta: 'EXPLORE STYLES',     href: '/products/category/unstitched-fabric', imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788630568/ecommerce-products/qddnzjm16r9mljo8gihe.jpg', label: 'Showcase Right' },
+  ],
+};
+
+// ── Image Upload Helper used inside HomepageView ──────────────────────────
+function HomepageImageSlot({
+  label,
+  aspectRatio,
+  recommendedSize,
+  currentUrl,
+  onUploaded,
+  uploading,
+  onPressUpload,
+  directUrl,
+  onDirectUrlChange,
+  onApplyUrl,
+}: {
+  label: string;
+  aspectRatio: string;
+  recommendedSize: string;
+  currentUrl: string;
+  onUploaded: (url: string) => void;
+  uploading: boolean;
+  onPressUpload: () => void;
+  directUrl: string;
+  onDirectUrlChange: (v: string) => void;
+  onApplyUrl: () => void;
+}) {
+  const { themed, palette } = useTheme();
+  return (
+    <View style={[styles.hpSlotCard, themed.hpSlotCard]}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+        <Text style={[styles.hpSlotLabel, { color: palette.textPrimary }]}>{label}</Text>
+        <View style={styles.hpRatioBadge}>
+          <Text style={styles.hpRatioBadgeText}>{aspectRatio}</Text>
+        </View>
+      </View>
+      <Text style={{ fontSize: 10, color: palette.textMuted, marginBottom: 10 }}>Recommended: {recommendedSize}</Text>
+
+      {/* Live preview */}
+      <View style={[styles.hpPreviewBox, { aspectRatio: parseFloat(aspectRatio.replace(':', '/').split('/').join('/')) || 1 }]}>
+        {currentUrl ? (
+          <Image source={{ uri: currentUrl }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+        ) : (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#1a2540' }}>
+            <Text style={{ fontSize: 24 }}>🖼️</Text>
+            <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>No image</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Upload button */}
+      <TouchableOpacity
+        style={[styles.hpUploadBtn, uploading && { opacity: 0.6 }]}
+        onPress={onPressUpload}
+        disabled={uploading}
+        activeOpacity={0.8}
+      >
+        {uploading ? (
+          <ActivityIndicator color="#fff" size="small" />
+        ) : (
+          <Text style={styles.hpUploadBtnText}>📷 Upload from Gallery</Text>
+        )}
+      </TouchableOpacity>
+
+      {/* Paste URL */}
+      <View style={{ flexDirection: 'row', gap: 6, marginTop: 8 }}>
+        <TextInput
+          style={[styles.hpUrlInput, themed.hpUrlInput]}
+          placeholder="Paste image URL…"
+          placeholderTextColor={palette.textFaint}
+          value={directUrl}
+          onChangeText={onDirectUrlChange}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        <TouchableOpacity style={styles.hpApplyUrlBtn} onPress={onApplyUrl} activeOpacity={0.8}>
+          <Text style={styles.hpApplyUrlText}>Apply</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+// ── Accordion Section ─────────────────────────────────────────────────────
+function AccordionSection({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const { palette } = useTheme();
+  return (
+    <View style={{ marginBottom: 12 }}>
+      <TouchableOpacity
+        style={[styles.hpAccordionHeader, { backgroundColor: palette.surface, borderColor: palette.border }]}
+        onPress={() => setOpen(!open)}
+        activeOpacity={0.8}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: palette.textPrimary }}>{title}</Text>
+          <Text style={{ fontSize: 11, color: palette.textMuted, marginTop: 2 }}>{subtitle}</Text>
+        </View>
+        <Text style={{ fontSize: 18, color: palette.textSecondary }}>{open ? '▾' : '▸'}</Text>
+      </TouchableOpacity>
+      {open && <View style={{ paddingTop: 4 }}>{children}</View>}
+    </View>
+  );
+}
+
+function HomepageView() {
+  const { themed, palette } = useTheme();
+  const [settings, setSettings] = useState<HomepageSettings>(HP_DEFAULTS);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const [directUrls, setDirectUrls] = useState<Record<string, string>>({});
+
+  const loadSettings = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await api.get('/settings/homepage');
+      const d = res?.data;
+      if (d) {
+        setSettings({
+          heroBanner: { ...HP_DEFAULTS.heroBanner, ...(d.heroBanner || {}) },
+          categoryCards: d.categoryCards?.length ? d.categoryCards : HP_DEFAULTS.categoryCards,
+          collectionSections: d.collectionSections?.length ? d.collectionSections : HP_DEFAULTS.collectionSections,
+          showcaseCards: d.showcaseCards?.length ? d.showcaseCards : HP_DEFAULTS.showcaseCards,
+        });
+      }
+    } catch {
+      // Keep defaults
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadSettings(); }, [loadSettings]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Reshape for API: collectionSections needs title field
+      const payload = {
+        ...settings,
+        collectionSections: settings.collectionSections.map((s) => ({ ...s, title: s.label })),
+        showcaseCards: settings.showcaseCards.map((s) => ({ ...s, title: s.title || s.label, badge: s.badge || '', cta: s.cta || '' })),
+      };
+      await api.put('/settings/homepage', payload);
+      Alert.alert('✅ Saved', 'Homepage settings have been published to the storefront.');
+    } catch (e: any) {
+      Alert.alert('Save Failed', e?.message || 'Could not save homepage settings.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const pickAndUploadImage = async (slotKey: string, onUploaded: (url: string) => void) => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) { Alert.alert('Permission Required', 'Allow gallery access to upload images.'); return; }
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      quality: 0.88,
+    });
+    if (res.canceled || !res.assets?.[0]) return;
+    setUploadingKey(slotKey);
+    try {
+      const asset = res.assets[0];
+      const formData = new FormData();
+      const filename = asset.uri.split('/').pop() || 'hp-image.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+      formData.append('image', { uri: asset.uri, name: filename, type } as any);
+      const uploadRes = await api.postFormData('/settings/homepage/upload', formData);
+      const url = uploadRes?.data?.url || uploadRes?.url;
+      if (url) {
+        onUploaded(typeof url === 'string' ? url : url.url);
+        Alert.alert('Uploaded!', 'Image uploaded to Cloudinary. Tap Save & Publish to apply.');
+      } else {
+        Alert.alert('Notice', 'Image processed — tap Save & Publish to apply.');
+      }
+    } catch (e: any) {
+      Alert.alert('Upload Failed', e?.message || 'Could not upload image.');
+    } finally {
+      setUploadingKey(null);
+    }
+  };
+
+  const applyDirectUrl = (slotKey: string, url: string, onUploaded: (url: string) => void) => {
+    const trimmed = url.trim();
+    if (!trimmed) { Alert.alert('URL Required', 'Please paste a valid image URL.'); return; }
+    onUploaded(trimmed);
+    setDirectUrls((prev) => ({ ...prev, [slotKey]: '' }));
+    Alert.alert('URL Applied', 'Image URL applied. Tap Save & Publish to push live.');
+  };
+
+  const updateCardImage = (section: 'categoryCards' | 'collectionSections' | 'showcaseCards', id: string, url: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      [section]: (prev[section] as HpCard[]).map((c) => c.id === id ? { ...c, imageUrl: url } : c),
+    }));
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.tabLoader}>
+        <ActivityIndicator size="small" color="#0F1F3D" />
+        <Text style={[styles.tabLoaderText, themed.tabLoaderText]}>Loading homepage settings…</Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView style={styles.tabScrollView} contentContainerStyle={[styles.tabScrollContent, { paddingBottom: 120 }]}>
+      <View style={styles.sectionHeader}>
+        <Text style={[styles.sectionTitle, themed.sectionTitle]}>Homepage Editor</Text>
+        <Text style={[styles.sectionSubtitle, themed.sectionSubtitle]}>Manage all images shown on the homepage storefront</Text>
+      </View>
+
+      {/* ── HERO BANNER ── */}
+      <AccordionSection
+        title="🖼️ Hero Banner"
+        subtitle="Full-width top banner • Desktop (16:9) + Mobile (9:16)"
+      >
+        <HomepageImageSlot
+          label="Desktop Banner"
+          aspectRatio="16:9"
+          recommendedSize="1920 × 800 px"
+          currentUrl={settings.heroBanner.desktop.url}
+          uploading={uploadingKey === 'hero-desktop'}
+          onUploaded={(url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, desktop: { url, publicId: '' } } }))}
+          onPressUpload={() => pickAndUploadImage('hero-desktop', (url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, desktop: { url, publicId: '' } } })))}
+          directUrl={directUrls['hero-desktop'] || ''}
+          onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, 'hero-desktop': v }))}
+          onApplyUrl={() => applyDirectUrl('hero-desktop', directUrls['hero-desktop'] || '', (url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, desktop: { url, publicId: '' } } })))}
+        />
+        <HomepageImageSlot
+          label="Mobile Banner"
+          aspectRatio="9:16"
+          recommendedSize="800 × 1200 px"
+          currentUrl={settings.heroBanner.mobile.url}
+          uploading={uploadingKey === 'hero-mobile'}
+          onUploaded={(url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, mobile: { url, publicId: '' } } }))}
+          onPressUpload={() => pickAndUploadImage('hero-mobile', (url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, mobile: { url, publicId: '' } } })))}
+          directUrl={directUrls['hero-mobile'] || ''}
+          onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, 'hero-mobile': v }))}
+          onApplyUrl={() => applyDirectUrl('hero-mobile', directUrls['hero-mobile'] || '', (url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, mobile: { url, publicId: '' } } })))}
+        />
+
+        {/* Banner text fields */}
+        <View style={[styles.cardSection, themed.cardSection, { marginTop: 8 }]}>
+          <Text style={[styles.cardSectionTitle, themed.cardSectionTitle]}>Banner Text & CTA</Text>
+          {([
+            { key: 'heading', label: 'Headline', placeholder: 'Shop Our Newest Collection' },
+            { key: 'subheading', label: 'Subheading', placeholder: 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION' },
+            { key: 'buttonText', label: 'Button Text', placeholder: 'Shop Now' },
+            { key: 'buttonLink', label: 'Button Link', placeholder: '/products' },
+          ] as const).map(({ key, label, placeholder }) => (
+            <View key={key} style={[styles.inputGroup, themed.inputGroup]}>
+              <Text style={[styles.inputLabel, themed.inputLabel]}>{label}</Text>
+              <TextInput
+                style={[styles.textInput, themed.textInput]}
+                value={(settings.heroBanner as any)[key]}
+                onChangeText={(v) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, [key]: v } }))}
+                placeholder={placeholder}
+                placeholderTextColor={palette.textFaint}
+                autoCapitalize="none"
+              />
+            </View>
+          ))}
+        </View>
+      </AccordionSection>
+
+      {/* ── CATEGORY SHOWCASE CARDS (4 tall cards) ── */}
+      <AccordionSection
+        title="🃏 Category Showcase Cards"
+        subtitle="4 tall portrait cards • Aspect Ratio 3:5 (9:15)"
+      >
+        <View style={{ backgroundColor: '#FEF3C7', borderRadius: 8, padding: 10, marginBottom: 10 }}>
+          <Text style={{ fontSize: 11, color: '#92400E', fontWeight: '600' }}>📐 Recommended: 900 × 1500 px (3:5 portrait)</Text>
+          <Text style={{ fontSize: 10, color: '#92400E', marginTop: 3 }}>Use upright portrait photos of models in outfit. Avoid landscapes.</Text>
+        </View>
+        {settings.categoryCards.map((card) => (
+          <HomepageImageSlot
+            key={card.id}
+            label={`${card.subtitle || ""} ${card.label}`}
+            aspectRatio="3:5"
+            recommendedSize="900 × 1500 px"
+            currentUrl={card.imageUrl}
+            uploading={uploadingKey === `cat-${card.id}`}
+            onUploaded={(url) => updateCardImage('categoryCards', card.id, url)}
+            onPressUpload={() => pickAndUploadImage(`cat-${card.id}`, (url) => updateCardImage('categoryCards', card.id, url))}
+            directUrl={directUrls[`cat-${card.id}`] || ''}
+            onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`cat-${card.id}`]: v }))}
+            onApplyUrl={() => applyDirectUrl(`cat-${card.id}`, directUrls[`cat-${card.id}`] || '', (url) => updateCardImage('categoryCards', card.id, url))}
+          />
+        ))}
+      </AccordionSection>
+
+      {/* ── COLLECTION SECTION BANNERS (3 tall cards) ── */}
+      <AccordionSection
+        title="🗂️ Collection Section Banners"
+        subtitle="3 portrait collection cards • Aspect Ratio 3:4"
+      >
+        <View style={{ backgroundColor: '#EFF6FF', borderRadius: 8, padding: 10, marginBottom: 10 }}>
+          <Text style={{ fontSize: 11, color: '#1D4ED8', fontWeight: '600' }}>📐 Recommended: 900 × 1200 px (3:4 portrait)</Text>
+          <Text style={{ fontSize: 10, color: '#1D4ED8', marginTop: 3 }}>Unstitched Fabric, Stitched Kurta, Waistcoats & Suits</Text>
+        </View>
+        {settings.collectionSections.map((section) => (
+          <HomepageImageSlot
+            key={section.id}
+            label={section.label}
+            aspectRatio="3:4"
+            recommendedSize="900 × 1200 px"
+            currentUrl={section.imageUrl}
+            uploading={uploadingKey === `col-${section.id}`}
+            onUploaded={(url) => updateCardImage('collectionSections', section.id, url)}
+            onPressUpload={() => pickAndUploadImage(`col-${section.id}`, (url) => updateCardImage('collectionSections', section.id, url))}
+            directUrl={directUrls[`col-${section.id}`] || ''}
+            onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`col-${section.id}`]: v }))}
+            onApplyUrl={() => applyDirectUrl(`col-${section.id}`, directUrls[`col-${section.id}`] || '', (url) => updateCardImage('collectionSections', section.id, url))}
+          />
+        ))}
+      </AccordionSection>
+
+      {/* ── SHOWCASE CARDS (2 wide landscape cards) ── */}
+      <AccordionSection
+        title="🖼️ Showcase Cards"
+        subtitle="2 wide landscape feature cards • Aspect Ratio 4:3"
+      >
+        <View style={{ backgroundColor: '#F0FDF4', borderRadius: 8, padding: 10, marginBottom: 10 }}>
+          <Text style={{ fontSize: 11, color: '#065F46', fontWeight: '600' }}>📐 Recommended: 1200 × 900 px (4:3 landscape)</Text>
+          <Text style={{ fontSize: 10, color: '#065F46', marginTop: 3 }}>Boski/Fabric left card, Wash & Wear right card. Use wide scenic or flat-lay product shots.</Text>
+        </View>
+        {settings.showcaseCards.map((card) => (
+          <HomepageImageSlot
+            key={card.id}
+            label={`${card.badge || ''} — ${card.title || card.label}`}
+            aspectRatio="4:3"
+            recommendedSize="1200 × 900 px"
+            currentUrl={card.imageUrl}
+            uploading={uploadingKey === `sc-${card.id}`}
+            onUploaded={(url) => updateCardImage('showcaseCards', card.id, url)}
+            onPressUpload={() => pickAndUploadImage(`sc-${card.id}`, (url) => updateCardImage('showcaseCards', card.id, url))}
+            directUrl={directUrls[`sc-${card.id}`] || ''}
+            onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`sc-${card.id}`]: v }))}
+            onApplyUrl={() => applyDirectUrl(`sc-${card.id}`, directUrls[`sc-${card.id}`] || '', (url) => updateCardImage('showcaseCards', card.id, url))}
+          />
+        ))}
+      </AccordionSection>
+
+      {/* Save & Publish */}
+      <TouchableOpacity
+        style={[styles.primaryButton, saving && { opacity: 0.7 }, { marginTop: 8 }]}
+        onPress={handleSave}
+        disabled={saving}
+      >
+        {saving ? (
+          <ActivityIndicator color="#FFFFFF" />
+        ) : (
+          <Text style={styles.primaryButtonText}>🚀 Save & Publish to Storefront</Text>
+        )}
+      </TouchableOpacity>
+
+      <Text style={{ fontSize: 11, color: palette.textMuted, textAlign: 'center', marginTop: 12 }}>
+        Changes are applied immediately on the live storefront after saving.
+      </Text>
     </ScrollView>
   );
 }
@@ -4882,7 +5329,87 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 
-  // ── Store Logo slots & Admin Accounts ──────────────────────────────
+  // ── Homepage Editor Styles ──────────────────────────────────────────
+  hpSlotCard: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 14,
+    marginBottom: 12,
+  },
+  hpSlotLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    flex: 1,
+    paddingRight: 8,
+  },
+  hpRatioBadge: {
+    backgroundColor: '#0F1F3D',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  hpRatioBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  hpPreviewBox: {
+    width: '100%',
+    backgroundColor: '#1a2540',
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  hpUploadBtn: {
+    backgroundColor: '#B91C2B',
+    paddingVertical: 10,
+    borderRadius: 9999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hpUploadBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  hpUrlInput: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 11,
+    color: '#111827',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  hpApplyUrlBtn: {
+    backgroundColor: '#0F1F3D',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hpApplyUrlText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  hpAccordionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 0,
+  },
+
+
   logoSlotRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -7817,5 +8344,9 @@ function createThemedStyles(p: ThemePalette) {
     directUrlAddBtn: { backgroundColor: p.navy },
     addPillMiniBtn: { backgroundColor: p.navy },
     addAnotherPhotoPill: { backgroundColor: p.navy },
+
+    // Homepage Editor dark-mode overrides
+    hpSlotCard: { backgroundColor: p.surface, borderColor: p.border },
+    hpUrlInput: { backgroundColor: p.container, borderColor: p.borderStrong, color: p.textPrimary },
   });
 }

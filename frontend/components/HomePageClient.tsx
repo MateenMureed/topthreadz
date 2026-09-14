@@ -14,6 +14,78 @@ import { productService } from '@/services/product.service';
 import api from '@/services/api';
 import ProductCard from '@/components/ProductCard';
 
+// ── Default fallback values (used when API hasn't been configured yet) ──────
+const DEFAULTS = {
+  categoryCards: [
+    {
+      id: 'two-piece',
+      label: 'TWO PIECE',
+      subtitle: "Men's",
+      href: '/products/category/two-piece',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788630568/ecommerce-products/qddnzjm16r9mljo8gihe.jpg',
+    },
+    {
+      id: 'three-piece',
+      label: 'THREE PIECE',
+      subtitle: "Men's",
+      href: '/products/category/three-piece',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614812/ecommerce-products/krkdpdqc0a4mf437lzr1.jpg',
+    },
+    {
+      id: 'wash-wear',
+      label: 'WASH & WEAR',
+      subtitle: "Men's",
+      href: '/products/category/unstitched-fabric',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788890028/ecommerce-products/gpj4ravzcy5jdfewlhx9.jpg',
+    },
+    {
+      id: 'stitched',
+      label: 'SHALWAR KAMEEZ & KURTA',
+      subtitle: "Men's Stitched",
+      href: '/products/category/stitched',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614550/ecommerce-products/miz32cpgjlvw0ejejplp.jpg',
+    },
+  ],
+  collectionSections: [
+    {
+      id: 'unstitched-collection',
+      title: 'UNSTITCHED FABRIC COLLECTION',
+      href: '/products/category/unstitched-fabric',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg',
+    },
+    {
+      id: 'stitched-collection',
+      title: 'STITCHED KURTA COLLECTION',
+      href: '/products/category/stitched',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614550/ecommerce-products/miz32cpgjlvw0ejejplp.jpg',
+    },
+    {
+      id: 'waistcoat-collection',
+      title: 'WAISTCOAT & SUITS COLLECTION',
+      href: '/products/category/waist-coats',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614812/ecommerce-products/krkdpdqc0a4mf437lzr1.jpg',
+    },
+  ],
+  showcaseCards: [
+    {
+      id: 'showcase-left',
+      badge: 'ROYAL HERITAGE',
+      title: 'Luxury Boski & Formal Fabrics',
+      cta: 'DISCOVER COLLECTION',
+      href: '/products/category/unstitched-fabric',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788890028/ecommerce-products/gpj4ravzcy5jdfewlhx9.jpg',
+    },
+    {
+      id: 'showcase-right',
+      badge: 'SIGNATURE WEAR',
+      title: 'Summer Wash & Wear Edit',
+      cta: 'EXPLORE STYLES',
+      href: '/products/category/unstitched-fabric',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788630568/ecommerce-products/qddnzjm16r9mljo8gihe.jpg',
+    },
+  ],
+};
+
 interface HomePageClientProps {
   initialCategories?: any[];
   initialProducts?: any[];
@@ -38,13 +110,29 @@ export default function HomePageClient({
     retry: false,
   });
 
+  // Fetch live homepage settings from admin API
+  const { data: homepageSettingsResponse } = useQuery({
+    queryKey: ['homepage', 'settings'],
+    queryFn: () => api.get('/settings/homepage').then((r) => r.data),
+    staleTime: 5 * 60 * 1000, // cache for 5 min
+    retry: false,
+  });
+
   const products = productsResponse?.data?.products || initialProducts || [];
   const categories = categoriesResponse?.data || initialCategories || [];
+
+  // Merge API settings with defaults (API values override defaults)
+  const hpSettings = homepageSettingsResponse?.data || {};
+  const categoryCards: typeof DEFAULTS.categoryCards =
+    hpSettings.categoryCards?.length ? hpSettings.categoryCards : DEFAULTS.categoryCards;
+  const collectionSections: typeof DEFAULTS.collectionSections =
+    hpSettings.collectionSections?.length ? hpSettings.collectionSections : DEFAULTS.collectionSections;
+  const showcaseCards: typeof DEFAULTS.showcaseCards =
+    hpSettings.showcaseCards?.length ? hpSettings.showcaseCards : DEFAULTS.showcaseCards;
 
   // Pick top 4 products for "BEST SELLER" section matching Diners 4-column row
   const bestSellers = useMemo(() => {
     if (!products.length) return [];
-    // Prioritize featured, trending, or discounted products
     const featured = products.filter((p: any) => p.featured || p.trending || (p.discount && p.discount > 0));
     if (featured.length >= 4) return featured.slice(0, 4);
     return products.slice(0, 4);
@@ -107,189 +195,66 @@ export default function HomePageClient({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-5 md:gap-6">
-          {/* Card 1: Unstitched Fabric Collection */}
-          <Link
-            href="/products/category/unstitched-fabric"
-            className="group relative block w-full overflow-hidden bg-[#F4F2EE] cursor-pointer"
-          >
-            <div className="relative aspect-[3/4] w-full overflow-hidden flex items-center justify-center">
-              <Image
-                src="https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg"
-                alt="Unstitched Fabric Collection"
-                fill
-                sizes="(max-width: 768px) 100vw, 33vw"
-                className="object-contain object-center p-2"
-              />
-              <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-200 pointer-events-none" />
-              {/* Bottom black bar banner matching Diners */}
-              <div className="absolute inset-x-0 bottom-0 bg-black/85 backdrop-blur-[2px] py-3 sm:py-3.5 px-4 text-center transition-colors duration-200">
-                <h3 className="text-white text-xs sm:text-[13px] font-bold tracking-[0.16em] uppercase">
-                  UNSTITCHED FABRIC COLLECTION
-                </h3>
+          {collectionSections.map((section) => (
+            <Link
+              key={section.id}
+              href={section.href}
+              className="group relative block w-full overflow-hidden bg-[#F4F2EE] cursor-pointer"
+            >
+              <div className="relative aspect-[3/4] w-full overflow-hidden flex items-center justify-center">
+                <Image
+                  src={section.imageUrl}
+                  alt={section.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-contain object-center p-2"
+                />
+                <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-200 pointer-events-none" />
+                {/* Bottom black bar banner matching Diners */}
+                <div className="absolute inset-x-0 bottom-0 bg-black/85 backdrop-blur-[2px] py-3 sm:py-3.5 px-4 text-center transition-colors duration-200">
+                  <h3 className="text-white text-xs sm:text-[13px] font-bold tracking-[0.16em] uppercase">
+                    {section.title}
+                  </h3>
+                </div>
               </div>
-            </div>
-          </Link>
-
-          {/* Card 2: Stitched Kurta Collection */}
-          <Link
-            href="/products/category/stitched"
-            className="group relative block w-full overflow-hidden bg-[#F4F2EE] cursor-pointer"
-          >
-            <div className="relative aspect-[3/4] w-full overflow-hidden flex items-center justify-center">
-              <Image
-                src="https://res.cloudinary.com/fmxzphak/image/upload/v1788614550/ecommerce-products/miz32cpgjlvw0ejejplp.jpg"
-                alt="Stitched Kurta Collection"
-                fill
-                sizes="(max-width: 768px) 100vw, 33vw"
-                className="object-contain object-center p-2"
-              />
-              <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-200 pointer-events-none" />
-              {/* Bottom black bar banner matching Diners */}
-              <div className="absolute inset-x-0 bottom-0 bg-black/85 backdrop-blur-[2px] py-3 sm:py-3.5 px-4 text-center transition-colors duration-200">
-                <h3 className="text-white text-xs sm:text-[13px] font-bold tracking-[0.16em] uppercase">
-                  STITCHED KURTA COLLECTION
-                </h3>
-              </div>
-            </div>
-          </Link>
-
-          {/* Card 3: Waistcoat & Suits Collection */}
-          <Link
-            href="/products/category/waist-coats"
-            className="group relative block w-full overflow-hidden bg-[#F4F2EE] cursor-pointer"
-          >
-            <div className="relative aspect-[3/4] w-full overflow-hidden flex items-center justify-center">
-              <Image
-                src="https://res.cloudinary.com/fmxzphak/image/upload/v1788614812/ecommerce-products/krkdpdqc0a4mf437lzr1.jpg"
-                alt="Waistcoat & Suits Collection"
-                fill
-                sizes="(max-width: 768px) 100vw, 33vw"
-                className="object-contain object-center p-2"
-              />
-              <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-200 pointer-events-none" />
-              {/* Bottom black bar banner matching Diners */}
-              <div className="absolute inset-x-0 bottom-0 bg-black/85 backdrop-blur-[2px] py-3 sm:py-3.5 px-4 text-center transition-colors duration-200">
-                <h3 className="text-white text-xs sm:text-[13px] font-bold tracking-[0.16em] uppercase">
-                  WAISTCOAT &amp; SUITS COLLECTION
-                </h3>
-              </div>
-            </div>
-          </Link>
+            </Link>
+          ))}
         </div>
       </section>
 
       {/* ─── 3. SUB-CATEGORIES SHOWCASE (4 Tall Columns matching Diners) ─── */}
       <section className="w-full max-w-[1536px] mx-auto px-3 sm:px-6 lg:px-8 py-10 sm:py-14 border-b border-surface-200/50">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5">
-          {/* Sub-Card 1: Men's BOSKI */}
-          <Link
-            href="/products/category/unstitched-fabric"
-            className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
-          >
-            <div className="relative aspect-[9/15] w-full overflow-hidden flex items-center justify-center">
-              <Image
-                src="https://res.cloudinary.com/fmxzphak/image/upload/v1788890028/ecommerce-products/gpj4ravzcy5jdfewlhx9.jpg"
-                alt="Men's Boski"
-                fill
-                sizes="(max-width: 640px) 50vw, 25vw"
-                className="object-contain object-center p-2"
-              />
-              {/* Dark subtle gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
+          {categoryCards.map((card) => (
+            <Link
+              key={card.id}
+              href={card.href}
+              className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
+            >
+              <div className="relative aspect-[9/15] w-full overflow-hidden flex items-center justify-center">
+                <Image
+                  src={card.imageUrl}
+                  alt={card.label}
+                  fill
+                  sizes="(max-width: 640px) 50vw, 25vw"
+                  className="object-contain object-center p-2"
+                />
+                {/* Dark subtle gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
 
-              {/* Typography & SHOP NOW pill button */}
-              <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5 flex flex-col items-center text-center">
-                <span className="font-serif italic text-xs sm:text-sm text-white/90">Men&apos;s</span>
-                <h3 className="font-serif text-lg sm:text-2xl md:text-3xl text-white uppercase tracking-wider font-light mt-0.5 drop-shadow-sm">
-                  BOSKI
-                </h3>
-                <span className="mt-3 sm:mt-4 inline-flex items-center justify-center bg-white text-black group-hover:bg-[#1E2229] group-hover:text-white px-5 sm:px-6 py-1.5 sm:py-2 rounded-full text-[10px] sm:text-[11px] font-bold tracking-widest uppercase transition-all shadow-sm">
-                  SHOP NOW
-                </span>
+                {/* Typography & SHOP NOW pill button */}
+                <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5 flex flex-col items-center text-center">
+                  <span className="font-serif italic text-xs sm:text-sm text-white/90">{card.subtitle}</span>
+                  <h3 className="font-serif text-sm sm:text-base md:text-lg lg:text-xl text-white uppercase tracking-wider font-light mt-0.5 drop-shadow-sm leading-tight">
+                    {card.label}
+                  </h3>
+                  <span className="mt-3 sm:mt-4 inline-flex items-center justify-center bg-white text-black group-hover:bg-[#1E2229] group-hover:text-white px-5 sm:px-6 py-1.5 sm:py-2 rounded-full text-[10px] sm:text-[11px] font-bold tracking-widest uppercase transition-all shadow-sm">
+                    SHOP NOW
+                  </span>
+                </div>
               </div>
-            </div>
-          </Link>
-
-          {/* Sub-Card 2: Men's WASH & WEAR */}
-          <Link
-            href="/products/category/unstitched-fabric"
-            className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
-          >
-            <div className="relative aspect-[9/15] w-full overflow-hidden flex items-center justify-center">
-              <Image
-                src="https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg"
-                alt="Men's Wash & Wear"
-                fill
-                sizes="(max-width: 640px) 50vw, 25vw"
-                className="object-contain object-center p-2"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
-
-              <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5 flex flex-col items-center text-center">
-                <span className="font-serif italic text-xs sm:text-sm text-white/90">Men&apos;s</span>
-                <h3 className="font-serif text-lg sm:text-2xl md:text-3xl text-white uppercase tracking-wider font-light mt-0.5 drop-shadow-sm">
-                  WASH &amp; WEAR
-                </h3>
-                <span className="mt-3 sm:mt-4 inline-flex items-center justify-center bg-white text-black group-hover:bg-[#1E2229] group-hover:text-white px-5 sm:px-6 py-1.5 sm:py-2 rounded-full text-[10px] sm:text-[11px] font-bold tracking-widest uppercase transition-all shadow-sm">
-                  SHOP NOW
-                </span>
-              </div>
-            </div>
-          </Link>
-
-          {/* Sub-Card 3: Men's KURTA PAJAMA */}
-          <Link
-            href="/products/category/stitched"
-            className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
-          >
-            <div className="relative aspect-[9/15] w-full overflow-hidden flex items-center justify-center">
-              <Image
-                src="https://res.cloudinary.com/fmxzphak/image/upload/v1788614550/ecommerce-products/miz32cpgjlvw0ejejplp.jpg"
-                alt="Men's Kurta Pajama"
-                fill
-                sizes="(max-width: 640px) 50vw, 25vw"
-                className="object-contain object-center p-2"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
-
-              <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5 flex flex-col items-center text-center">
-                <span className="font-serif italic text-xs sm:text-sm text-white/90">Men&apos;s</span>
-                <h3 className="font-serif text-lg sm:text-2xl md:text-3xl text-white uppercase tracking-wider font-light mt-0.5 drop-shadow-sm">
-                  KURTA
-                </h3>
-                <span className="mt-3 sm:mt-4 inline-flex items-center justify-center bg-white text-black group-hover:bg-[#1E2229] group-hover:text-white px-5 sm:px-6 py-1.5 sm:py-2 rounded-full text-[10px] sm:text-[11px] font-bold tracking-widest uppercase transition-all shadow-sm">
-                  SHOP NOW
-                </span>
-              </div>
-            </div>
-          </Link>
-
-          {/* Sub-Card 4: Kids SECTION */}
-          <Link
-            href="/products/category/kids-section"
-            className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
-          >
-            <div className="relative aspect-[9/15] w-full overflow-hidden flex items-center justify-center">
-              <Image
-                src="https://res.cloudinary.com/fmxzphak/image/upload/v1788295698/ecommerce-products/dtxydgwby9kpeoo6w0qu.jpg"
-                alt="Kids Section"
-                fill
-                sizes="(max-width: 640px) 50vw, 25vw"
-                className="object-contain object-center p-2"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
-
-              <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5 flex flex-col items-center text-center">
-                <span className="font-serif italic text-xs sm:text-sm text-white/90">Boys</span>
-                <h3 className="font-serif text-lg sm:text-2xl md:text-3xl text-white uppercase tracking-wider font-light mt-0.5 drop-shadow-sm">
-                  EASTERN
-                </h3>
-                <span className="mt-3 sm:mt-4 inline-flex items-center justify-center bg-white text-black group-hover:bg-[#1E2229] group-hover:text-white px-5 sm:px-6 py-1.5 sm:py-2 rounded-full text-[10px] sm:text-[11px] font-bold tracking-widest uppercase transition-all shadow-sm">
-                  SHOP NOW
-                </span>
-              </div>
-            </div>
-          </Link>
+            </Link>
+          ))}
         </div>
 
         {/* Diners Style Outlined "ALL CATEGORIES" button */}
@@ -306,63 +271,36 @@ export default function HomePageClient({
       {/* ─── 4. ASYMMETRIC 2-CARD LARGE SHOWCASE GRID matching Diners ─── */}
       <section className="w-full max-w-[1536px] mx-auto px-3 sm:px-6 lg:px-8 py-10 sm:py-14 border-b border-surface-200/50">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-5 md:gap-6">
-          {/* Left Large Showcase: Pure Boski Luxury */}
-          <Link
-            href="/products/category/unstitched-fabric"
-            className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
-          >
-            <div className="relative aspect-[4/3] w-full overflow-hidden flex items-center justify-center">
-              <Image
-                src="https://res.cloudinary.com/fmxzphak/image/upload/v1788890028/ecommerce-products/gpj4ravzcy5jdfewlhx9.jpg"
-                alt="Luxury Boski Fabrics"
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-contain object-center p-4"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-              <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8 text-white">
-                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.26em] text-[#E8C86A]">
-                  ROYAL HERITAGE
-                </span>
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-serif mt-1 font-normal tracking-wide">
-                  Luxury Boski &amp; Formal Fabrics
-                </h3>
-                <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold tracking-widest uppercase text-white/90 group-hover:text-white transition-colors">
-                  <span>DISCOVER COLLECTION</span>
-                  <span className="transform group-hover:translate-x-1 transition-transform">→</span>
-                </span>
+          {showcaseCards.map((card) => (
+            <Link
+              key={card.id}
+              href={card.href}
+              className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
+            >
+              <div className="relative aspect-[4/3] w-full overflow-hidden flex items-center justify-center">
+                <Image
+                  src={card.imageUrl}
+                  alt={card.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-contain object-center p-4"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8 text-white">
+                  <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.26em] text-[#E8C86A]">
+                    {card.badge}
+                  </span>
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-serif mt-1 font-normal tracking-wide">
+                    {card.title}
+                  </h3>
+                  <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold tracking-widest uppercase text-white/90 group-hover:text-white transition-colors">
+                    <span>{card.cta}</span>
+                    <span className="transform group-hover:translate-x-1 transition-transform">→</span>
+                  </span>
+                </div>
               </div>
-            </div>
-          </Link>
-
-          {/* Right Large Showcase: Premium Wash & Wear */}
-          <Link
-            href="/products/category/unstitched-fabric"
-            className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
-          >
-            <div className="relative aspect-[4/3] w-full overflow-hidden flex items-center justify-center">
-              <Image
-                src="https://res.cloudinary.com/fmxzphak/image/upload/v1788630568/ecommerce-products/qddnzjm16r9mljo8gihe.jpg"
-                alt="Summer Wash & Wear"
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-contain object-center p-4"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-              <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8 text-white">
-                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.26em] text-[#E8C86A]">
-                  SIGNATURE WEAR
-                </span>
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-serif mt-1 font-normal tracking-wide">
-                  Summer Wash &amp; Wear Edit
-                </h3>
-                <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold tracking-widest uppercase text-white/90 group-hover:text-white transition-colors">
-                  <span>EXPLORE STYLES</span>
-                  <span className="transform group-hover:translate-x-1 transition-transform">→</span>
-                </span>
-              </div>
-            </div>
-          </Link>
+            </Link>
+          ))}
         </div>
       </section>
 

@@ -636,6 +636,158 @@ export class AdminController {
       res.json({ success: true, data: payload });
     } catch (error) { next(error); }
   }
+
+  // ── Homepage Settings ─────────────────────────────────────────────────────
+  // Stores all homepage section images in a single JSON blob under the key
+  // "homepage_settings" in the SiteSetting table. The frontend reads this
+  // on every page load and falls back to built-in Cloudinary URLs.
+
+  static readonly DEFAULT_HOMEPAGE_SETTINGS = {
+    heroBanner: {
+      desktop: { url: '', publicId: '' },
+      mobile: { url: '', publicId: '' },
+      heading: 'Shop Our Newest Collection',
+      subheading: 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
+      buttonText: 'Shop Now',
+      buttonLink: '/products',
+    },
+    categoryCards: [
+      {
+        id: 'two-piece',
+        label: 'TWO PIECE',
+        subtitle: "Men's",
+        href: '/products/category/two-piece',
+        imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788630568/ecommerce-products/qddnzjm16r9mljo8gihe.jpg',
+      },
+      {
+        id: 'three-piece',
+        label: 'THREE PIECE',
+        subtitle: "Men's",
+        href: '/products/category/three-piece',
+        imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614812/ecommerce-products/krkdpdqc0a4mf437lzr1.jpg',
+      },
+      {
+        id: 'wash-wear',
+        label: 'WASH & WEAR',
+        subtitle: "Men's",
+        href: '/products/category/unstitched-fabric',
+        imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788890028/ecommerce-products/gpj4ravzcy5jdfewlhx9.jpg',
+      },
+      {
+        id: 'stitched',
+        label: 'SHALWAR KAMEEZ & KURTA',
+        subtitle: "Men's Stitched",
+        href: '/products/category/stitched',
+        imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614550/ecommerce-products/miz32cpgjlvw0ejejplp.jpg',
+      },
+    ],
+    collectionSections: [
+      {
+        id: 'unstitched-collection',
+        title: 'UNSTITCHED FABRIC COLLECTION',
+        href: '/products/category/unstitched-fabric',
+        imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg',
+      },
+      {
+        id: 'stitched-collection',
+        title: 'STITCHED KURTA COLLECTION',
+        href: '/products/category/stitched',
+        imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614550/ecommerce-products/miz32cpgjlvw0ejejplp.jpg',
+      },
+      {
+        id: 'waistcoat-collection',
+        title: 'WAISTCOAT & SUITS COLLECTION',
+        href: '/products/category/waist-coats',
+        imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614812/ecommerce-products/krkdpdqc0a4mf437lzr1.jpg',
+      },
+    ],
+    showcaseCards: [
+      {
+        id: 'showcase-left',
+        badge: 'ROYAL HERITAGE',
+        title: 'Luxury Boski & Formal Fabrics',
+        cta: 'DISCOVER COLLECTION',
+        href: '/products/category/unstitched-fabric',
+        imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788890028/ecommerce-products/gpj4ravzcy5jdfewlhx9.jpg',
+      },
+      {
+        id: 'showcase-right',
+        badge: 'SIGNATURE WEAR',
+        title: 'Summer Wash & Wear Edit',
+        cta: 'EXPLORE STYLES',
+        href: '/products/category/unstitched-fabric',
+        imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788630568/ecommerce-products/qddnzjm16r9mljo8gihe.jpg',
+      },
+    ],
+  };
+
+  async getHomepageSettings(_req: Request, res: Response, next: NextFunction) {
+    try {
+      const setting = await prisma.siteSetting.findUnique({ where: { key: 'homepage_settings' } });
+      const stored = setting ? JSON.parse(setting.value) : {};
+      // Deep-merge stored over defaults so missing keys always have a fallback
+      const defaults = AdminController.DEFAULT_HOMEPAGE_SETTINGS;
+      const data = {
+        heroBanner: { ...defaults.heroBanner, ...(stored.heroBanner || {}) },
+        categoryCards: stored.categoryCards?.length ? stored.categoryCards : defaults.categoryCards,
+        collectionSections: stored.collectionSections?.length ? stored.collectionSections : defaults.collectionSections,
+        showcaseCards: stored.showcaseCards?.length ? stored.showcaseCards : defaults.showcaseCards,
+      };
+      res.json({ success: true, data });
+    } catch (error) {
+      // Always return defaults on error so the frontend never breaks
+      res.json({ success: true, data: AdminController.DEFAULT_HOMEPAGE_SETTINGS });
+    }
+  }
+
+  async updateHomepageSettings(req: Request, res: Response, next: NextFunction) {
+    try {
+      const body = req.body || {};
+      const defaults = AdminController.DEFAULT_HOMEPAGE_SETTINGS;
+      const payload = {
+        heroBanner: {
+          ...defaults.heroBanner,
+          ...(body.heroBanner || {}),
+        },
+        categoryCards: Array.isArray(body.categoryCards) && body.categoryCards.length
+          ? body.categoryCards
+          : defaults.categoryCards,
+        collectionSections: Array.isArray(body.collectionSections) && body.collectionSections.length
+          ? body.collectionSections
+          : defaults.collectionSections,
+        showcaseCards: Array.isArray(body.showcaseCards) && body.showcaseCards.length
+          ? body.showcaseCards
+          : defaults.showcaseCards,
+      };
+      await prisma.siteSetting.upsert({
+        where: { key: 'homepage_settings' },
+        update: { value: JSON.stringify(payload) },
+        create: { key: 'homepage_settings', value: JSON.stringify(payload) },
+      });
+      res.json({ success: true, data: payload });
+    } catch (error) { next(error); }
+  }
+
+  async uploadHomepageImage(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.file) {
+        res.status(400).json({ success: false, message: 'No image file provided.' });
+        return;
+      }
+      if (!isCloudinaryConfigured()) {
+        res.status(503).json({ success: false, message: 'Cloudinary is not configured on this server.' });
+        return;
+      }
+      const result = await uploadToCloudinary(req.file.buffer, 'homepage-settings');
+      res.json({
+        success: true,
+        data: {
+          url: result.url,
+          publicId: result.publicId,
+        },
+      });
+    } catch (error) { next(error); }
+  }
 }
 
 export const adminController = new AdminController();

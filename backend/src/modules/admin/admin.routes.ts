@@ -11,6 +11,8 @@ router.get('/settings/hero-banner-mobile', adminController.getHeroBannerMobile.b
 router.get('/settings/hero-banner-text', adminController.getHeroBannerText.bind(adminController));
 router.get('/hero-banners', adminController.listHeroBanners.bind(adminController));
 router.get('/settings/store', adminController.getStoreSettings.bind(adminController));
+// Homepage settings — public so the frontend can read without auth
+router.get('/settings/homepage', adminController.getHomepageSettings.bind(adminController));
 
 // ── Admin-only routes ────────────────────────────────────────────────
 router.use(authenticateAdmin, authorize('ADMIN'));
@@ -55,4 +57,9 @@ router.patch('/hero-banners/:id', upload.single('image'), adminController.update
 router.delete('/hero-banners/:id', adminController.removeHeroBanner.bind(adminController));
 router.put('/settings/store', adminController.updateStoreSettings.bind(adminController));
 
+// Homepage settings (admin write)
+router.put('/settings/homepage', adminController.updateHomepageSettings.bind(adminController));
+router.post('/settings/homepage/upload', upload.single('image'), adminController.uploadHomepageImage.bind(adminController));
+
 export default router;
+
