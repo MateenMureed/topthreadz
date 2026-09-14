@@ -112,17 +112,17 @@ export default function HomePageClient({
             href="/products/category/unstitched-fabric"
             className="group relative block w-full overflow-hidden bg-[#F4F2EE] cursor-pointer"
           >
-            <div className="relative aspect-[3/4] w-full overflow-hidden">
+            <div className="relative aspect-[3/4] w-full overflow-hidden flex items-center justify-center">
               <Image
                 src="https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg"
                 alt="Unstitched Fabric Collection"
                 fill
                 sizes="(max-width: 768px) 100vw, 33vw"
-                className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+                className="object-contain object-center p-2"
               />
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-300" />
+              <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-200 pointer-events-none" />
               {/* Bottom black bar banner matching Diners */}
-              <div className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-[2px] py-3 sm:py-3.5 px-4 text-center transition-colors duration-200 group-hover:bg-black/95">
+              <div className="absolute inset-x-0 bottom-0 bg-black/85 backdrop-blur-[2px] py-3 sm:py-3.5 px-4 text-center transition-colors duration-200">
                 <h3 className="text-white text-xs sm:text-[13px] font-bold tracking-[0.16em] uppercase">
                   UNSTITCHED FABRIC COLLECTION
                 </h3>
@@ -135,17 +135,17 @@ export default function HomePageClient({
             href="/products/category/stitched"
             className="group relative block w-full overflow-hidden bg-[#F4F2EE] cursor-pointer"
           >
-            <div className="relative aspect-[3/4] w-full overflow-hidden">
+            <div className="relative aspect-[3/4] w-full overflow-hidden flex items-center justify-center">
               <Image
                 src="https://res.cloudinary.com/fmxzphak/image/upload/v1788614550/ecommerce-products/miz32cpgjlvw0ejejplp.jpg"
                 alt="Stitched Kurta Collection"
                 fill
                 sizes="(max-width: 768px) 100vw, 33vw"
-                className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+                className="object-contain object-center p-2"
               />
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-300" />
+              <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-200 pointer-events-none" />
               {/* Bottom black bar banner matching Diners */}
-              <div className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-[2px] py-3 sm:py-3.5 px-4 text-center transition-colors duration-200 group-hover:bg-black/95">
+              <div className="absolute inset-x-0 bottom-0 bg-black/85 backdrop-blur-[2px] py-3 sm:py-3.5 px-4 text-center transition-colors duration-200">
                 <h3 className="text-white text-xs sm:text-[13px] font-bold tracking-[0.16em] uppercase">
                   STITCHED KURTA COLLECTION
                 </h3>
@@ -158,17 +158,17 @@ export default function HomePageClient({
             href="/products/category/waist-coats"
             className="group relative block w-full overflow-hidden bg-[#F4F2EE] cursor-pointer"
           >
-            <div className="relative aspect-[3/4] w-full overflow-hidden">
+            <div className="relative aspect-[3/4] w-full overflow-hidden flex items-center justify-center">
               <Image
                 src="https://res.cloudinary.com/fmxzphak/image/upload/v1788614812/ecommerce-products/krkdpdqc0a4mf437lzr1.jpg"
                 alt="Waistcoat & Suits Collection"
                 fill
                 sizes="(max-width: 768px) 100vw, 33vw"
-                className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+                className="object-contain object-center p-2"
               />
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-300" />
+              <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-200 pointer-events-none" />
               {/* Bottom black bar banner matching Diners */}
-              <div className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-[2px] py-3 sm:py-3.5 px-4 text-center transition-colors duration-200 group-hover:bg-black/95">
+              <div className="absolute inset-x-0 bottom-0 bg-black/85 backdrop-blur-[2px] py-3 sm:py-3.5 px-4 text-center transition-colors duration-200">
                 <h3 className="text-white text-xs sm:text-[13px] font-bold tracking-[0.16em] uppercase">
                   WAISTCOAT &amp; SUITS COLLECTION
                 </h3>
@@ -184,18 +184,18 @@ export default function HomePageClient({
           {/* Sub-Card 1: Men's BOSKI */}
           <Link
             href="/products/category/unstitched-fabric"
-            className="group relative block w-full overflow-hidden bg-[#F4F2EE] cursor-pointer"
+            className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
           >
-            <div className="relative aspect-[9/15] w-full overflow-hidden">
+            <div className="relative aspect-[9/15] w-full overflow-hidden flex items-center justify-center">
               <Image
                 src="https://res.cloudinary.com/fmxzphak/image/upload/v1788890028/ecommerce-products/gpj4ravzcy5jdfewlhx9.jpg"
                 alt="Men's Boski"
                 fill
                 sizes="(max-width: 640px) 50vw, 25vw"
-                className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+                className="object-contain object-center p-2"
               />
               {/* Dark subtle gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
 
               {/* Typography & SHOP NOW pill button */}
               <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5 flex flex-col items-center text-center">
@@ -213,17 +213,17 @@ export default function HomePageClient({
           {/* Sub-Card 2: Men's WASH & WEAR */}
           <Link
             href="/products/category/unstitched-fabric"
-            className="group relative block w-full overflow-hidden bg-[#F4F2EE] cursor-pointer"
+            className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
           >
-            <div className="relative aspect-[9/15] w-full overflow-hidden">
+            <div className="relative aspect-[9/15] w-full overflow-hidden flex items-center justify-center">
               <Image
                 src="https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg"
                 alt="Men's Wash & Wear"
                 fill
                 sizes="(max-width: 640px) 50vw, 25vw"
-                className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+                className="object-contain object-center p-2"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
 
               <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5 flex flex-col items-center text-center">
                 <span className="font-serif italic text-xs sm:text-sm text-white/90">Men&apos;s</span>
@@ -240,17 +240,17 @@ export default function HomePageClient({
           {/* Sub-Card 3: Men's KURTA PAJAMA */}
           <Link
             href="/products/category/stitched"
-            className="group relative block w-full overflow-hidden bg-[#F4F2EE] cursor-pointer"
+            className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
           >
-            <div className="relative aspect-[9/15] w-full overflow-hidden">
+            <div className="relative aspect-[9/15] w-full overflow-hidden flex items-center justify-center">
               <Image
                 src="https://res.cloudinary.com/fmxzphak/image/upload/v1788614550/ecommerce-products/miz32cpgjlvw0ejejplp.jpg"
                 alt="Men's Kurta Pajama"
                 fill
                 sizes="(max-width: 640px) 50vw, 25vw"
-                className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+                className="object-contain object-center p-2"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
 
               <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5 flex flex-col items-center text-center">
                 <span className="font-serif italic text-xs sm:text-sm text-white/90">Men&apos;s</span>
@@ -267,17 +267,17 @@ export default function HomePageClient({
           {/* Sub-Card 4: Kids SECTION */}
           <Link
             href="/products/category/kids-section"
-            className="group relative block w-full overflow-hidden bg-[#F4F2EE] cursor-pointer"
+            className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
           >
-            <div className="relative aspect-[9/15] w-full overflow-hidden">
+            <div className="relative aspect-[9/15] w-full overflow-hidden flex items-center justify-center">
               <Image
                 src="https://res.cloudinary.com/fmxzphak/image/upload/v1788295698/ecommerce-products/dtxydgwby9kpeoo6w0qu.jpg"
                 alt="Kids Section"
                 fill
                 sizes="(max-width: 640px) 50vw, 25vw"
-                className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+                className="object-contain object-center p-2"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
 
               <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5 flex flex-col items-center text-center">
                 <span className="font-serif italic text-xs sm:text-sm text-white/90">Boys</span>
@@ -311,15 +311,15 @@ export default function HomePageClient({
             href="/products/category/unstitched-fabric"
             className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
           >
-            <div className="relative aspect-[4/3] w-full overflow-hidden">
+            <div className="relative aspect-[4/3] w-full overflow-hidden flex items-center justify-center">
               <Image
                 src="https://res.cloudinary.com/fmxzphak/image/upload/v1788890028/ecommerce-products/gpj4ravzcy5jdfewlhx9.jpg"
                 alt="Luxury Boski Fabrics"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+                className="object-contain object-center p-4"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
               <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8 text-white">
                 <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.26em] text-[#E8C86A]">
                   ROYAL HERITAGE
@@ -340,15 +340,15 @@ export default function HomePageClient({
             href="/products/category/unstitched-fabric"
             className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
           >
-            <div className="relative aspect-[4/3] w-full overflow-hidden">
+            <div className="relative aspect-[4/3] w-full overflow-hidden flex items-center justify-center">
               <Image
                 src="https://res.cloudinary.com/fmxzphak/image/upload/v1788630568/ecommerce-products/qddnzjm16r9mljo8gihe.jpg"
                 alt="Summer Wash & Wear"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+                className="object-contain object-center p-4"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
               <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8 text-white">
                 <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.26em] text-[#E8C86A]">
                   SIGNATURE WEAR

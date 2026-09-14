@@ -92,14 +92,12 @@ export default function CategoryPageContent({ slug }: Props) {
       {/* ── 1. FULL WIDTH CATEGORY BANNER (Like Image 1) ── */}
       <div className="w-full mb-4 sm:mb-6">
         {bannerUrl ? (
-          <div className="relative w-full aspect-[4/1] min-h-[160px] sm:min-h-[240px] md:min-h-[320px] lg:min-h-[420px] overflow-hidden bg-surface-100 dark:bg-[#1A1D24]">
-            <Image
+          <div className="relative w-full overflow-hidden bg-surface-100 dark:bg-[#1A1D24]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={resolveImageUrl(bannerUrl)}
               alt={`${categoryName} Collection Banner`}
-              fill
-              priority
-              className="object-cover object-center"
-              sizes="100vw"
+              className="w-full h-auto object-contain object-center block max-h-[500px] mx-auto"
             />
           </div>
         ) : (

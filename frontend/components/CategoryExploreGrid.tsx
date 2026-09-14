@@ -92,15 +92,15 @@ export default function CategoryExploreGrid({ categories = [], products = [] }: 
                 href={href}
                 className="group flex flex-col items-center cursor-pointer"
               >
-                {/* Image card: square aspect ratio with smooth hover zoom matching Diners */}
-                <div className="relative aspect-square w-full overflow-hidden bg-[#F4F2EE]">
+                {/* Image card: auto-fit without crop or zoom */}
+                <div className="relative aspect-square w-full overflow-hidden bg-[#F4F2EE] flex items-center justify-center">
                   {imgSrc ? (
                     <Image
                       src={imgSrc}
                       alt={item.name}
                       fill
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
-                      className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
+                      className="object-contain object-center p-1.5"
                       loading={idx < 2 ? 'eager' : 'lazy'}
                     />
                   ) : (
@@ -109,7 +109,7 @@ export default function CategoryExploreGrid({ categories = [], products = [] }: 
                     </div>
                   )}
                   {/* Subtle dark tint on hover */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 pointer-events-none" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 pointer-events-none" />
                 </div>
 
                 {/* Diners Style Centered Label Underneath Image */}

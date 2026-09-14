@@ -71,7 +71,7 @@ export default function HeroBanner({
             loading={lazy ? 'lazy' : 'eager'}
             fetchPriority={lazy ? 'low' : 'high'}
             decoding="async"
-            className="block w-full h-auto object-cover object-center"
+            className="block w-full h-auto object-contain object-center"
           />
         </picture>
       </div>

@@ -84,14 +84,12 @@ function ProductsPageContent() {
     <div className="w-full min-h-[70vh] pb-14 bg-white text-stone-900">
       {/* ── 1. FULL WIDTH CATEGORY / ALL PRODUCTS BANNER matching Image 1 ── */}
       <div className="w-full mb-4 sm:mb-6">
-        <div className="relative w-full aspect-[4/1] min-h-[160px] sm:min-h-[220px] md:min-h-[300px] lg:min-h-[380px] overflow-hidden bg-stone-100">
-          <Image
+        <div className="relative w-full overflow-hidden bg-stone-100">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg"
             alt="All Products Collection Banner"
-            fill
-            priority
-            className="object-cover object-center"
-            sizes="100vw"
+            className="w-full h-auto object-contain object-center block max-h-[500px] mx-auto"
           />
         </div>
       </div>
