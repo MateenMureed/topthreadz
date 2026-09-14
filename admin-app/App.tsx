@@ -536,48 +536,55 @@ function AdminMain() {
       {/* Floating Liquid Glass Bottom Pill Navigation Bar */}
       <View style={styles.floatingNavWrapper}>
         <View style={styles.liquidGlassNavPill}>
-          <TabButton
-            icon="📊"
-            label="Home"
-            active={activeTab === 'dashboard'}
-            onPress={() => setActiveTab('dashboard')}
-          />
-          <TabButton
-            icon="📦"
-            label="Orders"
-            active={activeTab === 'orders'}
-            onPress={() => setActiveTab('orders')}
-          />
-          <TabButton
-            icon="👔"
-            label="Products"
-            active={activeTab === 'products'}
-            onPress={() => setActiveTab('products')}
-          />
-          <TabButton
-            icon="👥"
-            label="Customers"
-            active={activeTab === 'customers'}
-            onPress={() => setActiveTab('customers')}
-          />
-          <TabButton
-            icon="💳"
-            label="Payments"
-            active={activeTab === 'payments'}
-            onPress={() => setActiveTab('payments')}
-          />
-          <TabButton
-            icon="⚙️"
-            label="Settings"
-            active={activeTab === 'settings'}
-            onPress={() => setActiveTab('settings')}
-          />
-          <TabButton
-            icon="🏠"
-            label="Homepage"
-            active={activeTab === 'homepage'}
-            onPress={() => setActiveTab('homepage')}
-          />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.liquidGlassNavScroll}
+            keyboardShouldPersistTaps="handled"
+          >
+            <TabButton
+              icon="📊"
+              label="Home"
+              active={activeTab === 'dashboard'}
+              onPress={() => setActiveTab('dashboard')}
+            />
+            <TabButton
+              icon="📦"
+              label="Orders"
+              active={activeTab === 'orders'}
+              onPress={() => setActiveTab('orders')}
+            />
+            <TabButton
+              icon="👔"
+              label="Products"
+              active={activeTab === 'products'}
+              onPress={() => setActiveTab('products')}
+            />
+            <TabButton
+              icon="👥"
+              label="Customers"
+              active={activeTab === 'customers'}
+              onPress={() => setActiveTab('customers')}
+            />
+            <TabButton
+              icon="💳"
+              label="Payments"
+              active={activeTab === 'payments'}
+              onPress={() => setActiveTab('payments')}
+            />
+            <TabButton
+              icon="⚙️"
+              label="Settings"
+              active={activeTab === 'settings'}
+              onPress={() => setActiveTab('settings')}
+            />
+            <TabButton
+              icon="🏠"
+              label="Homepage"
+              active={activeTab === 'homepage'}
+              onPress={() => setActiveTab('homepage')}
+            />
+          </ScrollView>
         </View>
       </View>
     </SafeAreaView>
@@ -4932,7 +4939,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: 'rgba(15, 31, 61, 0.55)',
     borderRadius: 9999,
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
     paddingVertical: 6,
     shadowColor: '#000',
     shadowOpacity: 0.18,
@@ -4941,28 +4948,33 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.18)',
     width: '100%',
-    justifyContent: 'space-between',
+    overflow: 'hidden',
+  },
+  liquidGlassNavScroll: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 2,
   },
   tabItem: {
-    flex: 1,
+    minWidth: 52,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 6,
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
     borderRadius: 9999,
   },
   tabItemActivePill: {
     backgroundColor: 'rgba(255, 255, 255, 0.18)',
   },
   tabIcon: {
-    fontSize: 17,
+    fontSize: 16,
     opacity: 0.6,
   },
   tabIconActive: {
     opacity: 1,
   },
   tabLabel: {
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.6)',
     marginTop: 2,
