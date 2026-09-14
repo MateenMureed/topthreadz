@@ -15,36 +15,6 @@ interface Props {
   slug: string;
 }
 
-// Editorial category fallback descriptions matching luxury Pakistani menswear tone
-const CATEGORY_EDITORIAL_COPY: Record<string, string> = {
-  Unstitched:
-    "Discover the Sultan Unstitched Collection by Top Threadz, inspired by timeless elegance and crafted for the modern gentleman. Made from premium Latha cotton and luxury wash & wear fabric, this unstitched men's collection offers exceptional comfort, durability, and sophistication. Perfect for festive occasions, formal gatherings, and everyday wear, combining luxurious texture with refined style, allowing you to tailor a look that reflects your individuality.",
-  Stitched:
-    "Explore our ready-to-wear tailored collection, finished with precision cuts and premium hand-feel for instant elegance. Each stitched garment is crafted from high-density yarns, ensuring a sharp silhouette straight out of the box for office, Jummah, and formal evenings.",
-  'Two Piece':
-    "Coordinated two-piece shalwar kameez and trouser ensembles crafted from wrinkle-resistant wash & wear yarns. Designed for effortless polish, easy care, and breathable all-day comfort in every Pakistani season.",
-  'Three Piece':
-    "The complete formal three-piece ensemble, designed for weddings, banquets, and ceremonial gatherings. Featuring a tailored kameez, complementary trouser, and refined matching dupatta or waistcoat accent.",
-  Kurta:
-    "The modern gentleman's everyday staple, elevated. Breathable, colorfast kurtas woven from fine combed yarns, ideal for Friday prayers, casual gatherings, and smart daily wear.",
-  Kids:
-    "Little gentlemen, big style. Our boys' and children's collection brings the same uncompromising fabric quality, soft skin-safe touch, and traditional tailoring to younger generations.",
-  'Wash & Wear':
-    "Engineered specifically for the Pakistani climate. Our signature wash & wear fabric features crease-resistant drape, quick-drying performance, and deep, lasting color saturation after every wash.",
-};
-
-function getCategoryDescription(name: string, customDescription?: string | null): string {
-  if (customDescription && customDescription.trim().length > 0) {
-    return customDescription.trim();
-  }
-  for (const [key, text] of Object.entries(CATEGORY_EDITORIAL_COPY)) {
-    if (name.toLowerCase().includes(key.toLowerCase())) {
-      return text;
-    }
-  }
-  return `Discover the ${name} Collection by Top Threadz, crafted for the modern gentleman. Made from premium fabrics with exceptional attention to detail, this collection offers superior comfort, durability, and refined style suitable for weddings, festive gatherings, and everyday luxury.`;
-}
-
 export default function CategoryPageContent({ slug }: Props) {
   const rawSlug = decodeURIComponent(slug || '');
   const categoryName = rawSlug
@@ -55,7 +25,7 @@ export default function CategoryPageContent({ slug }: Props) {
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  // Fetch categories client-side to read custom banners & descriptions uploaded by admin
+  // Fetch categories client-side to read custom banners uploaded by admin
   const { data: categoriesData } = useQuery({
     queryKey: ['categories-client'],
     queryFn: () => api.get('/categories').then((r) => r.data?.data || r.data || []),
@@ -69,7 +39,6 @@ export default function CategoryPageContent({ slug }: Props) {
   );
 
   const bannerUrl = matchedCategory?.bannerImage || matchedCategory?.coverImage || null;
-  const descriptionText = getCategoryDescription(categoryName, matchedCategory?.description);
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ['products', 'category', slug, sortBy],
@@ -339,18 +308,6 @@ export default function CategoryPageContent({ slug }: Props) {
             <div className="h-6" />
           ) : null}
         </div>
-
-        {/* ── 4. CATEGORY DESCRIPTION AT BOTTOM (Like Image 2) ── */}
-        <section
-          aria-label={`${categoryName} Editorial Overview`}
-          className="mt-12 sm:mt-16 pt-8 sm:pt-12 border-t border-surface-200 dark:border-[#2D3340]"
-        >
-          <div className="max-w-5xl mx-auto px-2 sm:px-4">
-            <p className="text-[13px] sm:text-[14px] md:text-[15px] leading-relaxed sm:leading-loose text-surface-600 dark:text-surface-300 font-normal text-left">
-              {descriptionText}
-            </p>
-          </div>
-        </section>
       </div>
     </div>
   );

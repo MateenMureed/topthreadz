@@ -1,7 +1,6 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import CategoryPageContent from './CategoryPageContent';
-import CategoryFaqBlock, { getCategoryFaqs } from '@/components/CategoryFaqBlock';
 import { fetchServerCategories, fetchServerProducts } from '@/lib/serverData';
 import { SITE_URL, DEFAULT_OG_IMAGE } from '@/lib/seo';
 
@@ -128,31 +127,13 @@ export default async function CategoryPage({ params }: Props) {
     },
   };
 
-  const categoryFaqs = getCategoryFaqs(categoryName);
-  const faqJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: categoryFaqs.map((faq) => ({
-      '@type': 'Question',
-      name: faq.question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: faq.answer,
-      },
-    })),
-  };
-
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-8 text-slate-900 font-bold">Loading collection...</div>}>
         <CategoryPageContent slug={resolvedParams.slug} />
       </Suspense>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-        <CategoryFaqBlock categoryName={categoryName} />
-      </div>
     </>
   );
 }

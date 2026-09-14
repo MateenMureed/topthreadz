@@ -1,8 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
-import { cloudinaryLoader, isCloudinaryUrl, isBackendUploadUrl } from '@/lib/images';
+import {
+  isCloudinaryUrl,
+  getOptimizedCloudinaryUrl,
+  resolveImageUrl,
+} from '@/lib/images';
 
 interface HeroBannerProps {
   heroBanner?: string | null;
@@ -22,10 +25,23 @@ export default function HeroBanner({
 }: HeroBannerProps) {
   if (!heroBanner) return null;
 
-  const isCloudinary = isCloudinaryUrl(heroBanner);
-  const isBackend = isBackendUploadUrl(heroBanner);
+  const rawDesktop = heroBanner;
+  const rawMobile = heroBannerMobile || heroBanner;
 
-  const mobileImg = heroBannerMobile || heroBanner; // fall back to desktop if no mobile image
+  const desktopIsCloudinary = isCloudinaryUrl(rawDesktop);
+  const mobileIsCloudinary = isCloudinaryUrl(rawMobile);
+
+  const desktopSrc = desktopIsCloudinary
+    ? getOptimizedCloudinaryUrl(rawDesktop, { width: 1920, quality: 'auto', format: 'auto' })
+    : resolveImageUrl(rawDesktop);
+
+  const mobileSrc1x = mobileIsCloudinary
+    ? getOptimizedCloudinaryUrl(rawMobile, { width: 750, quality: 'auto', format: 'auto' })
+    : resolveImageUrl(rawMobile);
+
+  const mobileSrcSet = mobileIsCloudinary
+    ? `${mobileSrc1x} 1x, ${getOptimizedCloudinaryUrl(rawMobile, { width: 1500, quality: 'auto', format: 'auto' })} 2x`
+    : undefined;
 
   return (
     <div className="w-full overflow-hidden bg-[#fafafa]">
@@ -34,55 +50,41 @@ export default function HeroBanner({
         className="block relative w-full overflow-hidden group"
         aria-label={buttonAriaLabel}
       >
-        {/*
-         * Responsive <picture> element:
-         *  - On mobile (≤ 767px): use the mobile image (1080×1350, portrait)
-         *  - On desktop (≥ 768px): use the desktop image (1920×700, landscape)
-         * Both sources are wrapped in the same <Link> so click behaviour is preserved.
-         * Dimensions prevent Cumulative Layout Shift (CLS).
-         */}
-        <picture>
-          {/* Mobile portrait banner */}
+        <picture className="block w-full">
           <source
-            media="(max-width: 767px)"
-            srcSet={mobileImg}
-            width={1080}
-            height={1350}
+            media="(max-width: 639px)"
+            srcSet={mobileSrcSet || mobileSrc1x}
+            width={750}
+            height={938}
           />
-          {/* Desktop landscape banner – Next.js <Image> handles srcset/optimization */}
-          <Image
-            src={heroBanner}
+          <source
+            media="(min-width: 640px)"
+            srcSet={desktopSrc}
+            width={1920}
+            height={700}
+          />
+          {/*
+           * No fixed aspect-ratio box and no object-cover here on purpose:
+           * whatever ratio the uploaded image actually is, width fills the
+           * screen and height follows naturally, so the full image always
+           * shows — nothing gets cropped off the sides or top/bottom.
+           * Trade-off: banner height will vary slightly between uploads
+           * that aren't exactly 1080x1350 / 1920x700, and there's a small
+           * layout shift possible if the real ratio differs a lot from the
+           * width/height hints below (used only to reserve space pre-load).
+           */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={desktopSrc}
             alt="Top Threadz Men's Luxury Fabrics Collection"
             width={1920}
             height={700}
-            priority={!lazy}
-            fetchPriority={lazy ? 'low' : 'high'}
             loading={lazy ? 'lazy' : 'eager'}
-            loader={isCloudinary ? cloudinaryLoader : undefined}
-            unoptimized={isBackend}
-            sizes="(max-width: 767px) 100vw, (max-width: 1200px) 100vw, 1920px"
-            className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-[1.01] hidden sm:block"
-            style={{ aspectRatio: '1920/700' }}
+            fetchPriority={lazy ? 'low' : 'high'}
+            decoding="async"
+            className="block w-full h-auto transition-transform duration-700 ease-out group-hover:scale-[1.01] max-sm:w-screen max-sm:relative max-sm:left-1/2 max-sm:right-1/2 max-sm:-mx-[50vw]"
           />
         </picture>
-
-        {/*
-         * Mobile-only <img> for portrait banner.
-         * Shown only on small screens (sm:hidden).
-         * Not using Next.js Image here so the <picture> source above takes effect.
-         * eslint-disable-next-line @next/next/no-img-element
-         */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={mobileImg}
-          alt="Top Threadz Men's Luxury Fabrics Collection"
-          width={1080}
-          height={1350}
-          loading={lazy ? 'lazy' : 'eager'}
-          fetchPriority={lazy ? 'low' : 'high'}
-          className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-[1.01] sm:hidden"
-          style={{ aspectRatio: '1080/1350' }}
-        />
       </Link>
     </div>
   );

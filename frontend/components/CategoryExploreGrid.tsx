@@ -14,9 +14,10 @@ interface Category {
 
 interface CategoryExploreGridProps {
   categories: Category[];
+  products?: any[];
 }
 
-export default function CategoryExploreGrid({ categories }: CategoryExploreGridProps) {
+export default function CategoryExploreGrid({ categories, products = [] }: CategoryExploreGridProps) {
   if (!categories || categories.length === 0) return null;
 
   // Show up to 4 categories
@@ -55,7 +56,31 @@ export default function CategoryExploreGrid({ categories }: CategoryExploreGridP
           {displayed.map((cat, idx) => {
             const slug = cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-');
             const href = `/products/category/${encodeURIComponent(slug)}`;
-            const rawImg = cat.coverImage || cat.image;
+            let rawImg = cat.coverImage || cat.image;
+
+            // Fallback: auto-fetch latest image from loaded products if category image is missing
+            if (!rawImg && Array.isArray(products) && products.length > 0) {
+              const isUnstitched = /unstitched/i.test(cat.name) || /unstitched/i.test(slug);
+              const isStitched = /^stitched$/i.test(cat.name) || /^stitched$/i.test(slug);
+
+              const matchedProd = products.find((p: any) => {
+                const pCat = String(p.category || '').toLowerCase();
+                const pSub = String(p.subcategory || '').toLowerCase();
+                if (isUnstitched) {
+                  return pCat.includes('unstitched') || pSub.includes('unstitched');
+                }
+                if (isStitched) {
+                  return pCat === 'stitched' || pSub === 'stitched';
+                }
+                const catLower = cat.name.toLowerCase();
+                return pCat.includes(catLower) || pSub.includes(catLower);
+              });
+
+              if (matchedProd?.images?.[0]) {
+                rawImg = matchedProd.images[0];
+              }
+            }
+
             const imgSrc = rawImg ? resolveImageUrl(rawImg) : null;
 
             return (

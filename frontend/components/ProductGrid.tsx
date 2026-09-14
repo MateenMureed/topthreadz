@@ -143,6 +143,8 @@ export default function ProductGrid({
     </div>
   );
 
+  const [visibleCount, setVisibleCount] = useState(16);
+
   if (!isMounted || loading) {
     return (
       <div>
@@ -163,14 +165,16 @@ export default function ProductGrid({
     );
   }
 
+  const displayedList = uniqueProducts.slice(0, visibleCount);
+
   return (
     <div>
       {showGridControls && isMounted ? renderGridControls() : null}
       <div className={gridClass}>
-        {uniqueProducts.map((product, i) => (
+        {displayedList.map((product, i) => (
           <ScrollReveal
             key={product.id}
-            delay={(i % gridCols) * 100}
+            delay={(i % gridCols) * 80}
             animation="slide-up"
           >
             <ProductCard {...product} imageFit={imageFit} />
@@ -179,11 +183,23 @@ export default function ProductGrid({
 
         {/* Fallback card when only 1 item exists */}
         {uniqueProducts.length === 1 && (
-          <ScrollReveal delay={100} animation="slide-up">
+          <ScrollReveal delay={80} animation="slide-up">
             {renderPlaceholderCard()}
           </ScrollReveal>
         )}
       </div>
+
+      {uniqueProducts.length > visibleCount && (
+        <div className="mt-8 sm:mt-12 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((prev) => prev + 16)}
+            className="px-6 py-3 rounded-full border border-surface-300 dark:border-surface-700 bg-white dark:bg-[#1A1D24] text-surface-900 dark:text-white text-xs sm:text-sm font-bold uppercase tracking-wider hover:border-surface-900 dark:hover:border-white transition-all shadow-sm active:scale-95 cursor-pointer"
+          >
+            View More Products ({uniqueProducts.length - visibleCount} remaining)
+          </button>
+        </div>
+      )}
     </div>
   );
 }

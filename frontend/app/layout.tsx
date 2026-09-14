@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { Inter, Outfit, Plus_Jakarta_Sans } from 'next/font/google';
+import { Inter, Outfit } from 'next/font/google';
 import { Providers } from '@/lib/providers';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -17,21 +17,14 @@ const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter',
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700'],
 });
 
 const outfit = Outfit({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-outfit',
-  weight: ['400', '500', '600', '700', '800'],
-});
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-plus-jakarta-sans',
-  weight: ['400', '500', '600', '700'],
+  weight: ['500', '700'],
 });
 
 const CartDrawer = dynamic(() => import('@/components/CartDrawer'));
@@ -205,7 +198,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`scroll-smooth ${inter.variable} ${outfit.variable} ${plusJakartaSans.variable}`}
+      className={`scroll-smooth ${inter.variable} ${outfit.variable}`}
       suppressHydrationWarning
     >
       {/* Anti-flash: runs synchronously before first paint to apply saved theme */}

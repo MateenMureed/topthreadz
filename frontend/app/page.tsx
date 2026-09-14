@@ -422,6 +422,15 @@ export default async function HomePage() {
               priceCurrency: 'PKR',
               availability: product.inStock !== false ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
               url: getProductUrl(product),
+              validFrom: (() => {
+                try {
+                  if (product.createdAt) {
+                    const d = new Date(product.createdAt);
+                    if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+                  }
+                } catch {}
+                return new Date().toISOString().slice(0, 10);
+              })(),
               priceValidUntil: new Date(new Date().getFullYear() + 1, 11, 31).toISOString().slice(0, 10),
               itemCondition: 'https://schema.org/NewCondition',
               seller: {
@@ -526,7 +535,7 @@ export default async function HomePage() {
         buttonLink={heroBannerText?.buttonLink || '/products'}
       />
       {/* Category explore grid — "What Would You Like to Explore?" */}
-      <CategoryExploreGrid categories={categories} />
+      <CategoryExploreGrid categories={categories} products={products} />
       {/* Semantic H1 for SEO — exactly one per page, contains the primary
           keyword. Visually rendered as a compact hero caption above the
           client grid so crawlers see it in the raw HTML. */}

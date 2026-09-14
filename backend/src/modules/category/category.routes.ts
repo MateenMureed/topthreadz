@@ -7,12 +7,27 @@ const router = Router();
 function parseCategoryImages(rawCover: string | null | undefined) {
   if (!rawCover) return { cardImage: null, bannerImage: null };
   const trimmed = rawCover.trim();
+  if (
+    !trimmed ||
+    trimmed === 'null' ||
+    trimmed === 'undefined' ||
+    trimmed === '{}' ||
+    trimmed.toLowerCase().includes('placeholder')
+  ) {
+    return { cardImage: null, bannerImage: null };
+  }
   if (trimmed.startsWith('{')) {
     try {
       const parsed = JSON.parse(trimmed);
+      const card = parsed.card || parsed.coverImage || null;
+      const banner = parsed.banner || parsed.bannerImage || null;
+      const cleanCard =
+        card && card !== 'null' && !card.toLowerCase().includes('placeholder') ? card.trim() : null;
+      const cleanBanner =
+        banner && banner !== 'null' && !banner.toLowerCase().includes('placeholder') ? banner.trim() : null;
       return {
-        cardImage: parsed.card || parsed.coverImage || null,
-        bannerImage: parsed.banner || parsed.bannerImage || null,
+        cardImage: cleanCard,
+        bannerImage: cleanBanner,
       };
     } catch {
       return { cardImage: trimmed, bannerImage: trimmed };
@@ -49,11 +64,52 @@ router.get('/', async (req, res, next) => {
         let displayImage = parsedCard || parsedBanner || null;
 
         if (!displayImage) {
+          const isUnstitched = /^unstitched/i.test(cat.name) || /^unstitched/i.test(cat.slug || '');
+          const isStitched = /^stitched$/i.test(cat.name) || /^stitched$/i.test(cat.slug || '');
+
+          let productWhere: any = { isActive: true };
+
+          if (isUnstitched) {
+            // Unstitched matches all variants: 'Unstitched', 'Unstitched Fabric', contains 'unstitched'
+            productWhere = {
+              isActive: true,
+              OR: [
+                { category: { equals: 'Unstitched', mode: 'insensitive' } },
+                { category: { equals: 'Unstitched Fabric', mode: 'insensitive' } },
+                { category: { contains: 'unstitched', mode: 'insensitive' } },
+                { subcategory: { contains: 'unstitched', mode: 'insensitive' } },
+              ],
+            };
+          } else if (isStitched) {
+            productWhere = {
+              isActive: true,
+              OR: [
+                { category: { equals: 'Stitched', mode: 'insensitive' } },
+                { subcategory: { equals: 'Stitched', mode: 'insensitive' } },
+              ],
+            };
+          } else {
+            const variants = Array.from(
+              new Set([
+                cat.name,
+                cat.slug,
+                cat.name.replace(/[-_]+/g, ' ').trim(),
+                cat.name.replace(/\s+/g, '-').trim(),
+              ])
+            ).filter(Boolean) as string[];
+
+            productWhere = {
+              isActive: true,
+              OR: [
+                ...variants.map((v) => ({ category: { equals: v, mode: 'insensitive' as const } })),
+                ...variants.map((v) => ({ subcategory: { equals: v, mode: 'insensitive' as const } })),
+                { category: { contains: cat.name, mode: 'insensitive' } },
+              ],
+            };
+          }
+
           const latestProduct = await prisma.product.findFirst({
-            where: {
-              category: { equals: cat.name, mode: 'insensitive' },
-              isActive: true
-            },
+            where: productWhere,
             orderBy: { createdAt: 'desc' },
             select: { images: true }
           });

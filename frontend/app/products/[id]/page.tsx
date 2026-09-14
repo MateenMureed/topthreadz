@@ -217,9 +217,15 @@ export default async function ProductDetailPage({ params }: Props) {
           price: effectivePrice,
           // Offer validity window — Google prefers an explicit start; the
           // product's listing date when available, else today.
-          validFrom: (product.createdAt ? new Date(product.createdAt) : new Date())
-            .toISOString()
-            .slice(0, 10),
+          validFrom: (() => {
+            try {
+              if (product.createdAt) {
+                const d = new Date(product.createdAt);
+                if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+              }
+            } catch {}
+            return new Date().toISOString().slice(0, 10);
+          })(),
           priceValidUntil: new Date(new Date().getFullYear() + 1, 11, 31).toISOString().slice(0, 10),
           availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
           itemCondition: 'https://schema.org/NewCondition',
