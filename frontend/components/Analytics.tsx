@@ -7,7 +7,7 @@ import Script from 'next/script';
  * snippets are the official GTAG/FBQT starters.
  */
 export default function Analytics() {
-  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+  const gaId = process.env.NEXT_PUBLIC_GA_ID || 'G-P2D60ZSMS5';
   const fbPixelId = process.env.NEXT_PUBLIC_FB_PIXEL_ID;
 
   return (
