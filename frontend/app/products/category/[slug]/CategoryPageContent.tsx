@@ -230,22 +230,21 @@ export default function CategoryPageContent({ slug }: Props) {
           </div>
         )}
 
-        {/* ── 3. DYNAMIC PRODUCTS GRID (Tight Compact Spacing Like Reference Image) ── */}
+        {/* ── 3. DYNAMIC PRODUCTS GRID (Zero-Gap Layout Matching Image 2) ── */}
         {isLoading ? (
-          /* Seamless skeleton with matching compact gap */
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-2.5 md:gap-3 lg:gap-3.5">
+          /* Seamless skeleton with matching 0 gap */
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0 border-t border-l border-stone-200/80 dark:border-[#2D3340] w-full">
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
-                className="p-2 sm:p-3 bg-white dark:bg-[#1A1D24] rounded-xl"
+                className="border-r border-b border-stone-200/80 dark:border-[#2D3340] bg-white dark:bg-[#1A1D24]"
               >
-                <div className="aspect-[3/4] bg-surface-100 dark:bg-[#252A34] relative overflow-hidden rounded-lg">
+                <div className="aspect-[3/4] bg-surface-100 dark:bg-[#252A34] relative overflow-hidden">
                   <div className="absolute inset-0 shimmer" />
                 </div>
-                <div className="mt-3 space-y-2">
-                  <div className="h-2.5 w-16 bg-surface-200 dark:bg-[#2E3544] rounded-full animate-pulse" />
-                  <div className="h-3.5 w-full bg-surface-200 dark:bg-[#2E3544] rounded-full animate-pulse" />
-                  <div className="h-4 w-24 bg-surface-200 dark:bg-[#2E3544] rounded-full animate-pulse" />
+                <div className="p-3 space-y-2 text-center">
+                  <div className="h-3 w-3/4 bg-surface-200 dark:bg-[#2E3544] rounded-full mx-auto animate-pulse" />
+                  <div className="h-3.5 w-20 bg-surface-200 dark:bg-[#2E3544] rounded-full mx-auto animate-pulse" />
                 </div>
               </div>
             ))}
@@ -270,17 +269,17 @@ export default function CategoryPageContent({ slug }: Props) {
             </Link>
           </div>
         ) : (
-          /* Product Grid matching reference image tight gap */
+          /* Product Grid matching Image 2 with zero gap and border separation */
           <div
-            className={`grid grid-cols-2 ${desktopGridCols} gap-2 sm:gap-2.5 md:gap-3 lg:gap-3.5`}
+            className={`grid grid-cols-2 ${desktopGridCols} gap-0 border-t border-l border-stone-200/80 dark:border-[#2D3340] w-full`}
           >
             {products.map((product, i) => (
               <div
                 key={product.id}
-                className="transition-colors"
+                className="border-r border-b border-stone-200/80 dark:border-[#2D3340] bg-white dark:bg-[#1E2228]"
               >
                 <ScrollReveal
-                  delay={(i % 4) * 80}
+                  delay={(i % 4) * 60}
                   animation="slide-up"
                 >
                   <ProductCard {...product} imageFit="cover" />

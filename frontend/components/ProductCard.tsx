@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useCallback, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FiHeart, FiShoppingBag } from 'react-icons/fi';
@@ -28,7 +28,6 @@ interface ProductCardProps {
   colors?: string[];
   slug?: string;
   imageMeta?: ProductImageMeta[];
-  /** "full" shows the entire product image (no crop) â€” used on category pages */
   imageFit?: 'cover' | 'full';
 }
 
@@ -51,8 +50,6 @@ export default function ProductCard({
   price,
   discount,
   images,
-  category,
-  subcategory,
   sizes = [],
   colors = [],
   slug,
@@ -63,7 +60,7 @@ export default function ProductCard({
   const { isAuthenticated } = useAuthStore();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
-  const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
     try {
@@ -112,22 +109,12 @@ export default function ProductCard({
 
   const productHref = `/products/${encodeURIComponent(safeIdentifier)}`;
 
+  // Primary image and optional 2nd image for hover
   const frontSrc = resolveImageUrl(orderedImages[0] || '');
+  const hoverSrc = orderedImages.length > 1 ? resolveImageUrl(orderedImages[1]) : null;
   const frontAlt = imageAltMap.get(frontSrc) || name;
   const isCloudinary = isCloudinaryUrl(frontSrc);
   const isBackend = isBackendUploadUrl(frontSrc);
-
-  useEffect(() => {
-    if (imgRef.current?.complete) {
-      setImageState(imgRef.current.naturalWidth > 0 ? 'loaded' : 'error');
-      return;
-    }
-    setImageState('loading');
-    const timer = setTimeout(() => {
-      setImageState((prev) => (prev === 'loading' ? 'loaded' : prev));
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, [frontSrc]);
 
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -154,7 +141,7 @@ export default function ProductCard({
             onClick={() => toast.dismiss(t.id)}
             className="rounded-lg bg-emerald-700 px-2.5 py-1 text-white font-bold shrink-0 hover:bg-emerald-800"
           >
-            Checkout â†’
+            Checkout →
           </Link>
         </div>
       ), { duration: 4000 });
@@ -180,9 +167,7 @@ export default function ProductCard({
           if (result?.data?.wishlisted !== undefined) {
             nextState = Boolean(result.data.wishlisted);
           }
-        } catch {
-          // Fallback to local toggle if server call fails
-        }
+        } catch {}
       }
 
       // Sync with localStorage
@@ -198,7 +183,7 @@ export default function ProductCard({
       } catch {}
 
       setIsWishlisted(nextState);
-      toast.success(nextState ? 'Added to wishlist â¤ï¸' : 'Removed from wishlist');
+      toast.success(nextState ? 'Added to wishlist ❤️' : 'Removed from wishlist');
     } catch {
       toast.error('Could not update wishlist');
     } finally {
@@ -207,39 +192,38 @@ export default function ProductCard({
   };
 
   return (
-    <>
-    <Link href={productHref} className="block">
-      <article className="group flex flex-col h-full">
-        {/* Image container with 3:4 aspect ratio preserved */}
-        <div className="relative aspect-[3/4] overflow-hidden bg-[#F4F2EE] dark:bg-[#1E2228] rounded-xl cursor-pointer">
-          {/* Top-left Badges matching reference mockup */}
-          <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1 pointer-events-none">
-            {discount > 0 ? (
-              <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white bg-[#B91C2B] rounded shadow-xs">
-                SALE
+    <Link href={productHref} className="block group h-full">
+      <article className="flex flex-col h-full bg-white dark:bg-[#1E2228]">
+        {/* 3:4 portrait image container with sharp corners matching reference mockup */}
+        <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#F4F2EE] dark:bg-[#1E2228] cursor-pointer">
+          {/* Flush Red Discount Tag top-left matching Image 2 */}
+          {discount > 0 && (
+            <div className="absolute top-0 left-0 z-20 pointer-events-none">
+              <span className="bg-[#D80000] text-white font-bold text-[10px] sm:text-[11px] px-2 py-0.5 sm:py-1 inline-block uppercase tracking-tight">
+                -{Math.round(discount)}%
               </span>
-            ) : /sage|cream|ivory|sky/i.test(name) ? (
-              <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white bg-[#1E2229] rounded shadow-xs">
-                {/sage/i.test(name) ? 'BEST SELLER' : 'NEW'}
-              </span>
-            ) : null}
-          </div>
+            </div>
+          )}
 
-          {/* Product image — object-cover object-top */}
+          {/* Wishlist button top-right */}
+          <button
+            type="button"
+            onClick={handleToggleWishlist}
+            disabled={wishlistLoading}
+            className={`absolute right-2 top-2 sm:right-2.5 sm:top-2.5 z-20 inline-flex w-7 h-7 sm:w-8 sm:h-8 items-center justify-center rounded-full bg-white/80 hover:bg-white text-stone-800 shadow-xs transition-all duration-150 active:scale-90 ${
+              isWishlisted ? 'text-[#D80000]' : 'text-stone-800'
+            }`}
+            aria-label="Add to wishlist"
+            title="Wishlist"
+          >
+            <FiHeart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isWishlisted ? 'fill-current text-[#D80000]' : 'stroke-[2]'}`} />
+          </button>
+
+          {/* Product image container */}
           <div className="absolute inset-0">
             {frontSrc ? (
               <>
-                {imageState === 'loading' && (
-                  <div className="absolute inset-0 dark:bg-[#1e2228] bg-stone-100 flex flex-col items-center justify-center gap-1.5" aria-hidden="true">
-                    <div className="shimmer absolute inset-0" />
-                    <span className="relative text-[11px] sm:text-xs font-black tracking-[0.28em] text-stone-400 select-none brand-loading-anim">
-                      TOP THREADZ
-                    </span>
-                    <span className="relative text-[9px] font-semibold uppercase tracking-widest text-stone-300 brand-loading-anim-delayed">
-                      Loading
-                    </span>
-                  </div>
-                )}
+                {/* Primary Image (fades out on hover if 2nd image exists, otherwise zooms slightly) */}
                 <Image
                   ref={imgRef}
                   src={frontSrc}
@@ -249,115 +233,78 @@ export default function ProductCard({
                   decoding="async"
                   loader={isCloudinary ? cloudinaryLoader : undefined}
                   unoptimized={isBackend}
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                  className={`h-full w-full transform-origin-center ${imageFit === 'full' ? 'object-contain object-center p-0.5 bg-white' : 'object-cover object-top'} transition-[opacity,transform] duration-500 ease-out will-change-transform group-hover:scale-[1.04] ${imageState === 'loaded' ? 'opacity-100' : 'opacity-85'}`}
-                  onLoad={() => setImageState('loaded')}
-                  onError={() => {
-                    setImageState('loaded');
-                  }}
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className={`h-full w-full ${
+                    imageFit === 'full' ? 'object-contain object-center' : 'object-cover object-top'
+                  } transition-all duration-500 ease-out will-change-transform ${
+                    hoverSrc ? 'group-hover:opacity-0' : 'group-hover:scale-105'
+                  }`}
+                  onLoad={() => setImageLoaded(true)}
                   draggable={false}
                 />
-                {imageState === 'error' ? <div className="absolute inset-0 bg-stone-200" aria-hidden="true" /> : null}
+
+                {/* Second Image on Hover (if product has 2 or more images) */}
+                {hoverSrc && (
+                  <Image
+                    src={hoverSrc}
+                    alt={`${frontAlt} - alternate view`}
+                    fill
+                    loading="lazy"
+                    decoding="async"
+                    loader={isCloudinaryUrl(hoverSrc) ? cloudinaryLoader : undefined}
+                    unoptimized={isBackendUploadUrl(hoverSrc)}
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    className={`h-full w-full ${
+                      imageFit === 'full' ? 'object-contain object-center' : 'object-cover object-top'
+                    } opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100`}
+                    draggable={false}
+                  />
+                )}
               </>
             ) : (
-              <div className="h-full w-full bg-gradient-to-br from-stone-100 to-stone-200" />
+              <div className="h-full w-full bg-stone-100 flex items-center justify-center">
+                <span className="text-xs text-stone-400 uppercase font-semibold">No Image</span>
+              </div>
             )}
           </div>
 
-          {/* Subtle dark tint on hover */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300 pointer-events-none" />
-
-          {/* Wishlist button — top right */}
-          <button
-            type="button"
-            onClick={handleToggleWishlist}
-            disabled={wishlistLoading}
-            className={`absolute right-2 top-2 sm:right-2.5 sm:top-2.5 z-20 inline-flex w-8 h-8 sm:w-9 sm:h-9 items-center justify-center rounded-full shadow-xs backdrop-blur-md transition-all duration-150
-              pointer-events-auto active:scale-[0.96]
-              ${isWishlisted ? 'bg-white text-[#B91C2B]' : 'bg-white/90 hover:bg-white text-[#1E2229]'}`}
-            aria-label="Add to wishlist"
-            title="Wishlist"
-          >
-            <FiHeart className={`h-4 w-4 ${isWishlisted ? 'fill-current text-[#B91C2B]' : 'text-[#1E2229] stroke-[2]'}`} />
-          </button>
-        </div>
-
-        {/* Product Details below image */}
-        <div className="pt-2.5 sm:pt-3 flex flex-col flex-1 justify-between">
-          <div>
-            {/* Category / Subcategory kicker */}
-            <p className="truncate text-[10px] sm:text-[10.5px] font-bold text-[#8C93A0] uppercase tracking-[0.16em]">
-              MEN | {subcategory || category || 'UNSTITCHED'}
-            </p>
-
-            {/* Product Title */}
-            <h3 className="mt-1 line-clamp-2 text-[13px] sm:text-[13.5px] font-medium leading-snug text-[#1E2229] dark:text-[#F1F5F9] group-hover:text-[#0F1F3D] dark:group-hover:text-white transition-colors">
-              {name.replace(/\s*\|\s*Top Threadz\s*/i, '')}
-            </h3>
-
-            {/* Price row matching reference design */}
-            <div className="mt-1.5 flex items-center gap-2">
-              {discount > 0 ? (
-                <>
-                  <span className="text-[11px] sm:text-[12px] font-medium text-[#8C93A0] line-through">
-                    PKR {price.toLocaleString('en-US')}
-                  </span>
-                  <span className="text-[13.5px] sm:text-[14px] font-bold text-[#B91C2B]">
-                    PKR {Math.round(effectivePrice).toLocaleString('en-US')}
-                  </span>
-                </>
-              ) : (
-                <span className="text-[13.5px] sm:text-[14px] font-bold text-[#1E2229] dark:text-[#F1F5F9]">
-                  PKR {Math.round(price).toLocaleString('en-US')}
-                </span>
-              )}
-            </div>
-
-            {/* Color swatches preview dots matching reference mockup */}
-            <div className="mt-2 flex items-center gap-1.5">
-              {/cream|ivory|white/i.test(name) ? (
-                <>
-                  <span className="w-3 h-3 rounded-full bg-[#F5F2EB] border border-stone-300" />
-                  <span className="w-3 h-3 rounded-full bg-[#EADCC9] border border-stone-300" />
-                </>
-              ) : /sage|green/i.test(name) ? (
-                <>
-                  <span className="w-3 h-3 rounded-full bg-[#9DA895] border border-stone-300" />
-                  <span className="w-3 h-3 rounded-full bg-[#4E5B4B] border border-stone-300" />
-                </>
-              ) : /sky|blue/i.test(name) ? (
-                <>
-                  <span className="w-3 h-3 rounded-full bg-[#A7C5EB] border border-stone-300" />
-                  <span className="w-3 h-3 rounded-full bg-[#D4E2D4] border border-stone-300" />
-                  <span className="w-3 h-3 rounded-full bg-[#FFFFFF] border border-stone-300" />
-                </>
-              ) : /navy/i.test(name) ? (
-                <>
-                  <span className="w-3 h-3 rounded-full bg-[#1E3A8A] border border-stone-300" />
-                  <span className="w-3 h-3 rounded-full bg-[#0F1F3D] border border-stone-300" />
-                </>
-              ) : (
-                <>
-                  <span className="w-3 h-3 rounded-full bg-[#1A1A1A] border border-stone-300" />
-                  <span className="w-3 h-3 rounded-full bg-[#4B5563] border border-stone-300" />
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Full-width dark navy Add to Cart button matching reference mockup */}
+          {/* Circular Shopping Bag Quick Action on Bottom-Left matching Image 2 */}
           <button
             type="button"
             onClick={handleAddToCart}
-            className="w-full mt-3 py-2.5 sm:py-2.5 px-3 rounded-lg bg-[#0F1F3D] hover:bg-[#1A2D52] text-white text-[11px] sm:text-xs font-semibold tracking-wider uppercase flex items-center justify-center gap-2 transition-all duration-150 active:scale-[0.98] shadow-2xs"
+            className="absolute bottom-2.5 left-2.5 z-20 inline-flex w-7 h-7 sm:w-8 sm:h-8 items-center justify-center rounded-full bg-white/85 hover:bg-white text-stone-800 shadow-sm transition-all duration-150 active:scale-90"
             aria-label="Add to cart"
+            title="Add to cart"
           >
-            <FiShoppingBag className="w-3.5 h-3.5 stroke-[2.2]" />
-            <span>ADD TO CART</span>
+            <FiShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2]" />
           </button>
+        </div>
+
+        {/* Product Details below image: Centered Title and Pricing matching Image 2 */}
+        <div className="pt-2 pb-2.5 px-1 sm:px-2 flex flex-col items-center text-center">
+          <h3 className="text-center text-[12.5px] sm:text-[13.5px] font-semibold text-[#111] dark:text-stone-100 line-clamp-1 group-hover:text-black dark:group-hover:text-white transition-colors">
+            {name.replace(/\s*\|\s*Top Threadz\s*/i, '')}
+          </h3>
+
+          <div className="mt-1 flex items-center justify-center gap-2 text-center">
+            {discount > 0 ? (
+              <>
+                <span className="text-xs sm:text-[13px] font-normal text-stone-800 dark:text-stone-400 line-through">
+                  Rs {price.toLocaleString('en-US')}
+                </span>
+                <span className="text-xs sm:text-[13px] font-bold text-[#D80000]">
+                  Rs {Math.round(effectivePrice).toLocaleString('en-US')}
+                </span>
+              </>
+            ) : (
+              <span className="text-xs sm:text-[13px] font-bold text-[#111] dark:text-stone-100">
+                Rs {Math.round(price).toLocaleString('en-US')}
+              </span>
+            )}
+          </div>
         </div>
       </article>
     </Link>
-    </>
   );
 }
+

@@ -63,23 +63,24 @@ export default function HomePageClient({
           </p>
         </div>
 
-        {/* 4 Products Row with preserved 3:4 aspect ratio & compact gap spacing */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5 md:gap-3 lg:gap-3.5">
+        {/* 4 Products Row with 0 gap matching Image 2 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-l border-stone-200/80 dark:border-[#2D3340] w-full">
           {bestSellers.map((product: any) => (
-            <ProductCard
-              key={product.id || product._id}
-              id={product.id || product._id}
-              name={product.name}
-              price={product.price}
-              discount={product.discount || 0}
-              images={product.images || []}
-              category={product.category}
-              subcategory={product.subcategory}
-              sizes={product.sizes || []}
-              colors={product.colors || []}
-              slug={product.slug}
-              imageMeta={product.imageMeta || []}
-            />
+            <div key={product.id || product._id} className="border-r border-b border-stone-200/80 dark:border-[#2D3340] bg-white dark:bg-[#1E2228]">
+              <ProductCard
+                id={product.id || product._id}
+                name={product.name}
+                price={product.price}
+                discount={product.discount || 0}
+                images={product.images || []}
+                category={product.category}
+                subcategory={product.subcategory}
+                sizes={product.sizes || []}
+                colors={product.colors || []}
+                slug={product.slug}
+                imageMeta={product.imageMeta || []}
+              />
+            </div>
           ))}
         </div>
 

@@ -74,20 +74,18 @@ export default function ProductGrid({
           : 'sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
 
   const isSparse = uniqueProducts.length > 0 && uniqueProducts.length < gridCols;
-  const gridClass = `grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 lg:gap-3.5 ${desktopGridClass} ${isSparse ? 'justify-center mx-auto max-w-5xl' : ''}`;
+  const gridClass = `grid grid-cols-2 ${desktopGridClass} gap-0 border-t border-l border-stone-200/80 dark:border-[#2D3340] w-full ${isSparse ? 'justify-center mx-auto max-w-5xl' : ''}`;
 
   const renderSkeletonGrid = () => (
     <div className={gridClass}>
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="rounded-2xl overflow-hidden bg-white border border-surface-100">
-          <div className="aspect-[3/4] bg-surface-100 relative overflow-hidden">
+        <div key={i} className="border-r border-b border-stone-200/80 dark:border-[#2D3340] bg-white dark:bg-[#1E2228]">
+          <div className="aspect-[3/4] bg-surface-100 dark:bg-[#252A34] relative overflow-hidden">
             <div className="absolute inset-0 shimmer" />
           </div>
-          <div className="p-4 space-y-2.5">
-            <div className="h-2.5 w-16 bg-surface-200 rounded-full animate-pulse" />
-            <div className="h-3.5 w-full bg-surface-200 rounded-full animate-pulse" />
-            <div className="h-3.5 w-3/4 bg-surface-200 rounded-full animate-pulse" />
-            <div className="h-5 w-24 bg-surface-200 rounded-full animate-pulse mt-1" />
+          <div className="p-3 space-y-2 text-center">
+            <div className="h-3 w-3/4 bg-surface-200 dark:bg-[#2E3544] rounded-full mx-auto animate-pulse" />
+            <div className="h-3.5 w-20 bg-surface-200 dark:bg-[#2E3544] rounded-full mx-auto animate-pulse" />
           </div>
         </div>
       ))}
@@ -121,7 +119,7 @@ export default function ProductGrid({
   );
 
   const renderPlaceholderCard = () => (
-    <div className="rounded-2xl border-2 border-dashed border-surface-300 bg-surface-50/70 p-6 sm:p-8 text-center flex flex-col items-center justify-center min-h-[380px] h-full transition-all hover:border-surface-400 hover:bg-surface-100/60">
+    <div className="border-2 border-dashed border-surface-300 bg-surface-50/70 p-6 sm:p-8 text-center flex flex-col items-center justify-center min-h-[380px] h-full transition-all hover:border-surface-400 hover:bg-surface-100/60">
       <div className="w-14 h-14 rounded-full bg-surface-200/80 flex items-center justify-center text-surface-700 mb-4 shadow-inner">
         <FiPackage className="w-6 h-6" />
       </div>
@@ -172,22 +170,26 @@ export default function ProductGrid({
       {showGridControls && isMounted ? renderGridControls() : null}
       <div className={gridClass}>
         {displayedList.map((product, i) => (
-          <ScrollReveal
-            key={product.id}
-            delay={(i % gridCols) * 80}
-            animation="slide-up"
-          >
-            <ProductCard {...product} imageFit={imageFit} />
-          </ScrollReveal>
+          <div key={product.id} className="border-r border-b border-stone-200/80 dark:border-[#2D3340] bg-white dark:bg-[#1E2228]">
+            <ScrollReveal
+              delay={(i % gridCols) * 60}
+              animation="slide-up"
+            >
+              <ProductCard {...product} imageFit={imageFit} />
+            </ScrollReveal>
+          </div>
         ))}
 
         {/* Fallback card when only 1 item exists */}
         {uniqueProducts.length === 1 && (
-          <ScrollReveal delay={80} animation="slide-up">
-            {renderPlaceholderCard()}
-          </ScrollReveal>
+          <div className="border-r border-b border-stone-200/80 dark:border-[#2D3340] bg-white dark:bg-[#1E2228]">
+            <ScrollReveal delay={80} animation="slide-up">
+              {renderPlaceholderCard()}
+            </ScrollReveal>
+          </div>
         )}
       </div>
+
 
       {uniqueProducts.length > visibleCount && (
         <div className="mt-8 sm:mt-12 flex justify-center">
