@@ -92,7 +92,7 @@ export default function CategoryPageContent({ slug }: Props) {
       {/* ── 1. FULL WIDTH CATEGORY BANNER (Like Image 1) ── */}
       <div className="w-full mb-4 sm:mb-6">
         {bannerUrl ? (
-          <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] overflow-hidden bg-surface-100 dark:bg-[#1A1D24]">
+          <div className="relative w-full aspect-[16/9] overflow-hidden bg-surface-100 dark:bg-[#1A1D24]">
             <Image
               src={resolveImageUrl(bannerUrl)}
               alt={`${categoryName} Collection Banner`}
