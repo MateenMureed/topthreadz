@@ -351,16 +351,23 @@ export default function CategoriesManager() {
 
             </div>
 
-            {/* 16:9 Banner Preview */}
+            {/* 16:9 Banner Preview — FULL FILL, NO WHITE SPACE */}
             {bannerImage && (
-              <div className="mt-2 w-full overflow-hidden rounded-xl border border-surface-200 bg-black/5 shadow-inner" style={{ aspectRatio: '16 / 9' }}>
-
+              <div
+                className="mt-2 w-full overflow-hidden rounded-xl border border-surface-200 bg-black/5 shadow-inner"
+                style={{ aspectRatio: '16 / 9' }}
+              >
                 <img
                   src={bannerImage}
                   alt="Banner Preview"
-                  className="block h-full w-full object-cover object-center"
+                  className="block"
+                  style={{
+                    objectFit: 'cover',
+                    objectPosition: 'center',
+                    width: '100%',
+                    height: '100%',
+                  }}
                 />
-
               </div>
             )}
 
@@ -623,16 +630,23 @@ export default function CategoriesManager() {
 
                   </div>
 
-                  {/* 16:9 Edit Banner Preview */}
+                  {/* 16:9 Edit Banner Preview — FULL FILL, NO WHITE SPACE */}
                   {editBannerImage && (
-                    <div className="mt-1 w-full overflow-hidden rounded-xl border border-surface-200 bg-black/5" style={{ aspectRatio: '16 / 9' }}>
-
+                    <div
+                      className="mt-1 w-full overflow-hidden rounded-xl border border-surface-200 bg-black/5"
+                      style={{ aspectRatio: '16 / 9' }}
+                    >
                       <img
                         src={editBannerImage}
                         alt="Banner Preview"
-                        className="block h-full w-full object-cover object-center"
+                        className="block"
+                        style={{
+                          objectFit: 'cover',
+                          objectPosition: 'center',
+                          width: '100%',
+                          height: '100%',
+                        }}
                       />
-
                     </div>
                   )}
 
