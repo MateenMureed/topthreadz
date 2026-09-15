@@ -1,7 +1,6 @@
-export type AdminTab = 'dashboard' | 'products' | 'orders' | 'users' | 'payments' | 'settings';
+export type AdminTab = 'dashboard' | 'products' | 'orders' | 'users' | 'payments' | 'settings' | 'homepage';
 
 export type SettingsSection =
-  | 'all'
   | 'store'
   | 'shipping'
   | 'appearance'
@@ -221,3 +220,11 @@ export const paymentStatusBadgeClass = (status?: string) => {
   if (status === 'FAILED') return 'badge-danger';
   return 'bg-[#FEF3C7] text-[#92400E] text-[12px] px-2.5 py-0.5 rounded-full font-medium';
 };
+
+export const makeSlug = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');

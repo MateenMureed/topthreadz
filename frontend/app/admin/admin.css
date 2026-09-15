@@ -1,128 +1,95 @@
 /* ============================================================
-   SHOPIFY-STYLE ADMIN UI & WORKSPACE COMPONENT STYLES
-   Isolated to /admin routes to keep global customer CSS lean
+   ADMIN DESIGN SYSTEM — Loom Navy / Thread Gold / Warm Canvas
+   Isolated to /admin routes to keep global customer CSS lean.
+
+   Everything below is built on the token layer at the top.
+   Previous versions of this file mixed two unrelated visual
+   languages (a navy "Shopify-style" system and a pure
+   black-and-white "Apple" system with its own hardcoded
+   colors). Both are now expressed through the same tokens so
+   every admin surface — tables, buttons, glass panels, the
+   bottom nav — reads as one coherent product.
    ============================================================ */
 
-.admin-input {
-  height: 40px;
-  border: 1px solid #D1D5DB;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 13px;
-  color: #1A1A1A;
-  background-color: #FFFFFF;
-  transition: all 150ms ease;
-  width: 100%;
+:root {
+  /* Brand */
+  --admin-navy: #0F1F3D;
+  --admin-navy-hover: #1A2F5A;
+  --admin-navy-active: #0B1730;
+  --admin-gold: #E8C86A;
+  --admin-gold-soft: rgba(232, 200, 106, 0.16);
+
+  /* Feedback */
+  --admin-destructive: #B91C2B;
+  --admin-destructive-hover: #8F1620;
+  --admin-destructive-soft: #FDECED;
+
+  /* Warm neutral surface scale (replaces the old cool-gray Tailwind grays) */
+  --admin-surface: #FFFFFF;
+  --admin-canvas: #FBF9F5;
+  --admin-surface-subtle: #F7F5F0;
+  --admin-surface-hover: #F3F0E9;
+  --admin-border: #E7E2D9;
+  --admin-border-strong: #D8D2C4;
+
+  /* Text */
+  --admin-text: #1A1A1A;
+  --admin-text-secondary: #4B4638;
+  --admin-text-muted: #837C6B;
+  --admin-text-inverse: #FFFFFF;
+
+  /* Typography */
+  --admin-font-display: 'Fraunces', Georgia, serif;
+  --admin-font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Shape & motion */
+  --admin-radius-sm: 8px;
+  --admin-radius-md: 10px;
+  --admin-radius-lg: 14px;
+  --admin-radius-xl: 16px;
+  --admin-radius-2xl: 20px;
+  --admin-shadow-sm: 0 1px 2px rgba(15, 31, 61, 0.04);
+  --admin-shadow-md: 0 2px 10px rgba(15, 31, 61, 0.05), 0 1px 2px rgba(15, 31, 61, 0.03);
+  --admin-shadow-lg: 0 4px 20px -2px rgba(15, 31, 61, 0.08);
+  --admin-focus-ring: 0 0 0 3px rgba(15, 31, 61, 0.14);
+  --admin-transition: 150ms ease;
 }
 
-.admin-input:focus {
-  border-color: #0F1F3D;
-  box-shadow: 0 0 0 3px rgba(15, 31, 61, 0.1);
-  outline: none;
+.dark {
+  --admin-navy: #3B82F6;
+  --admin-navy-hover: #2563EB;
+  --admin-navy-active: #1D4ED8;
+  --admin-gold: #E8C86A;
+  --admin-gold-soft: rgba(232, 200, 106, 0.14);
+
+  --admin-destructive: #EF4444;
+  --admin-destructive-hover: #DC2626;
+  --admin-destructive-soft: rgba(239, 68, 68, 0.12);
+
+  /* Ecommerce-style Slate/Charcoal, distinct from the warm light canvas by design */
+  --admin-surface: #1E2228;
+  --admin-canvas: #16191F;
+  --admin-surface-subtle: #16191F;
+  --admin-surface-hover: #262B34;
+  --admin-border: #2D3340;
+  --admin-border-strong: #3B4252;
+
+  --admin-text: #F1F5F9;
+  --admin-text-secondary: #CBD5E1;
+  --admin-text-muted: #94A3B8;
+  --admin-text-inverse: #0F172A;
+
+  --admin-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --admin-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.32);
+  --admin-shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.4);
+  --admin-focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.25);
 }
 
-.admin-input.error {
-  border-color: #B91C2B;
-}
+/* ============================================================
+   INPUTS & LABELS
+   ============================================================ */
 
-.admin-label {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  color: #374151;
-  margin-bottom: 6px;
-}
-
-.admin-btn-primary {
-  height: 36px;
-  background-color: #0F1F3D;
-  color: #FFFFFF;
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: 8px;
-  padding: 8px 16px;
-  border: none;
-  transition: all 150ms ease;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.admin-btn-primary:hover:not(:disabled) {
-  background-color: #1A2F5A;
-}
-
-.admin-btn-primary:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.admin-btn-destructive {
-  height: 36px;
-  background-color: #B91C2B;
-  color: #FFFFFF;
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: 8px;
-  padding: 8px 16px;
-  border: none;
-  transition: all 150ms ease;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.admin-btn-destructive:hover:not(:disabled) {
-  background-color: #8F1620;
-}
-
-.admin-btn-destructive:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.admin-btn-secondary {
-  height: 36px;
-  background-color: #FFFFFF;
-  border: 1px solid #D1D5DB;
-  color: #374151;
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: 8px;
-  padding: 8px 16px;
-  transition: all 150ms ease;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.admin-btn-secondary:hover:not(:disabled) {
-  background-color: #F9FAFB;
-  border-color: #9CA3AF;
-}
-
-.admin-btn-secondary:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.admin-card {
-  background-color: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  border-radius: 10px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  padding: 20px;
-}
-
-@media (min-width: 640px) {
-  .admin-card {
-    padding: 24px;
-  }
-}
-
+.admin-input,
 .admin-workspace input[type="text"],
 .admin-workspace input[type="number"],
 .admin-workspace input[type="email"],
@@ -133,13 +100,14 @@
 .admin-workspace select,
 .admin-workspace textarea {
   height: 40px;
-  border: 1px solid #D1D5DB;
-  border-radius: 8px;
+  width: 100%;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
   padding: 8px 12px;
   font-size: 13px;
-  color: #1A1A1A;
-  background-color: #FFFFFF;
-  transition: all 150ms ease;
+  color: var(--admin-text);
+  background-color: var(--admin-surface);
+  transition: border-color var(--admin-transition), box-shadow var(--admin-transition);
 }
 
 .admin-workspace textarea {
@@ -147,21 +115,187 @@
   min-height: 80px;
 }
 
+.admin-input:focus,
 .admin-workspace input:focus,
 .admin-workspace select:focus,
 .admin-workspace textarea:focus {
-  border-color: #0F1F3D !important;
-  box-shadow: 0 0 0 3px rgba(15, 31, 61, 0.1) !important;
+  border-color: var(--admin-navy) !important;
+  box-shadow: var(--admin-focus-ring) !important;
   outline: none !important;
 }
 
+.admin-input.error {
+  border-color: var(--admin-destructive);
+}
+
+.admin-label,
 .admin-workspace label {
+  display: block;
   font-size: 13px;
   font-weight: 500;
-  color: #374151;
+  color: var(--admin-text-secondary);
   margin-bottom: 6px;
-  display: block;
 }
+
+/* ============================================================
+   BUTTONS — one shared shape/motion language, three intents
+   ============================================================ */
+
+.admin-btn-primary,
+.admin-btn-secondary,
+.admin-btn-destructive,
+.apple-btn-primary,
+.apple-btn-secondary {
+  height: 36px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  border-radius: var(--admin-radius-sm);
+  padding: 8px 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color var(--admin-transition), border-color var(--admin-transition),
+    box-shadow var(--admin-transition), transform 100ms ease-out;
+}
+
+.admin-btn-primary,
+.apple-btn-primary {
+  background-color: var(--admin-navy);
+  color: var(--admin-text-inverse);
+  border: none;
+}
+
+.admin-btn-primary:hover:not(:disabled),
+.apple-btn-primary:hover:not(:disabled) {
+  background-color: var(--admin-navy-hover);
+}
+
+.admin-btn-destructive {
+  background-color: var(--admin-destructive);
+  color: #FFFFFF;
+  border: none;
+}
+
+.admin-btn-destructive:hover:not(:disabled) {
+  background-color: var(--admin-destructive-hover);
+}
+
+.admin-btn-secondary,
+.apple-btn-secondary {
+  background-color: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text-secondary);
+}
+
+.admin-btn-secondary:hover:not(:disabled),
+.apple-btn-secondary:hover:not(:disabled) {
+  background-color: var(--admin-surface-hover);
+  border-color: var(--admin-border-strong);
+}
+
+.admin-btn-primary:active:not(:disabled),
+.admin-btn-secondary:active:not(:disabled),
+.admin-btn-destructive:active:not(:disabled),
+.apple-btn-primary:active:not(:disabled),
+.apple-btn-secondary:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.admin-btn-primary:disabled,
+.admin-btn-secondary:disabled,
+.admin-btn-destructive:disabled,
+.apple-btn-primary:disabled,
+.apple-btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.admin-btn-primary:focus-visible,
+.admin-btn-secondary:focus-visible,
+.admin-btn-destructive:focus-visible,
+.apple-btn-primary:focus-visible,
+.apple-btn-secondary:focus-visible {
+  outline: none;
+  box-shadow: var(--admin-focus-ring);
+}
+
+.admin-ai-btn {
+  border-radius: 6px;
+  border: 1px solid var(--admin-border);
+  background-color: var(--admin-surface);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--admin-text-secondary);
+  transition: background-color var(--admin-transition);
+}
+
+.admin-ai-btn:hover {
+  background-color: var(--admin-surface-subtle);
+}
+
+/* ============================================================
+   CARDS & SURFACES
+   ============================================================ */
+
+.admin-card {
+  background-color: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  box-shadow: var(--admin-shadow-sm);
+  padding: 20px;
+}
+
+@media (min-width: 640px) {
+  .admin-card {
+    padding: 24px;
+  }
+}
+
+.apple-card {
+  background-color: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-2xl);
+  box-shadow: var(--admin-shadow-md);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.apple-subcard {
+  background: var(--admin-surface-subtle);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  transition: background-color 160ms ease-out, border-color 160ms ease-out, box-shadow 160ms ease-out,
+    transform 160ms ease-out;
+}
+
+.apple-subcard:hover {
+  background: var(--admin-surface);
+  border-color: var(--admin-border-strong);
+  box-shadow: var(--admin-shadow-sm);
+  transform: translateY(-1px);
+}
+
+/* Translucent glass surface — same navy-tinted shadow as the rest of the system */
+.apple-glass {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(15, 31, 61, 0.08);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.dark .apple-glass {
+  background: rgba(30, 34, 40, 0.82);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================================
+   WORKSPACE TABLES
+   ============================================================ */
 
 .admin-workspace table {
   width: 100%;
@@ -170,30 +304,30 @@
 
 .admin-workspace thead tr,
 .admin-workspace th {
-  background-color: #F9FAFB !important;
+  background-color: var(--admin-surface-subtle) !important;
   font-size: 12px !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
-  color: #6B7280 !important;
+  color: var(--admin-text-muted) !important;
   font-weight: 600 !important;
   padding: 10px 14px !important;
-  border-bottom: 1px solid #E5E7EB !important;
+  border-bottom: 1px solid var(--admin-border) !important;
 }
 
 .admin-workspace tbody tr {
   min-height: 48px;
-  border-bottom: 1px solid #E5E7EB;
-  transition: background-color 150ms ease;
+  border-bottom: 1px solid var(--admin-border);
+  transition: background-color var(--admin-transition);
 }
 
 .admin-workspace tbody tr:hover {
-  background-color: #F9FAFB;
+  background-color: var(--admin-surface-subtle);
 }
 
 .admin-workspace tbody td {
   padding: 10px 14px;
   font-size: 13px;
-  color: #1A1A1A;
+  color: var(--admin-text);
   vertical-align: middle;
 }
 
@@ -201,7 +335,7 @@
   min-height: 44px;
   padding: 8px 12px;
   font-size: 14px;
-  border-radius: 8px;
+  border-radius: var(--admin-radius-sm);
 }
 
 .admin-compact-form textarea.input-field {
@@ -209,22 +343,10 @@
   padding-bottom: 8px;
 }
 
-.admin-ai-btn {
-  border-radius: 6px;
-  border: 1px solid #E5E7EB;
-  background-color: #FFFFFF;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #374151;
-  transition: background-color 150ms;
-}
+/* ============================================================
+   MOBILE BOTTOM NAVIGATION (app-style tab bar)
+   ============================================================ */
 
-.admin-ai-btn:hover {
-  background-color: #F3F4F6;
-}
-
-/* ADMIN MOBILE NAVIGATION — fixed bottom tab bar (app-style) */
 .admin-bottom-nav {
   position: fixed;
   left: 0;
@@ -234,7 +356,7 @@
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
-  background-color: #0F1F3D;
+  background-color: var(--admin-navy);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
   padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
@@ -254,12 +376,12 @@
   justify-content: center;
   gap: 3px;
   padding: 6px 2px;
-  border-radius: 10px;
+  border-radius: var(--admin-radius-md);
   color: rgba(255, 255, 255, 0.55);
   font-size: 10px;
   font-weight: 600;
   line-height: 1;
-  transition: color 150ms ease, background-color 150ms ease;
+  transition: color var(--admin-transition), background-color var(--admin-transition);
 }
 
 .admin-bottom-nav-item span {
@@ -275,10 +397,13 @@
 }
 
 .admin-bottom-nav-item.active svg {
-  color: #E8C86A;
+  color: var(--admin-gold);
 }
 
-/* ADMIN MODAL / SHEET — centered dialog on desktop, full-width bottom sheet on mobile */
+/* ============================================================
+   MODAL / SHEET — centered dialog on desktop, bottom sheet on mobile
+   ============================================================ */
+
 .admin-sheet-backdrop {
   position: fixed;
   inset: 0;
@@ -293,7 +418,9 @@
   width: 100%;
   max-height: 92vh;
   overflow-y: auto;
-  background-color: #FFFFFF;
+  background-color: var(--admin-surface);
+  color: var(--admin-text);
+  border: 1px solid var(--admin-border);
   border-radius: 20px 20px 0 0;
   padding: 20px;
   animation: sheetSlideUp 220ms ease-out;
@@ -305,8 +432,19 @@
   width: 40px;
   height: 4px;
   border-radius: 9999px;
-  background-color: #E5E7EB;
+  background-color: var(--admin-border);
   margin: 0 auto 14px;
+}
+
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @media (min-width: 640px) {
@@ -317,7 +455,7 @@
 
   .admin-sheet-panel {
     max-height: 90vh;
-    border-radius: 16px;
+    border-radius: var(--admin-radius-xl);
     padding: 24px;
     animation: none;
   }
@@ -327,10 +465,16 @@
   }
 }
 
+/* ============================================================
+   TOUCH TARGETS — mobile
+   ============================================================ */
+
 @media (max-width: 640px) {
   .admin-btn-primary,
   .admin-btn-secondary,
-  .admin-btn-destructive {
+  .admin-btn-destructive,
+  .apple-btn-primary,
+  .apple-btn-secondary {
     min-height: 44px;
   }
 
@@ -348,233 +492,15 @@
 }
 
 /* ============================================================
-   ADMIN DARK MODE (Web only)
-   Ecommerce style: Slate/Charcoal #1E2228, borders #2D3340
+   SEGMENTED CONTROLS, GROUPED LISTS, SQUIRCLE BADGES
+   Recolored onto the shared navy/gold tokens (previously a
+   separate pure black-and-white palette).
    ============================================================ */
 
-.dark .admin-card {
-  background-color: #1E2228;
-  border-color: #2D3340;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.dark .admin-input,
-.dark .admin-workspace input[type="text"],
-.dark .admin-workspace input[type="number"],
-.dark .admin-workspace input[type="email"],
-.dark .admin-workspace input[type="password"],
-.dark .admin-workspace input[type="search"],
-.dark .admin-workspace input[type="tel"],
-.dark .admin-workspace input[type="url"],
-.dark .admin-workspace select,
-.dark .admin-workspace textarea {
-  background-color: #16191F;
-  border-color: #2D3340;
-  color: #F1F5F9;
-}
-
-.dark .admin-input:focus,
-.dark .admin-workspace input:focus,
-.dark .admin-workspace select:focus,
-.dark .admin-workspace textarea:focus {
-  border-color: #3B82F6 !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
-}
-
-.dark .admin-label,
-.dark .admin-workspace label {
-  color: #CBD5E1;
-}
-
-.dark .admin-btn-secondary {
-  background-color: #1E2228;
-  border-color: #2D3340;
-  color: #CBD5E1;
-}
-
-.dark .admin-btn-secondary:hover:not(:disabled) {
-  background-color: #262B34;
-  border-color: #3B4252;
-  color: #FFFFFF;
-}
-
-.dark .admin-workspace thead tr,
-.dark .admin-workspace th {
-  background-color: #16191F !important;
-  color: #94A3B8 !important;
-  border-bottom: 1px solid #2D3340 !important;
-}
-
-.dark .admin-workspace tbody tr {
-  border-bottom: 1px solid #2D3340;
-}
-
-.dark .admin-workspace tbody tr:hover {
-  background-color: #222730;
-}
-
-.dark .admin-workspace tbody td {
-  color: #E2E8F0;
-}
-
-.dark .admin-sheet-panel {
-  background-color: #1E2228;
-  border-color: #2D3340;
-  color: #F1F5F9;
-}
-
-.dark .admin-ai-btn {
-  background-color: #16191F;
-  border-color: #2D3340;
-  color: #CBD5E1;
-}
-
-.dark .admin-ai-btn:hover {
-  background-color: #262B34;
-}
-
-/* ============================================================
-   APPLE DESIGN SYSTEM EXTENSIONS (WWDC Fluid Interfaces Inspired)
-   ============================================================ */
-
-/* Translucent Materials & Glass Surfaces */
-.apple-glass {
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(0, 0, 0, 0.07);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
-}
-
-.dark .apple-glass {
-  background: rgba(26, 30, 36, 0.82);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
-}
-
-/* Apple Cards */
-.apple-card {
-  background-color: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 18px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
-  transition: transform 180ms ease, box-shadow 180ms ease;
-}
-
-.dark .apple-card {
-  background-color: #181C22;
-  border-color: rgba(255, 255, 255, 0.07);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-}
-
-.apple-subcard {
-  background: rgba(247, 248, 250, 0.9);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 14px;
-  transition: all 160ms ease-out;
-}
-
-.apple-subcard:hover {
-  background: #FFFFFF;
-  border-color: rgba(0, 0, 0, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-  transform: translateY(-1px);
-}
-
-.dark .apple-subcard {
-  background: rgba(30, 34, 42, 0.6);
-  border-color: rgba(255, 255, 255, 0.06);
-}
-
-.dark .apple-subcard:hover {
-  background: rgba(36, 42, 52, 0.9);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-}
-
-/* Apple Buttons & Fluid Spring Feedback */
-.apple-btn-primary {
-  height: 38px;
-  background: #000000;
-  color: #FFFFFF;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  border-radius: 10px;
-  padding: 8px 18px;
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: transform 100ms ease-out, background-color 150ms ease, box-shadow 150ms ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-}
-
-.apple-btn-primary:hover:not(:disabled) {
-  background: #262626;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-}
-
-.apple-btn-primary:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-.dark .apple-btn-primary {
-  background: #FFFFFF;
-  color: #000000;
-}
-
-.dark .apple-btn-primary:hover:not(:disabled) {
-  background: #E5E5E5;
-}
-
-.apple-btn-secondary {
-  height: 38px;
-  background: rgba(0, 0, 0, 0.04);
-  color: #1A1A1A;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  border-radius: 10px;
-  padding: 8px 16px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: transform 100ms ease-out, background-color 150ms ease, border-color 150ms ease;
-}
-
-.apple-btn-secondary:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.08);
-  border-color: rgba(0, 0, 0, 0.12);
-}
-
-.apple-btn-secondary:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-.dark .apple-btn-secondary {
-  background: rgba(255, 255, 255, 0.07);
-  color: #F1F5F9;
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark .apple-btn-secondary:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.16);
-}
-
-/* Apple Squircle Badges */
 .apple-squircle-badge {
   width: 38px;
   height: 38px;
-  border-radius: 10px;
+  border-radius: var(--admin-radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -586,18 +512,14 @@
   transform: scale(0.95);
 }
 
-/* Apple Segmented Controls */
 .apple-segmented-nav {
   display: inline-flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--admin-surface-subtle);
   padding: 3px;
-  border-radius: 12px;
+  border-radius: var(--admin-radius-lg);
   gap: 2px;
-}
-
-.dark .apple-segmented-nav {
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--admin-border);
 }
 
 .apple-segmented-item {
@@ -607,46 +529,34 @@
   padding: 6px 14px;
   font-size: 12.5px;
   font-weight: 600;
-  color: #64748B;
-  border-radius: 9px;
+  color: var(--admin-text-muted);
+  border-radius: calc(var(--admin-radius-lg) - 3px);
   border: none;
+  background: transparent;
   cursor: pointer;
   transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.apple-segmented-item.active {
-  background: #FFFFFF;
-  color: #0F172A;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.05);
-}
-
-.dark .apple-segmented-item {
-  color: #94A3B8;
-}
-
-.dark .apple-segmented-item.active {
-  background: #2A303C;
-  color: #FFFFFF;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
 }
 
 .apple-segmented-item:active {
   transform: scale(0.97);
 }
 
-/* Apple Inset Grouped Settings List */
-.apple-grouped-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.07);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+.apple-segmented-item.active {
+  background: var(--admin-surface);
+  color: var(--admin-navy);
+  box-shadow: var(--admin-shadow-sm);
 }
 
-.dark .apple-grouped-card {
-  background: #181C22;
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+.dark .apple-segmented-item.active {
+  color: var(--admin-text);
+}
+
+.apple-grouped-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-xl);
+  overflow: hidden;
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .apple-grouped-row {
@@ -654,7 +564,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 18px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid var(--admin-border);
   transition: background-color 120ms ease;
 }
 
@@ -662,34 +572,27 @@
   border-bottom: none;
 }
 
-.dark .apple-grouped-row {
-  border-bottom-color: rgba(255, 255, 255, 0.06);
-}
-
-.dark .apple-grouped-row:last-child {
-  border-bottom: none;
-}
-
-/* Apple Display Numbers & Optical Typography */
 .apple-stat-number {
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   letter-spacing: -0.03em;
 }
 
-/* Edit Mode Pulse Indicator */
+/* ============================================================
+   EDIT-MODE PULSE INDICATOR
+   ============================================================ */
+
 @keyframes editSectionPulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.35);
+    box-shadow: 0 0 0 0 rgba(15, 31, 61, 0.35);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+    box-shadow: 0 0 0 10px rgba(15, 31, 61, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+    box-shadow: 0 0 0 0 rgba(15, 31, 61, 0);
   }
 }
 
 .apple-edit-active-pulse {
   animation: editSectionPulse 1.8s cubic-bezier(0.24, 0, 0.38, 1) 2;
 }
-

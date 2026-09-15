@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   FiHome,
   FiPackage,
@@ -20,189 +21,196 @@ import {
   FiChevronDown,
   FiChevronUp,
   FiLogOut,
-  FiCheckCircle,
+  FiX,
 } from 'react-icons/fi';
-import { AdminTab, SettingsSection } from './types';
+import { SettingsSection } from './types';
 
 interface AdminSidebarProps {
-  activeTab: AdminTab;
-  setActiveTab: (tab: AdminTab) => void;
-  activeSettingsSection: SettingsSection;
-  setActiveSettingsSection: (section: SettingsSection) => void;
-  onOpenProductCreate: () => void;
-  onViewProducts?: () => void;
-  productViewMode?: 'list' | 'create';
-  onSelectOrdersView: (view: 'all' | 'pending') => void;
   pendingOrdersCount?: number;
   lowStockCount?: number;
   onLogout: () => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+const navLinkBase =
+  'flex w-full items-center gap-3 rounded-xl px-3 py-1.5 text-left text-[13px] font-medium transition-all active:scale-[0.98]';
+const navLinkActive = 'bg-[#E8F0FE] text-[#1A73E8] font-semibold dark:bg-[#1A365D] dark:text-[#90CDF4]';
+const navLinkIdle = 'text-black/75 dark:text-white/75 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]';
+
+const groupHeaderBase =
+  'flex w-full items-center justify-between rounded-xl px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-black/45 dark:text-white/45 hover:text-black hover:bg-black/[0.04] dark:hover:bg-white/[0.06] dark:hover:text-white transition-colors';
+const subLinkBase =
+  'flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-left text-[12.5px] font-medium transition-all active:scale-[0.98]';
+const subLinkActive = 'bg-[#E8F0FE] text-[#1A73E8] font-semibold dark:bg-[#1A365D] dark:text-[#90CDF4]';
+const subLinkIdle = 'text-black/70 dark:text-white/70 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]';
+
+const settingsItems: { path: string; section: SettingsSection; label: string; icon: React.ElementType }[] = [
+  { path: '/admin/settings/store', section: 'store', label: 'Store Profile', icon: FiPhone },
+  { path: '/admin/settings/shipping', section: 'shipping', label: 'Delivery & Fees', icon: FiTruck },
+  { path: '/admin/settings/appearance', section: 'appearance', label: 'Homepage Layout', icon: FiLayers },
+  { path: '/admin/settings/banner', section: 'banner', label: 'Hero Banner', icon: FiEye },
+  { path: '/admin/settings/branding', section: 'branding', label: 'Logos & Brand', icon: FiStar },
+  { path: '/admin/settings/categories', section: 'categories', label: 'Categories', icon: FiPackage },
+  { path: '/admin/settings/accounts', section: 'accounts', label: 'Admin Accounts', icon: FiShield },
+  { path: '/admin/settings/policies', section: 'policies', label: 'Legal Policies', icon: FiFileText },
+];
+
+function ChevronIcon({ open }: { open: boolean }) {
+  return open ? <FiChevronUp className="w-3.5 h-3.5" /> : <FiChevronDown className="w-3.5 h-3.5" />;
+}
+
+function useActiveRoute() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const isProductsRoute = pathname?.startsWith('/admin/products') ?? false;
+  const isCreateRoute = pathname === '/admin/products/new';
+  const isOrdersRoute = pathname?.startsWith('/admin/orders') ?? false;
+  const isPendingView = isOrdersRoute && searchParams.get('view') === 'pending';
+  const isSettingsRoute = pathname?.startsWith('/admin/settings') ?? false;
+  const settingsSection = pathname?.startsWith('/admin/settings/') ? (pathname.split('/')[3] as SettingsSection) : null;
+  const isHomepageRoute = pathname?.startsWith('/admin/homepage') ?? false;
+  const isUsersRoute = pathname?.startsWith('/admin/customers') ?? false;
+  const isPaymentsRoute = pathname?.startsWith('/admin/payments') ?? false;
+  return {
+    isProductsRoute,
+    isCreateRoute,
+    isOrdersRoute,
+    isPendingView,
+    isSettingsRoute,
+    settingsSection,
+    isHomepageRoute,
+    isUsersRoute,
+    isPaymentsRoute,
+    pathname,
+  };
 }
 
 export function AdminSidebar({
-  activeTab,
-  setActiveTab,
-  activeSettingsSection,
-  setActiveSettingsSection,
-  onOpenProductCreate,
-  onViewProducts,
-  productViewMode = 'list',
-  onSelectOrdersView,
   pendingOrdersCount = 0,
   lowStockCount = 0,
   onLogout,
+  mobileOpen = false,
+  onMobileClose,
 }: AdminSidebarProps) {
-  // Accordion dropdown states
-  const [productsOpen, setProductsOpen] = useState(true);
-  const [ordersOpen, setOrdersOpen] = useState(true);
-  const [settingsOpen, setSettingsOpen] = useState(activeTab === 'settings');
+  const router = useRouter();
+  const { isProductsRoute, isCreateRoute, isOrdersRoute, isPendingView, isSettingsRoute, settingsSection, isHomepageRoute, isUsersRoute, isPaymentsRoute } = useActiveRoute();
 
-  const handleProductsViewAll = () => {
-    setActiveTab('products');
-    onViewProducts?.();
+  // Accordion groups — collapsed until the user clicks them
+  const [productsOpen, setProductsOpen] = useState(false);
+  const [ordersOpen, setOrdersOpen] = useState(false);
+  const [operationsOpen, setOperationsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Auto-open the group that owns the current route (never auto-close)
+  useEffect(() => {
+    if (isProductsRoute) setProductsOpen(true);
+    if (isOrdersRoute) setOrdersOpen(true);
+    if (isUsersRoute || isPaymentsRoute) setOperationsOpen(true);
+    if (isSettingsRoute) setSettingsOpen(true);
+  }, [isProductsRoute, isOrdersRoute, isUsersRoute, isPaymentsRoute, isSettingsRoute]);
+
+  const go = (path: string) => {
+    router.push(path);
+    onMobileClose?.();
   };
 
-  const handleProductCreate = () => {
-    setActiveTab('products');
-    onOpenProductCreate();
-  };
-
-  const handleOrdersAll = () => {
-    setActiveTab('orders');
-    onSelectOrdersView('all');
-  };
-
-  const handleOrdersPending = () => {
-    setActiveTab('orders');
-    onSelectOrdersView('pending');
-  };
-
-  const handleSettingsSelect = (section: SettingsSection) => {
-    setActiveTab('settings');
-    setActiveSettingsSection(section);
-  };
-
-  return (
-    <aside className="hidden h-fit rounded-2xl apple-card bg-white dark:bg-[#16191F] border border-black/[0.06] dark:border-white/[0.08] p-3 shadow-xs lg:sticky lg:top-20 lg:block text-[#1F2937] dark:text-[#F3F4F6]">
+  const sidebarContent = (
+    <>
       {/* Brand Header */}
-      <div className="px-3 py-2.5 mb-2 border-b border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between">
+      <div className="px-3 py-2.5 mb-1.5 border-b border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-black/40 dark:text-white/40">Navigation</p>
           <p className="text-sm font-bold tracking-tight text-[#111827] dark:text-white">Workspace Console</p>
         </div>
-        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="System Online" />
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="System Online" />
+          {/* Mobile close button */}
+          <button
+            onClick={onMobileClose}
+            className="lg:hidden p-1.5 rounded-lg text-black/50 dark:text-white/50 hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"
+            aria-label="Close navigation"
+          >
+            <FiX className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      <nav className="space-y-4">
-        {/* ==================== 1. TOP ESSENTIALS ==================== */}
-        <div className="space-y-1">
-          {/* Overview / Home */}
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-all active:scale-[0.98] ${
-              activeTab === 'dashboard'
-                ? 'bg-[#E8F0FE] text-[#1A73E8] font-semibold dark:bg-[#1A365D] dark:text-[#90CDF4]'
-                : 'text-black/75 dark:text-white/75 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-            }`}
-          >
+      <nav className="space-y-1.5">
+        {/* ── TOP ESSENTIALS ── */}
+        <div className="space-y-0.5">
+          <button onClick={() => go('/admin')} className={`${navLinkBase} ${!isProductsRoute && !isOrdersRoute && !isSettingsRoute && !isHomepageRoute && !isUsersRoute && !isPaymentsRoute ? navLinkActive : navLinkIdle}`}>
             <FiHome className="w-4 h-4 shrink-0" />
             <span>Overview</span>
           </button>
+          <button onClick={() => go('/admin/homepage')} className={`${navLinkBase} ${isHomepageRoute ? navLinkActive : navLinkIdle}`}>
+            <FiLayers className="w-4 h-4 shrink-0" />
+            <span>Homepage</span>
+          </button>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-black/[0.06] dark:border-white/[0.08]" />
-
-        {/* ==================== 2. PRODUCTS DROPDOWN ==================== */}
-        <div className="space-y-1">
-          <button
-            onClick={() => setProductsOpen((prev) => !prev)}
-            className="flex w-full items-center justify-between px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-black/45 dark:text-white/45 hover:text-black dark:hover:text-white transition-colors"
-          >
+        {/* ── CATALOG (accordion) ── */}
+        <div>
+          <button onClick={() => setProductsOpen((prev) => !prev)} className={groupHeaderBase}>
             <span className="flex items-center gap-2">
               <FiPackage className="w-3.5 h-3.5" />
               <span>Catalog</span>
             </span>
-            {productsOpen ? <FiChevronUp className="w-3.5 h-3.5" /> : <FiChevronDown className="w-3.5 h-3.5" />}
+            <ChevronIcon open={productsOpen} />
           </button>
-
           {productsOpen && (
-            <div className="space-y-0.5 pl-1.5">
-              {/* View Products */}
+            <div className="space-y-0.5 mt-0.5">
               <button
-                onClick={handleProductsViewAll}
-                className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-all active:scale-[0.98] ${
-                  activeTab === 'products' && productViewMode !== 'create'
-                    ? 'bg-[#E8F0FE] text-[#1A73E8] font-semibold dark:bg-[#1A365D] dark:text-[#90CDF4]'
-                    : 'text-black/75 dark:text-white/75 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-                }`}
+                onClick={() => go('/admin/products')}
+                className={`${subLinkBase} justify-between ${isProductsRoute && !isCreateRoute ? subLinkActive : subLinkIdle}`}
               >
-                <div className="flex items-center gap-2.5">
+                <span className="flex items-center gap-2.5">
                   <FiPackage className="w-3.5 h-3.5 opacity-70" />
                   <span>View Products</span>
-                </div>
+                </span>
                 {lowStockCount > 0 && (
                   <span className="text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded-full">
                     {lowStockCount}
                   </span>
                 )}
               </button>
-
-              {/* Add Product */}
               <button
-                onClick={handleProductCreate}
-                className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-all active:scale-[0.98] ${
-                  activeTab === 'products' && productViewMode === 'create'
-                    ? 'bg-[#E8F0FE] text-[#1A73E8] font-semibold dark:bg-[#1A365D] dark:text-[#90CDF4]'
-                    : 'text-black/75 dark:text-white/75 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-blue-600 dark:hover:text-blue-400'
-                }`}
+                onClick={() => go('/admin/products/new')}
+                className={`${subLinkBase} ${isCreateRoute ? subLinkActive : subLinkIdle}`}
               >
-                <FiPlus className={`w-3.5 h-3.5 ${activeTab === 'products' && productViewMode === 'create' ? 'text-[#1A73E8] dark:text-[#90CDF4]' : 'text-blue-600 dark:text-blue-400'}`} />
-                <span className={activeTab === 'products' && productViewMode === 'create' ? 'font-semibold text-[#1A73E8] dark:text-[#90CDF4]' : 'font-semibold text-blue-600 dark:text-blue-400'}>Add New Product</span>
+                <FiPlus className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                <span className="font-semibold text-blue-600 dark:text-blue-400">Add New Product</span>
               </button>
             </div>
           )}
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-black/[0.06] dark:border-white/[0.08]" />
-
-        {/* ==================== 3. ORDERS DROPDOWN ==================== */}
-        <div className="space-y-1">
-          <button
-            onClick={() => setOrdersOpen((prev) => !prev)}
-            className="flex w-full items-center justify-between px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-black/45 dark:text-white/45 hover:text-black dark:hover:text-white transition-colors"
-          >
+        {/* ── ORDERS (accordion) ── */}
+        <div>
+          <button onClick={() => setOrdersOpen((prev) => !prev)} className={groupHeaderBase}>
             <span className="flex items-center gap-2">
               <FiShoppingCart className="w-3.5 h-3.5" />
-              <span>Fulfillment</span>
+              <span>Orders</span>
             </span>
-            {ordersOpen ? <FiChevronUp className="w-3.5 h-3.5" /> : <FiChevronDown className="w-3.5 h-3.5" />}
+            <ChevronIcon open={ordersOpen} />
           </button>
-
           {ordersOpen && (
-            <div className="space-y-0.5 pl-1.5">
-              {/* All Orders */}
+            <div className="space-y-0.5 mt-0.5">
               <button
-                onClick={handleOrdersAll}
-                className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-all active:scale-[0.98] ${
-                  activeTab === 'orders'
-                    ? 'bg-[#E8F0FE] text-[#1A73E8] font-semibold dark:bg-[#1A365D] dark:text-[#90CDF4]'
-                    : 'text-black/75 dark:text-white/75 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-                }`}
+                onClick={() => go('/admin/orders')}
+                className={`${subLinkBase} ${isOrdersRoute && !isPendingView ? subLinkActive : subLinkIdle}`}
               >
                 <FiShoppingCart className="w-3.5 h-3.5 opacity-70" />
                 <span>All Orders</span>
               </button>
-
-              {/* Pending Orders */}
               <button
-                onClick={handleOrdersPending}
-                className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-[13px] font-medium text-black/75 dark:text-white/75 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all active:scale-[0.98]"
+                onClick={() => go('/admin/orders?view=pending')}
+                className={`${subLinkIdle} ${subLinkBase} justify-between`}
               >
-                <div className="flex items-center gap-2.5">
+                <span className="flex items-center gap-2.5">
                   <FiClock className="w-3.5 h-3.5 text-amber-500" />
                   <span>Pending Orders</span>
-                </div>
+                </span>
                 {pendingOrdersCount > 0 && (
                   <span className="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded-full">
                     {pendingOrdersCount}
@@ -213,78 +221,47 @@ export function AdminSidebar({
           )}
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-black/[0.06] dark:border-white/[0.08]" />
-
-        {/* ==================== 4. CUSTOMERS & PAYMENTS ==================== */}
-        <div className="space-y-1">
-          <p className="px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-black/45 dark:text-white/45">
-            Operations
-          </p>
-
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-all active:scale-[0.98] ${
-              activeTab === 'users'
-                ? 'bg-[#E8F0FE] text-[#1A73E8] font-semibold dark:bg-[#1A365D] dark:text-[#90CDF4]'
-                : 'text-black/75 dark:text-white/75 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-            }`}
-          >
-            <FiUsers className="w-4 h-4 shrink-0" />
-            <span>Customers</span>
+        {/* ── OPERATIONS (accordion) ── */}
+        <div>
+          <button onClick={() => setOperationsOpen((prev) => !prev)} className={groupHeaderBase}>
+            <span className="flex items-center gap-2">
+              <FiUsers className="w-3.5 h-3.5" />
+              <span>Operations</span>
+            </span>
+            <ChevronIcon open={operationsOpen} />
           </button>
-
-          <button
-            onClick={() => setActiveTab('payments')}
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-all active:scale-[0.98] ${
-              activeTab === 'payments'
-                ? 'bg-[#E8F0FE] text-[#1A73E8] font-semibold dark:bg-[#1A365D] dark:text-[#90CDF4]'
-                : 'text-black/75 dark:text-white/75 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-            }`}
-          >
-            <FiCreditCard className="w-4 h-4 shrink-0" />
-            <span>Payments</span>
-          </button>
+          {operationsOpen && (
+            <div className="space-y-0.5 mt-0.5">
+              <button onClick={() => go('/admin/customers')} className={`${subLinkBase} ${isUsersRoute ? subLinkActive : subLinkIdle}`}>
+                <FiUsers className="w-3.5 h-3.5 opacity-70" />
+                <span>Customers</span>
+              </button>
+              <button onClick={() => go('/admin/payments')} className={`${subLinkBase} ${isPaymentsRoute ? subLinkActive : subLinkIdle}`}>
+                <FiCreditCard className="w-3.5 h-3.5 opacity-70" />
+                <span>Payments</span>
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-black/[0.06] dark:border-white/[0.08]" />
-
-        {/* ==================== 5. SETTINGS DROPDOWN ==================== */}
-        <div className="space-y-1">
-          <button
-            onClick={() => setSettingsOpen((prev) => !prev)}
-            className="flex w-full items-center justify-between px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-black/45 dark:text-white/45 hover:text-black dark:hover:text-white transition-colors"
-          >
+        {/* ── SETTINGS (accordion) ── */}
+        <div>
+          <button onClick={() => setSettingsOpen((prev) => !prev)} className={groupHeaderBase}>
             <span className="flex items-center gap-2">
               <FiSettings className="w-3.5 h-3.5" />
               <span>Settings</span>
             </span>
-            {settingsOpen ? <FiChevronUp className="w-3.5 h-3.5" /> : <FiChevronDown className="w-3.5 h-3.5" />}
+            <ChevronIcon open={settingsOpen} />
           </button>
-
           {settingsOpen && (
-            <div className="space-y-0.5 pl-1.5">
-              {[
-                { id: 'store', label: 'Store Profile', icon: FiPhone },
-                { id: 'shipping', label: 'Delivery & Fees', icon: FiTruck },
-                { id: 'appearance', label: 'Homepage Layout', icon: FiLayers },
-                { id: 'banner', label: 'Hero Banner', icon: FiEye },
-                { id: 'branding', label: 'Logos & Brand', icon: FiStar },
-                { id: 'categories', label: 'Categories', icon: FiPackage },
-                { id: 'accounts', label: 'Admin Accounts', icon: FiShield },
-                { id: 'policies', label: 'Legal Policies', icon: FiFileText },
-              ].map((item) => {
-                const isSelected = activeTab === 'settings' && activeSettingsSection === item.id;
+            <div className="space-y-0.5 mt-0.5">
+              {settingsItems.map((item) => {
+                const isSelected = isSettingsRoute && settingsSection === item.section;
                 return (
                   <button
-                    key={item.id}
-                    onClick={() => handleSettingsSelect(item.id as SettingsSection)}
-                    className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-left text-[12.5px] font-medium transition-all active:scale-[0.98] ${
-                      isSelected
-                        ? 'bg-[#E8F0FE] text-[#1A73E8] font-semibold dark:bg-[#1A365D] dark:text-[#90CDF4]'
-                        : 'text-black/70 dark:text-white/70 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-                    }`}
+                    key={item.path}
+                    onClick={() => go(item.path)}
+                    className={`${subLinkBase} ${isSelected ? subLinkActive : subLinkIdle}`}
                   >
                     <item.icon className={`w-3.5 h-3.5 ${isSelected ? 'text-[#1A73E8] dark:text-[#90CDF4]' : 'opacity-60'}`} />
                     <span>{item.label}</span>
@@ -297,14 +274,36 @@ export function AdminSidebar({
       </nav>
 
       {/* Footer Sign Out */}
-      <div className="mt-5 border-t border-black/[0.06] dark:border-white/[0.08] pt-3">
+      <div className="mt-3 border-t border-black/[0.06] dark:border-white/[0.08] pt-2.5">
         <button
-          onClick={onLogout}
-          className="w-full flex h-[36px] items-center justify-center gap-2 rounded-xl text-black/60 dark:text-white/60 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all text-xs font-semibold active:scale-[0.98]"
+          onClick={() => { onLogout(); onMobileClose?.(); }}
+          className="w-full flex h-[34px] items-center justify-center gap-2 rounded-xl text-black/60 dark:text-white/60 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all text-xs font-semibold active:scale-[0.98]"
         >
           <FiLogOut className="w-4 h-4" /> Sign Out
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile drawer backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-[55] bg-black/40 backdrop-blur-sm lg:hidden"
+          onClick={onMobileClose}
+          aria-hidden
+        />
+      )}
+
+      {/* Mobile slide-in drawer / Desktop sticky sidebar — same nav content */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-[60] w-[270px] max-w-[85vw] overflow-y-auto apple-card bg-white dark:bg-[#16191F] border-r border-black/[0.06] dark:border-white/[0.08] p-3 shadow-lg transition-transform duration-300 lg:translate-x-0 lg:static lg:z-auto lg:w-auto lg:max-w-none lg:shadow-xs lg:border lg:border-black/[0.06] dark:lg:border-white/[0.08] lg:rounded-2xl lg:h-fit lg:sticky lg:top-20 ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {sidebarContent}
+      </aside>
+    </>
   );
 }
