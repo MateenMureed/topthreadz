@@ -113,7 +113,18 @@ export default function HomePageClient({
   // Fetch live homepage settings from admin API
   const { data: homepageSettingsResponse } = useQuery({
     queryKey: ['homepage', 'settings'],
-    queryFn: () => api.get('/settings/homepage').then((r) => r.data),
+    queryFn: async () => {
+      try {
+        const r = await api.get('/settings/homepage');
+        return r.data;
+      } catch (err: any) {
+        if (err?.response?.status === 404) {
+          const r = await api.get('/admin/settings/homepage');
+          return r.data;
+        }
+        throw err;
+      }
+    },
     staleTime: 5 * 60 * 1000, // cache for 5 min
     retry: false,
   });
@@ -204,7 +215,7 @@ export default function HomePageClient({
               <div className="relative aspect-[3/4] w-full overflow-hidden flex items-center justify-center">
                 <Image
                   src={section.imageUrl}
-                  alt={section.title}
+                  alt={section.title || (section as any).label || 'Collection'}
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-contain object-center p-2"
@@ -213,7 +224,7 @@ export default function HomePageClient({
                 {/* Bottom black bar banner matching Diners */}
                 <div className="absolute inset-x-0 bottom-0 bg-black/85 backdrop-blur-[2px] py-3 sm:py-3.5 px-4 text-center transition-colors duration-200">
                   <h3 className="text-white text-xs sm:text-[13px] font-bold tracking-[0.16em] uppercase">
-                    {section.title}
+                    {section.title || (section as any).label}
                   </h3>
                 </div>
               </div>
@@ -280,7 +291,7 @@ export default function HomePageClient({
               <div className="relative aspect-[4/3] w-full overflow-hidden flex items-center justify-center">
                 <Image
                   src={card.imageUrl}
-                  alt={card.title}
+                  alt={card.title || (card as any).label || 'Showcase'}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-contain object-center p-4"
@@ -291,7 +302,7 @@ export default function HomePageClient({
                     {card.badge}
                   </span>
                   <h3 className="text-xl sm:text-2xl md:text-3xl font-serif mt-1 font-normal tracking-wide">
-                    {card.title}
+                    {card.title || (card as any).label}
                   </h3>
                   <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold tracking-widest uppercase text-white/90 group-hover:text-white transition-colors">
                     <span>{card.cta}</span>

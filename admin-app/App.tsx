@@ -3478,7 +3478,16 @@ function HomepageView() {
   const loadSettings = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get('/settings/homepage');
+      let res;
+      try {
+        res = await api.get('/settings/homepage');
+      } catch (e: any) {
+        if (e?.response?.status === 404) {
+          res = await api.get('/admin/settings/homepage');
+        } else {
+          throw e;
+        }
+      }
       const d = res?.data;
       if (d) {
         setSettings({
@@ -3509,10 +3518,28 @@ function HomepageView() {
       // Reshape for API: collectionSections needs title field
       const payload = {
         ...settings,
-        collectionSections: settings.collectionSections.map((s) => ({ ...s, title: s.label || s.title || '' })),
-        showcaseCards: settings.showcaseCards.map((s) => ({ ...s, title: s.title || s.label, badge: s.badge || '', cta: s.cta || '' })),
+        collectionSections: settings.collectionSections.map((s) => ({
+          ...s,
+          title: s.label || s.title || '',
+          label: s.label || s.title || '',
+        })),
+        showcaseCards: settings.showcaseCards.map((s) => ({
+          ...s,
+          title: s.title || s.label || '',
+          label: s.title || s.label || '',
+          badge: s.badge || '',
+          cta: s.cta || '',
+        })),
       };
-      await api.put('/settings/homepage', payload);
+      try {
+        await api.put('/settings/homepage', payload);
+      } catch (e: any) {
+        if (e?.response?.status === 404) {
+          await api.put('/admin/settings/homepage', payload);
+        } else {
+          throw e;
+        }
+      }
       Alert.alert('✅ Saved', 'Homepage settings have been published to the storefront.');
     } catch (e: any) {
       Alert.alert('Save Failed', e?.message || 'Could not save homepage settings.');
@@ -3538,7 +3565,16 @@ function HomepageView() {
       const match = /\.(\w+)$/.exec(filename);
       const type = match ? `image/${match[1]}` : 'image/jpeg';
       formData.append('image', { uri: asset.uri, name: filename, type } as any);
-      const uploadRes = await api.postFormData('/settings/homepage/upload', formData);
+      let uploadRes;
+      try {
+        uploadRes = await api.postFormData('/settings/homepage/upload', formData);
+      } catch (e: any) {
+        if (e?.response?.status === 404) {
+          uploadRes = await api.postFormData('/admin/settings/homepage/upload', formData);
+        } else {
+          throw e;
+        }
+      }
       const url = uploadRes?.data?.url || uploadRes?.url;
       if (url) {
         onUploaded(typeof url === 'string' ? url : url.url);
@@ -3576,7 +3612,17 @@ function HomepageView() {
   ) => {
     setSettings((prev) => ({
       ...prev,
-      [section]: (prev[section] as HpCard[]).map((c) => c.id === id ? { ...c, [field]: value } : c),
+      [section]: (prev[section] as HpCard[]).map((c) => {
+        if (c.id !== id) return c;
+        const updated = { ...c, [field]: value };
+        if (section === 'collectionSections' && field === 'label') {
+          updated.title = value;
+        }
+        if (section === 'showcaseCards' && field === 'title') {
+          updated.label = value;
+        }
+        return updated;
+      }),
     }));
   };
 

@@ -280,7 +280,18 @@ export default function HomepagePage() {
 
   const { isLoading, data: hpData } = useQuery({
     queryKey: ['homepage', 'settings'],
-    queryFn: () => api.get('/settings/homepage').then((r) => r.data?.data),
+    queryFn: async () => {
+      try {
+        const r = await api.get('/settings/homepage');
+        return r.data?.data;
+      } catch (err: any) {
+        if (err?.response?.status === 404) {
+          const r = await api.get('/admin/settings/homepage');
+          return r.data?.data;
+        }
+        throw err;
+      }
+    },
     retry: false,
   });
 
@@ -304,12 +315,31 @@ export default function HomepagePage() {
   }, [hpData]);
 
   const saveMutation = useMutation({
-    mutationFn: (payload: HomepageSettings) =>
-      api.put('/settings/homepage', {
+    mutationFn: async (payload: HomepageSettings) => {
+      const body = {
         ...payload,
-        collectionSections: payload.collectionSections.map((s) => ({ ...s, title: s.label || s.title || '' })),
-        showcaseCards: payload.showcaseCards.map((s) => ({ ...s, title: s.title || s.label, badge: s.badge || '', cta: s.cta || '' })),
-      }),
+        collectionSections: payload.collectionSections.map((s) => ({
+          ...s,
+          title: s.label || s.title || '',
+          label: s.label || s.title || '',
+        })),
+        showcaseCards: payload.showcaseCards.map((s) => ({
+          ...s,
+          title: s.title || s.label || '',
+          label: s.title || s.label || '',
+          badge: s.badge || '',
+          cta: s.cta || '',
+        })),
+      };
+      try {
+        return await api.put('/settings/homepage', body);
+      } catch (err: any) {
+        if (err?.response?.status === 404) {
+          return await api.put('/admin/settings/homepage', body);
+        }
+        throw err;
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homepage', 'settings'] });
       toast.success('Homepage published to the storefront.');
@@ -323,13 +353,24 @@ export default function HomepagePage() {
       const compressed = await compressImageFile(file, 1920, 1920, 0.85);
       const formData = new FormData();
       formData.append('image', compressed);
-      const res = await api.post('/settings/homepage/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      const url = res.data?.data?.url;
+      let res;
+      try {
+        res = await api.post('/settings/homepage/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      } catch (err: any) {
+        if (err?.response?.status === 404) {
+          res = await api.post('/admin/settings/homepage/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+        } else {
+          throw err;
+        }
+      }
+      const url = res?.data?.data?.url || res?.data?.url;
       if (url) {
         onUploaded(url);
-        toast.success('Image uploaded â€” click Save & Publish to go live.');
+        toast.success('Image uploaded — click Save & Publish to go live.');
       } else {
         toast.error('Upload succeeded but no URL returned.');
       }
@@ -348,7 +389,7 @@ export default function HomepagePage() {
     }
     onApplied(trimmed);
     setDirectUrls((prev) => ({ ...prev, [slotKey]: '' }));
-    toast.success('URL applied â€” click Save & Publish to go live.');
+    toast.success('URL applied — click Save & Publish to go live.');
   };
 
   const updateHero = (key: 'desktop' | 'mobile') => (url: string) =>
@@ -371,7 +412,17 @@ export default function HomepagePage() {
   ) =>
     setSettings((prev) => ({
       ...prev,
-      [section]: (prev[section] as HpCard[]).map((c) => (c.id === id ? { ...c, [field]: value } : c)),
+      [section]: (prev[section] as HpCard[]).map((c) => {
+        if (c.id !== id) return c;
+        const updated = { ...c, [field]: value };
+        if (section === 'collectionSections' && field === 'label') {
+          updated.title = value;
+        }
+        if (section === 'showcaseCards' && field === 'title') {
+          updated.label = value;
+        }
+        return updated;
+      }),
     }));
 
   if (isLoading && !loadedRef.current) {
@@ -494,7 +545,7 @@ export default function HomepagePage() {
             />
             <CardTextFields
               fields={[
-                { label: 'Title (black banner bar on the card)', value: section.label || '', onChange: (v) => updateCardField('collectionSections', section.id, 'label', v), placeholder: 'UNSTITCHED FABRIC COLLECTION' },
+                { label: 'Title (black banner bar on the card)', value: section.label || section.title || '', onChange: (v) => updateCardField('collectionSections', section.id, 'label', v), placeholder: 'UNSTITCHED FABRIC COLLECTION' },
                 { label: 'Link (e.g. /products/category/unstitched-fabric)', value: section.href || '', onChange: (v) => updateCardField('collectionSections', section.id, 'href', v), placeholder: '/products/category/two-piece' },
               ]}
             />

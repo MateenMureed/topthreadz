@@ -119,6 +119,11 @@ app.delete('/api/settings/logo', authenticateAdmin, authorize('ADMIN'), adminCon
 app.get('/api/settings/store', adminController.getStoreSettings.bind(adminController));
 app.put('/api/settings/store', authenticateAdmin, authorize('ADMIN'), adminController.updateStoreSettings.bind(adminController));
 
+// Homepage settings & upload (public read, admin write)
+app.get('/api/settings/homepage', adminController.getHomepageSettings.bind(adminController));
+app.put('/api/settings/homepage', authenticateAdmin, authorize('ADMIN'), adminController.updateHomepageSettings.bind(adminController));
+app.post('/api/settings/homepage/upload', authenticateAdmin, authorize('ADMIN'), upload.single('image'), adminController.uploadHomepageImage.bind(adminController));
+
 app.get('/api/recommendations', authenticate, async (req: AuthRequest, res, next) => {
   try { res.json({ success: true, data: await recommendationService.getRecommendations(req.user!.userId) }); }
   catch (error) { next(error); }

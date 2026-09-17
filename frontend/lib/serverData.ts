@@ -58,7 +58,10 @@ export async function fetchServerProducts(params?: { limit?: number; sortBy?: st
 }
 
 async function fetchServerHomepageSettings(revalidate = 120) {
-  const data = await fetchServerData<any>('/settings/homepage', revalidate);
+  let data = await fetchServerData<any>('/settings/homepage', revalidate);
+  if (!data) {
+    data = await fetchServerData<any>('/admin/settings/homepage', revalidate);
+  }
   return data || null;
 }
 
