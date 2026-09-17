@@ -26,6 +26,7 @@ import {
   FiEye,
   FiType,
   FiLink,
+  FiShoppingBag,
 } from 'react-icons/fi';
 
 interface HpCard {
@@ -48,6 +49,12 @@ interface HomepageSettings {
     buttonText: string;
     buttonLink: string;
   };
+  productsBanner?: {
+    desktop: { url: string; publicId: string };
+    mobile: { url: string; publicId: string };
+    title?: string;
+    subtitle?: string;
+  };
   categoryCards: HpCard[];
   collectionSections: HpCard[];
   showcaseCards: HpCard[];
@@ -61,6 +68,15 @@ const HP_FALLBACK: HomepageSettings = {
     subheading: 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
     buttonText: 'Shop Now',
     buttonLink: '/products',
+  },
+  productsBanner: {
+    desktop: {
+      url: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg',
+      publicId: '',
+    },
+    mobile: { url: '', publicId: '' },
+    title: 'All Products Collection',
+    subtitle: "Premium Men's Luxury Fabrics & Stitched Wear",
   },
   categoryCards: [
     {
@@ -320,6 +336,7 @@ export default function HomepagePage() {
     hasInitializedRef.current = true;
     setSettings({
       heroBanner: { ...HP_FALLBACK.heroBanner, ...(hpData.heroBanner || {}) },
+      productsBanner: { ...HP_FALLBACK.productsBanner, ...(hpData.productsBanner || {}) },
       categoryCards: (hpData.categoryCards?.length ? hpData.categoryCards : HP_FALLBACK.categoryCards).map((c: any) => ({
         ...c, subtitle: c.subtitle || '', label: c.label || '', href: c.href || '',
       })),
@@ -337,6 +354,13 @@ export default function HomepagePage() {
       heroBanner: {
         ...payload.heroBanner,
         buttonLink: normalizeLink(payload.heroBanner.buttonLink),
+      },
+      productsBanner: {
+        ...payload.productsBanner,
+        desktop: payload.productsBanner?.desktop || HP_FALLBACK.productsBanner!.desktop,
+        mobile: payload.productsBanner?.mobile || HP_FALLBACK.productsBanner!.mobile,
+        title: payload.productsBanner?.title || '',
+        subtitle: payload.productsBanner?.subtitle || '',
       },
       categoryCards: payload.categoryCards.map((c) => ({
         ...c,
@@ -434,6 +458,25 @@ export default function HomepagePage() {
 
   const updateHeroText = (key: 'heading' | 'subheading' | 'buttonText' | 'buttonLink') => (e: React.ChangeEvent<HTMLInputElement>) =>
     setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, [key]: e.target.value } }));
+
+  const updateProductsBanner = (key: 'desktop' | 'mobile') => (url: string, current: HomepageSettings): HomepageSettings => ({
+    ...current,
+    productsBanner: {
+      ...HP_FALLBACK.productsBanner!,
+      ...(current.productsBanner || {}),
+      [key]: { url, publicId: '' },
+    },
+  });
+
+  const updateProductsBannerText = (key: 'title' | 'subtitle') => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setSettings((prev) => ({
+      ...prev,
+      productsBanner: {
+        ...HP_FALLBACK.productsBanner!,
+        ...(prev.productsBanner || {}),
+        [key]: e.target.value,
+      },
+    }));
 
   const updateCardImage = (section: SectionKey, id: string) => (url: string, current: HomepageSettings): HomepageSettings => ({
     ...current,
@@ -559,6 +602,75 @@ export default function HomepagePage() {
         </div>
       </section>
 
+      {/* ── ALL PRODUCTS PAGE BANNER ── */}
+      <section className="apple-card p-5 space-y-5">
+        <SectionHeader
+          icon={<FiShoppingBag className="w-5 h-5" />}
+          title="All Products Page Banner"
+          hint="Header banner displayed at the top of /products — desktop (1920 × 500) + mobile (800 × 1000)"
+          accent="bg-purple-50 text-purple-600 border-purple-100/60"
+        />
+        <div className="rounded-xl bg-purple-50 border border-purple-200/80 p-3 text-[11px] text-purple-700">
+          📐 Displayed across the top of the All Products collection catalog (/products). Auto-saved on upload.
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ImageSlot
+            label="Products Desktop Banner"
+            recommended="1920 × 500 px"
+            aspectClass="aspect-[1920/500]"
+            currentUrl={settings.productsBanner?.desktop?.url || ''}
+            uploading={uploadingKey === 'products-desktop'}
+            onUpload={(file) => uploadImage('products-desktop', file, updateProductsBanner('desktop'))}
+          />
+          <ImageSlot
+            label="Products Mobile Banner"
+            recommended="800 × 1000 px"
+            aspectClass="aspect-[4/5]"
+            currentUrl={settings.productsBanner?.mobile?.url || ''}
+            uploading={uploadingKey === 'products-mobile'}
+            onUpload={(file) => uploadImage('products-mobile', file, updateProductsBanner('mobile'))}
+          />
+        </div>
+
+        <div className="rounded-2xl border border-surface-200/80 bg-surface-50/50 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-surface-900">Products Banner Heading (Optional)</p>
+            <button
+              type="button"
+              onClick={() => saveMutation.mutate(settings)}
+              disabled={saveMutation.isPending}
+              className="text-[11px] font-semibold text-primary-700 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 border border-primary-200/80 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 shadow-2xs"
+            >
+              <FiSave className="w-3 h-3" />
+              {saveMutation.isPending ? 'Saving…' : 'Save Banner Text'}
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-surface-700 block">Title</label>
+              <input
+                type="text"
+                value={settings.productsBanner?.title || ''}
+                onChange={updateProductsBannerText('title')}
+                onBlur={() => saveMutation.mutate(settings)}
+                placeholder="All Products Collection"
+                className="admin-input-field w-full text-xs"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-surface-700 block">Subtitle</label>
+              <input
+                type="text"
+                value={settings.productsBanner?.subtitle || ''}
+                onChange={updateProductsBannerText('subtitle')}
+                onBlur={() => saveMutation.mutate(settings)}
+                placeholder="Premium Men's Luxury Fabrics & Stitched Wear"
+                className="admin-input-field w-full text-xs"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ── COLLECTION SECTIONS ── */}
       <section className="apple-card p-5 space-y-5">

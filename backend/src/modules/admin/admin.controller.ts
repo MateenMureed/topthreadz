@@ -719,6 +719,15 @@ export class AdminController {
         imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788630568/ecommerce-products/qddnzjm16r9mljo8gihe.jpg',
       },
     ],
+    productsBanner: {
+      desktop: {
+        url: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg',
+        publicId: '',
+      },
+      mobile: { url: '', publicId: '' },
+      title: 'All Products Collection',
+      subtitle: "Premium Men's Luxury Fabrics & Stitched Wear",
+    },
   };
 
   async getHomepageSettings(_req: Request, res: Response, next: NextFunction) {
@@ -729,6 +738,7 @@ export class AdminController {
       const defaults = AdminController.DEFAULT_HOMEPAGE_SETTINGS;
       const data = {
         heroBanner: { ...defaults.heroBanner, ...(stored.heroBanner || {}) },
+        productsBanner: { ...defaults.productsBanner, ...(stored.productsBanner || {}) },
         categoryCards: stored.categoryCards?.length ? stored.categoryCards : defaults.categoryCards,
         collectionSections: stored.collectionSections?.length ? stored.collectionSections : defaults.collectionSections,
         showcaseCards: stored.showcaseCards?.length ? stored.showcaseCards : defaults.showcaseCards,
@@ -748,6 +758,10 @@ export class AdminController {
         heroBanner: {
           ...defaults.heroBanner,
           ...(body.heroBanner || {}),
+        },
+        productsBanner: {
+          ...defaults.productsBanner,
+          ...(body.productsBanner || {}),
         },
         categoryCards: Array.isArray(body.categoryCards) && body.categoryCards.length
           ? body.categoryCards
@@ -801,6 +815,21 @@ export class AdminController {
               buttonLink: payload.heroBanner.buttonLink,
             }),
           },
+        });
+      }
+
+      if (payload.productsBanner?.desktop?.url) {
+        await prisma.siteSetting.upsert({
+          where: { key: 'products_banner' },
+          update: { value: JSON.stringify({ url: payload.productsBanner.desktop.url, publicId: payload.productsBanner.desktop.publicId || '' }) },
+          create: { key: 'products_banner', value: JSON.stringify({ url: payload.productsBanner.desktop.url, publicId: payload.productsBanner.desktop.publicId || '' }) },
+        });
+      }
+      if (payload.productsBanner?.mobile?.url) {
+        await prisma.siteSetting.upsert({
+          where: { key: 'products_banner_mobile' },
+          update: { value: JSON.stringify({ url: payload.productsBanner.mobile.url, publicId: payload.productsBanner.mobile.publicId || '' }) },
+          create: { key: 'products_banner_mobile', value: JSON.stringify({ url: payload.productsBanner.mobile.url, publicId: payload.productsBanner.mobile.publicId || '' }) },
         });
       }
 

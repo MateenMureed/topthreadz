@@ -3305,6 +3305,12 @@ interface HomepageSettings {
     buttonText: string;
     buttonLink: string;
   };
+  productsBanner?: {
+    desktop: { url: string; publicId: string };
+    mobile: { url: string; publicId: string };
+    title?: string;
+    subtitle?: string;
+  };
   categoryCards: HpCard[];
   collectionSections: HpCard[];
   showcaseCards: HpCard[];
@@ -3318,6 +3324,15 @@ const HP_DEFAULTS: HomepageSettings = {
     subheading: 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
     buttonText: 'Shop Now',
     buttonLink: '/products',
+  },
+  productsBanner: {
+    desktop: {
+      url: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg',
+      publicId: '',
+    },
+    mobile: { url: '', publicId: '' },
+    title: 'All Products Collection',
+    subtitle: "Premium Men's Luxury Fabrics & Stitched Wear",
   },
   categoryCards: [
     { id: 'two-piece',    label: 'TWO PIECE',            subtitle: "Men's",         href: '/products/category/two-piece',         imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788630568/ecommerce-products/qddnzjm16r9mljo8gihe.jpg' },
@@ -3472,9 +3487,10 @@ function HomepageView() {
       }
       // Backend wraps settings in { data: { heroBanner, ... } } — handle both shapes
       const d = res?.data?.data ?? res?.data;
-      if (d && (d.heroBanner || d.categoryCards || d.collectionSections || d.showcaseCards)) {
+      if (d && (d.heroBanner || d.categoryCards || d.collectionSections || d.showcaseCards || d.productsBanner)) {
         setSettings({
           heroBanner: { ...HP_DEFAULTS.heroBanner, ...(d.heroBanner || {}) },
+          productsBanner: { ...HP_DEFAULTS.productsBanner, ...(d.productsBanner || {}) },
           categoryCards: (d.categoryCards?.length ? d.categoryCards : HP_DEFAULTS.categoryCards).map((c: any) => ({
             ...c, subtitle: c.subtitle || '', label: c.label || '', href: c.href || '',
           })),
@@ -3513,6 +3529,13 @@ function HomepageView() {
         heroBanner: {
           ...settings.heroBanner,
           buttonLink: normalizeHpLink(settings.heroBanner.buttonLink),
+        },
+        productsBanner: {
+          ...settings.productsBanner,
+          desktop: settings.productsBanner?.desktop || HP_DEFAULTS.productsBanner!.desktop,
+          mobile: settings.productsBanner?.mobile || HP_DEFAULTS.productsBanner!.mobile,
+          title: settings.productsBanner?.title || '',
+          subtitle: settings.productsBanner?.subtitle || '',
         },
         categoryCards: settings.categoryCards.map((c) => ({
           ...c,
@@ -3556,6 +3579,13 @@ function HomepageView() {
       heroBanner: {
         ...payload.heroBanner,
         buttonLink: normalizeHpLink(payload.heroBanner.buttonLink),
+      },
+      productsBanner: {
+        ...payload.productsBanner,
+        desktop: payload.productsBanner?.desktop || HP_DEFAULTS.productsBanner!.desktop,
+        mobile: payload.productsBanner?.mobile || HP_DEFAULTS.productsBanner!.mobile,
+        title: payload.productsBanner?.title || '',
+        subtitle: payload.productsBanner?.subtitle || '',
       },
       categoryCards: payload.categoryCards.map((c) => ({
         ...c,
@@ -3725,6 +3755,86 @@ function HomepageView() {
               />
             </View>
           ))}
+        </View>
+      </AccordionSection>
+
+      {/* ── ALL PRODUCTS PAGE BANNER ── */}
+      <AccordionSection
+        title="🛍️ All Products Page Banner"
+        subtitle="Header banner for /products • Desktop 1920 × 500 + Mobile 800 × 1000"
+      >
+        <View style={{ backgroundColor: '#EFF6FF', borderRadius: 8, padding: 10, marginBottom: 10 }}>
+          <Text style={{ fontSize: 11, color: '#1D4ED8', fontWeight: '600' }}>📐 Recommended Dimensions</Text>
+          <Text style={{ fontSize: 10, color: '#1D4ED8', marginTop: 3 }}>Desktop: 1920 × 500 px (landscape) • Mobile: 800 × 1000 px (portrait)</Text>
+        </View>
+
+        {/* Desktop banner */}
+        <HomepageImageSlot
+          label="Desktop Banner (/products)"
+          aspectRatio="16:5"
+          recommendedSize="1920 × 500 px"
+          currentUrl={settings.productsBanner?.desktop?.url || ''}
+          uploading={uploadingKey === 'products-desktop'}
+          onPressUpload={() => pickAndUploadImage('products-desktop', (url, prev) => ({
+            ...prev,
+            productsBanner: {
+              ...(prev.productsBanner || HP_DEFAULTS.productsBanner!),
+              desktop: { url, publicId: '' },
+            },
+          }))}
+        />
+
+        {/* Mobile banner */}
+        <HomepageImageSlot
+          label="Mobile Banner (/products)"
+          aspectRatio="4:5"
+          recommendedSize="800 × 1000 px"
+          currentUrl={settings.productsBanner?.mobile?.url || ''}
+          uploading={uploadingKey === 'products-mobile'}
+          onPressUpload={() => pickAndUploadImage('products-mobile', (url, prev) => ({
+            ...prev,
+            productsBanner: {
+              ...(prev.productsBanner || HP_DEFAULTS.productsBanner!),
+              mobile: { url, publicId: '' },
+            },
+          }))}
+        />
+
+        {/* Banner text fields */}
+        <View style={[styles.cardSection, themed.cardSection, { marginTop: 8 }]}>
+          <Text style={[styles.cardSectionTitle, themed.cardSectionTitle]}>Overlay Text (Optional)</Text>
+          <View style={[styles.inputGroup, themed.inputGroup]}>
+            <Text style={[styles.inputLabel, themed.inputLabel]}>Headline Title</Text>
+            <TextInput
+              style={[styles.textInput, themed.textInput]}
+              value={settings.productsBanner?.title ?? ''}
+              onChangeText={(v) => setSettings((prev) => ({
+                ...prev,
+                productsBanner: {
+                  ...(prev.productsBanner || HP_DEFAULTS.productsBanner!),
+                  title: v,
+                },
+              }))}
+              placeholder="All Products"
+              placeholderTextColor={palette.textFaint}
+            />
+          </View>
+          <View style={[styles.inputGroup, themed.inputGroup]}>
+            <Text style={[styles.inputLabel, themed.inputLabel]}>Subtitle / Tagline</Text>
+            <TextInput
+              style={[styles.textInput, themed.textInput]}
+              value={settings.productsBanner?.subtitle ?? ''}
+              onChangeText={(v) => setSettings((prev) => ({
+                ...prev,
+                productsBanner: {
+                  ...(prev.productsBanner || HP_DEFAULTS.productsBanner!),
+                  subtitle: v,
+                },
+              }))}
+              placeholder="Discover our handcrafted premium collection"
+              placeholderTextColor={palette.textFaint}
+            />
+          </View>
         </View>
       </AccordionSection>
 

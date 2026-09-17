@@ -86,6 +86,10 @@ export async function fetchServerHeroBannerMobile() {
   return (data?.url as string | undefined) ?? null;
 }
 
+export async function fetchServerProductsBanner() {
+  const hp = await fetchServerHomepageSettings();
+  return hp?.productsBanner || null;
+}
 
 export async function fetchServerStoreSettings() {
   return fetchServerData<any>('/settings/store', 120);

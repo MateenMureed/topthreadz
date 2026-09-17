@@ -4,8 +4,9 @@ import { Suspense, useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { productService } from '@/services/product.service';
+import api from '@/services/api';
 import ProductGrid from '@/components/ProductGrid';
 import { FiSearch, FiX, FiFilter, FiChevronDown } from 'react-icons/fi';
 
@@ -80,17 +81,53 @@ function ProductsPageContent() {
   const firstPagePagination = data?.pages?.[0]?.data?.pagination || data?.pages?.[0]?.pagination;
   const totalItems = firstPagePagination?.total || products.length || 0;
 
+  const { data: hpData } = useQuery({
+    queryKey: ['homepage', 'settings'],
+    queryFn: async () => {
+      try {
+        const r = await api.get('/settings/homepage');
+        return r.data?.data;
+      } catch (err: any) {
+        if (err?.response?.status === 404) {
+          const r = await api.get('/admin/settings/homepage');
+          return r.data?.data;
+        }
+        return null;
+      }
+    },
+    staleTime: 60 * 1000,
+  });
+
+  const desktopBanner =
+    hpData?.productsBanner?.desktop?.url ||
+    'https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg';
+  const mobileBanner = hpData?.productsBanner?.mobile?.url || desktopBanner;
+  const bannerTitle = hpData?.productsBanner?.title || 'All Products Collection';
+  const bannerSubtitle = hpData?.productsBanner?.subtitle;
+
   return (
     <div className="w-full min-h-[70vh] pb-14 bg-white text-stone-900">
-      {/* ── 1. FULL WIDTH CATEGORY / ALL PRODUCTS BANNER matching Image 1 ── */}
+      {/* ── 1. FULL WIDTH CATEGORY / ALL PRODUCTS BANNER (Desktop + Mobile) ── */}
       <div className="w-full mb-4 sm:mb-6">
         <div className="relative w-full overflow-hidden bg-stone-100">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg"
-            alt="All Products Collection Banner"
-            className="w-full h-auto object-contain object-center block max-h-[500px] mx-auto"
-          />
+          {/* Desktop Banner (hidden on small screens, shown on md+) */}
+          <div className="hidden md:block w-full">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={desktopBanner}
+              alt={bannerTitle}
+              className="w-full h-auto object-cover object-center block max-h-[500px] mx-auto"
+            />
+          </div>
+          {/* Mobile Banner (shown on small screens, hidden on md+) */}
+          <div className="block md:hidden w-full">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={mobileBanner}
+              alt={bannerTitle}
+              className="w-full h-auto object-cover object-center block max-h-[450px] mx-auto"
+            />
+          </div>
         </div>
       </div>
 
