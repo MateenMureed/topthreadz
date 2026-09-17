@@ -16,6 +16,8 @@ export default function WhatsAppButton() {
   const phoneNumber = rawNumber.replace(/\D/g, '');
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=Hi%20TopThreadz%2C%20I%20have%20an%20inquiry%20about%20your%20products.`;
 
+  if (pathname?.startsWith('/admin')) return null;
+
   return (
     <a
       href={whatsappUrl}

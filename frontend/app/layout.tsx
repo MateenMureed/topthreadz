@@ -3,13 +3,8 @@ import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { Inter, Outfit, Playfair_Display } from 'next/font/google';
 import { Providers } from '@/lib/providers';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import MobileNav from '@/components/MobileNav';
-import Breadcrumbs from '@/components/Breadcrumbs';
-import CategorySubnav from '@/components/CategorySubnav';
 import AuthRouteHandler from '@/components/AuthRouteHandler';
-import WhatsAppButton from '@/components/WhatsAppButton';
+import AppLayoutShell from '@/components/AppLayoutShell';
 import Analytics from '@/components/Analytics';
 import './globals.css';
 
@@ -229,19 +224,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Suspense fallback={null}>
             <AuthRouteHandler />
           </Suspense>
-          <Navbar />
-          <CategorySubnav />
-          <main className="flex-1 pt-16 lg:pt-[108px] pb-24 lg:pb-0">
-            <Suspense fallback={null}>
-              <Breadcrumbs />
-            </Suspense>
+          <AppLayoutShell>
             {children}
-          </main>
-          <Footer />
-          <MobileNav />
+          </AppLayoutShell>
           <CartDrawer />
           <AuthModal />
-          <WhatsAppButton />
           {/* GA4 + Facebook Pixel (loads only when env IDs are set) */}
           <Analytics />
         </Providers>

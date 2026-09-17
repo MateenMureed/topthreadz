@@ -22,6 +22,8 @@ import {
   FiChevronUp,
   FiLogOut,
   FiX,
+  FiShoppingBag,
+  FiExternalLink,
 } from 'react-icons/fi';
 import { SettingsSection } from './types';
 
@@ -273,8 +275,20 @@ export function AdminSidebar({
         </div>
       </nav>
 
-      {/* Footer Sign Out */}
-      <div className="mt-3 border-t border-black/[0.06] dark:border-white/[0.08] pt-2.5">
+      {/* Footer Go to Store & Sign Out */}
+      <div className="mt-3 border-t border-black/[0.06] dark:border-white/[0.08] pt-2.5 space-y-1">
+        <a
+          href="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full flex h-[34px] items-center justify-between px-3 rounded-xl text-black/70 dark:text-white/70 hover:text-black dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all text-xs font-semibold active:scale-[0.98]"
+        >
+          <span className="flex items-center gap-2">
+            <FiShoppingBag className="w-4 h-4 text-[#1A73E8] dark:text-[#90CDF4]" />
+            <span>Go to Store</span>
+          </span>
+          <FiExternalLink className="w-3.5 h-3.5 opacity-50" />
+        </a>
         <button
           onClick={() => { onLogout(); onMobileClose?.(); }}
           className="w-full flex h-[34px] items-center justify-center gap-2 rounded-xl text-black/60 dark:text-white/60 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all text-xs font-semibold active:scale-[0.98]"

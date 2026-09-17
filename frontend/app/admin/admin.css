@@ -916,3 +916,22 @@
   box-shadow: var(--admin-shadow-sm);
   transform: translateY(-1px);
 }
+
+/* ============================================================
+   ZERO GAP ADMIN LAYOUT
+   Guarantees the admin header is flush to the very top edge.
+   ============================================================ */
+[data-admin-root] {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+body:has([data-admin-root]) {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+body:has([data-admin-root]) main {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}

@@ -15,6 +15,8 @@ import {
   FiSettings,
   FiDownload,
   FiMenu,
+  FiExternalLink,
+  FiShoppingBag,
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
@@ -105,7 +107,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] dark:bg-[#0D1015] text-[#1D1D1F] dark:text-[#F5F5F7] transition-colors duration-200">
+    <div data-admin-root="true" className="min-h-screen bg-[#F5F5F7] dark:bg-[#0D1015] text-[#1D1D1F] dark:text-[#F5F5F7] transition-colors duration-200">
       {/* ── TOP APPLE TRANSLUCENT HEADER BAR ── */}
       <header className="sticky top-0 z-40 apple-glass px-4 py-3 sm:px-6 transition-all duration-200">
         <div className="mx-auto max-w-[1440px] flex items-center justify-between gap-4">
@@ -129,7 +131,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0">
-            <span className="hidden sm:block text-xs font-semibold text-black/60 dark:text-white/60">
+            {/* Go to Store Button */}
+            <Link
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="apple-btn-secondary !h-9 !px-3 !text-xs font-semibold inline-flex items-center gap-1.5 !bg-black/[0.04] dark:!bg-white/[0.08] hover:!bg-black/[0.08] dark:hover:!bg-white/[0.14] !text-[#0F172A] dark:!text-white transition-all active:scale-95"
+              title="Open storefront in a new tab"
+            >
+              <FiShoppingBag className="w-3.5 h-3.5 text-[#1A73E8] dark:text-[#90CDF4]" />
+              <span className="hidden xs:inline sm:inline">Go to Store</span>
+              <FiExternalLink className="w-3 h-3 opacity-60" />
+            </Link>
+
+            <span className="hidden md:block text-xs font-semibold text-black/60 dark:text-white/60">
               {(user as any)?.name || 'Admin'} ({(user as any)?.role || 'ADMIN'})
             </span>
             <ThemeToggle />
