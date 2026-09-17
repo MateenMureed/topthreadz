@@ -214,17 +214,16 @@ export default function HomePageClient({
             <Link
               key={section.id}
               href={section.href}
-              className="group relative block w-full overflow-hidden bg-[#F4F2EE] cursor-pointer"
+              className="group relative block w-full overflow-hidden cursor-pointer"
             >
-              <div className="relative aspect-[3/4] w-full overflow-hidden flex items-center justify-center">
+              <div className="relative aspect-[3/4] w-full overflow-hidden">
                 <Image
                   src={section.imageUrl}
                   alt={section.title || (section as any).label || 'Collection'}
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-contain object-center p-2"
+                  className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-200 pointer-events-none" />
                 {/* Bottom black bar banner matching Diners */}
                 <div className="absolute inset-x-0 bottom-0 bg-black/85 backdrop-blur-[2px] py-3 sm:py-3.5 px-4 text-center transition-colors duration-200">
                   <h3 className="text-white text-xs sm:text-[13px] font-bold tracking-[0.16em] uppercase">

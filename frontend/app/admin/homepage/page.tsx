@@ -360,16 +360,16 @@ export default function HomepagePage() {
       }
       const url = res?.data?.data?.url || res?.data?.url;
       if (url) {
-        let updatedState: HomepageSettings = settings;
-        setSettings((prev) => {
-          updatedState = applyUpdate(url, prev);
-          return updatedState;
-        });
+        // Compute new state synchronously from current snapshot — avoids stale-closure bug
+        const updatedState = applyUpdate(url, settings);
+        setSettings(updatedState);
 
-        // Auto-save to the database immediately so the photo is persistent and storefront receives it
+        // Push to query cache directly (no refetch) so the useEffect doesn't overwrite with old data
+        queryClient.setQueryData(['homepage', 'settings'], updatedState);
+
+        // Auto-save to the database immediately
         try {
           await persistSettings(updatedState);
-          queryClient.invalidateQueries({ queryKey: ['homepage', 'settings'] });
           toast.success('Image uploaded & auto-saved to storefront!');
         } catch {
           toast.error('Image uploaded to cloud, but auto-save failed. Click "Save & Publish" at top.');
