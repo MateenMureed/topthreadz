@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import HomePageClient from '@/components/HomePageClient';
 import HeroBanner from '@/components/HeroBanner';
 import CustomerReviewsSection from '@/components/CustomerReviewsSection';
+import StoreLocationSection from '@/components/StoreLocationSection';
 import CategoryExploreGrid from '@/components/CategoryExploreGrid';
 import {
   fetchServerCategories,
@@ -553,6 +554,8 @@ export default async function HomePage() {
       />
       {/* Customer Testimonials Section (Matching Reference Image 1) */}
       <CustomerReviewsSection />
+      {/* Physical Store Experience & Google Location / Online Shopping */}
+      <StoreLocationSection />
     </>
   );
 }
