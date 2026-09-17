@@ -10,13 +10,13 @@
  */
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
 import CategoriesManager from '../components/CategoriesManager';
 import LogoManager from '../components/LogoManager';
 import AdminAccountsManager from '../components/AdminAccountsManager';
-import HeroBannerManager from '../components/HeroBannerManager';
 import type { SettingsSection } from '../components/types';
 
 export default function SettingsPage({ initialSection }: { initialSection?: SettingsSection | null }) {
@@ -58,7 +58,7 @@ export default function SettingsPage({ initialSection }: { initialSection?: Sett
         deliveryPolicy: settingsData.deliveryPolicy || '',
         exchangeReturnPolicy: settingsData.exchangeReturnPolicy || '',
         homepageHeading: settingsData.homepageHeading || 'Shop Our Collection',
-        homepageSubheading: settingsData.homepageSubheading || 'PREMIUM WASH & WEAR â€¢ SHOP OUR COLLECTION',
+        homepageSubheading: settingsData.homepageSubheading || 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
         homepageGridCols: String(settingsData.homepageGridCols || 4),
       });
     }
@@ -100,8 +100,16 @@ export default function SettingsPage({ initialSection }: { initialSection?: Sett
       <div id="branding"><LogoManager /></div>
       {/* Admin Accounts */}
       <div id="accounts"><AdminAccountsManager /></div>
-      {/* Hero Banner Section */}
-      <div id="banner"><HeroBannerManager /></div>
+      {/* Homepage Editor shortcut — hero banner & all section images live in /admin/homepage */}
+      <div id="banner" className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft">
+        <h2 className="text-xl font-bold text-surface-950 mb-1">Homepage Editor</h2>
+        <p className="text-xs text-surface-500 mb-4">
+          Hero banner, category cards, collection banners &amp; showcase cards — images, text and links are all managed in the dedicated Homepage editor.
+        </p>
+        <Link href="/admin/homepage" className="admin-btn-primary inline-flex items-center gap-2">
+          Open Homepage Editor
+        </Link>
+      </div>
 
       {/* Homepage Appearance */}
       <div id="appearance" className="rounded-2xl border border-surface-300 bg-white p-5 shadow-soft">
@@ -133,7 +141,7 @@ export default function SettingsPage({ initialSection }: { initialSection?: Sett
               type="text"
               value={form.homepageSubheading}
               onChange={(e) => setForm({ ...form, homepageSubheading: e.target.value })}
-              placeholder="e.g. PREMIUM WASH & WEAR â€¢ SHOP OUR COLLECTION"
+              placeholder="e.g. PREMIUM WASH & WEAR • SHOP OUR COLLECTION"
               className="w-full rounded-xl border border-surface-300 px-3.5 py-2.5 text-sm font-medium focus:border-black outline-none"
             />
             <p className="text-[11px] text-surface-400 mt-1">Small-caps subtitle line shown above the heading.</p>

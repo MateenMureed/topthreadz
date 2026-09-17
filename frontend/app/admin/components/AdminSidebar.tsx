@@ -49,7 +49,7 @@ const settingsItems: { path: string; section: SettingsSection; label: string; ic
   { path: '/admin/settings/store', section: 'store', label: 'Store Profile', icon: FiPhone },
   { path: '/admin/settings/shipping', section: 'shipping', label: 'Delivery & Fees', icon: FiTruck },
   { path: '/admin/settings/appearance', section: 'appearance', label: 'Homepage Layout', icon: FiLayers },
-  { path: '/admin/settings/banner', section: 'banner', label: 'Hero Banner', icon: FiEye },
+  { path: '/admin/homepage', section: 'banner', label: 'Homepage Editor', icon: FiEye },
   { path: '/admin/settings/branding', section: 'branding', label: 'Logos & Brand', icon: FiStar },
   { path: '/admin/settings/categories', section: 'categories', label: 'Categories', icon: FiPackage },
   { path: '/admin/settings/accounts', section: 'accounts', label: 'Admin Accounts', icon: FiShield },

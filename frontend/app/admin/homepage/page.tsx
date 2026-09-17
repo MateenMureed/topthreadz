@@ -58,13 +58,80 @@ const HP_FALLBACK: HomepageSettings = {
     desktop: { url: '', publicId: '' },
     mobile: { url: '', publicId: '' },
     heading: 'Shop Our Newest Collection',
-    subheading: 'PREMIUM WASH & WEAR â€¢ SHOP OUR COLLECTION',
+    subheading: 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
     buttonText: 'Shop Now',
     buttonLink: '/products',
   },
-  categoryCards: [],
-  collectionSections: [],
-  showcaseCards: [],
+  categoryCards: [
+    {
+      id: 'two-piece',
+      label: 'TWO PIECE',
+      subtitle: "Men's",
+      href: '/products/category/two-piece',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788630568/ecommerce-products/qddnzjm16r9mljo8gihe.jpg',
+    },
+    {
+      id: 'three-piece',
+      label: 'THREE PIECE',
+      subtitle: "Men's",
+      href: '/products/category/three-piece',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614812/ecommerce-products/krkdpdqc0a4mf437lzr1.jpg',
+    },
+    {
+      id: 'wash-wear',
+      label: 'WASH & WEAR',
+      subtitle: "Men's",
+      href: '/products/category/unstitched-fabric',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788890028/ecommerce-products/gpj4ravzcy5jdfewlhx9.jpg',
+    },
+    {
+      id: 'stitched',
+      label: 'SHALWAR KAMEEZ & KURTA',
+      subtitle: "Men's Stitched",
+      href: '/products/category/stitched',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614550/ecommerce-products/miz32cpgjlvw0ejejplp.jpg',
+    },
+  ],
+  collectionSections: [
+    {
+      id: 'unstitched-collection',
+      label: 'UNSTITCHED FABRIC COLLECTION',
+      href: '/products/category/unstitched-fabric',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788891170/ecommerce-products/eki2qssmwkiagxn9fx5y.jpg',
+    },
+    {
+      id: 'stitched-collection',
+      label: 'STITCHED KURTA COLLECTION',
+      href: '/products/category/stitched',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614550/ecommerce-products/miz32cpgjlvw0ejejplp.jpg',
+    },
+    {
+      id: 'waistcoat-collection',
+      label: 'WAISTCOAT & SUITS COLLECTION',
+      href: '/products/category/waist-coats',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788614812/ecommerce-products/krkdpdqc0a4mf437lzr1.jpg',
+    },
+  ],
+  showcaseCards: [
+    {
+      id: 'showcase-left',
+      label: 'Showcase Left',
+      badge: 'ROYAL HERITAGE',
+      title: 'Luxury Boski & Formal Fabrics',
+      cta: 'DISCOVER COLLECTION',
+      href: '/products/category/unstitched-fabric',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788890028/ecommerce-products/gpj4ravzcy5jdfewlhx9.jpg',
+    },
+    {
+      id: 'showcase-right',
+      label: 'Showcase Right',
+      badge: 'SIGNATURE WEAR',
+      title: 'Summer Wash & Wear Edit',
+      cta: 'EXPLORE STYLES',
+      href: '/products/category/unstitched-fabric',
+      imageUrl: 'https://res.cloudinary.com/fmxzphak/image/upload/v1788630568/ecommerce-products/qddnzjm16r9mljo8gihe.jpg',
+    },
+  ],
 };
 
 type SectionKey = 'categoryCards' | 'collectionSections' | 'showcaseCards';
@@ -139,7 +206,7 @@ function ImageSlot({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <label className="admin-btn-primary cursor-pointer !py-2 !px-3 !text-xs inline-flex items-center justify-center gap-1.5">
           <FiUpload className="w-3.5 h-3.5" />
-          {uploading ? 'Uploadingâ€¦' : 'Upload Image'}
+          {uploading ? 'Uploading…' : 'Upload Image'}
           <input
             ref={fileRef}
             type="file"
@@ -156,7 +223,7 @@ function ImageSlot({
         <div className="flex gap-2">
           <input
             type="url"
-            placeholder="Paste image URLâ€¦"
+            placeholder="Paste image URL…"
             value={directUrl}
             onChange={(e) => onDirectUrlChange(e.target.value)}
             className="admin-input-field w-full !text-xs"
@@ -338,7 +405,7 @@ export default function HomepagePage() {
           className="admin-btn-primary inline-flex items-center justify-center gap-2"
         >
           <FiSave className="w-4 h-4" />
-          {saveMutation.isPending ? 'Publishingâ€¦' : 'Save & Publish'}
+          {saveMutation.isPending ? 'Publishing…' : 'Save & Publish'}
         </button>
       </div>
 
@@ -380,7 +447,7 @@ export default function HomepagePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {([
               { key: 'heading', label: 'Headline', placeholder: 'Shop Our Newest Collection' },
-              { key: 'subheading', label: 'Subheading', placeholder: 'PREMIUM WASH & WEAR â€¢ SHOP OUR COLLECTION' },
+              { key: 'subheading', label: 'Subheading', placeholder: 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION' },
               { key: 'buttonText', label: 'Button Text', placeholder: 'Shop Now' },
               { key: 'buttonLink', label: 'Button Link', placeholder: '/products' },
             ] as const).map(({ key, label, placeholder }) => (
@@ -405,18 +472,18 @@ export default function HomepagePage() {
         <SectionHeader
           icon={<FiLayers className="w-5 h-5" />}
           title="Collection Section Banners"
-          hint="3 portrait collection cards â€” 900 Ã— 1200 px (3:4)"
+          hint="3 portrait collection cards â€” 900 × 1200 px (3:4)"
           accent="bg-blue-50 text-blue-600 border-blue-100/60"
         />
         <div className="rounded-xl bg-blue-50 border border-blue-200/80 p-3 text-[11px] text-blue-700">
-          ðŸ“ Recommended: 900 Ã— 1200 px (3:4 portrait). Unstitched Fabric, Stitched Kurta, Waistcoats &amp; Suits.
+          📐 Recommended: 900 × 1200 px (3:4 portrait). Unstitched Fabric, Stitched Kurta, Waistcoats &amp; Suits.
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {settings.collectionSections.map((section) => (
             <div key={section.id} className="space-y-3">
             <ImageSlot
               label={section.label || section.title || section.id}
-              recommended="900 Ã— 1200 px"
+              recommended="900 × 1200 px"
               aspectClass="aspect-[3/4]"
               currentUrl={section.imageUrl}
               uploading={uploadingKey === `col-${section.id}`}
@@ -441,18 +508,18 @@ export default function HomepagePage() {
         <SectionHeader
           icon={<FiGrid className="w-5 h-5" />}
           title="Category Showcase Cards"
-          hint="4 tall portrait cards â€” 900 Ã— 1500 px (3:5)"
+          hint="4 tall portrait cards â€” 900 × 1500 px (3:5)"
           accent="bg-amber-50 text-amber-600 border-amber-100/60"
         />
         <div className="rounded-xl bg-amber-50 border border-amber-200/80 p-3 text-[11px] text-amber-700">
-          ðŸ“ Recommended: 900 Ã— 1500 px (3:5 portrait). Use upright portrait photos of models â€” avoid landscapes.
+          📐 Recommended: 900 × 1500 px (3:5 portrait). Use upright portrait photos of models â€” avoid landscapes.
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {settings.categoryCards.map((card) => (
             <div key={card.id} className="space-y-3">
             <ImageSlot
               label={`${card.subtitle || ''} ${card.label}`.trim()}
-              recommended="900 Ã— 1500 px"
+              recommended="900 × 1500 px"
               aspectClass="aspect-[3/5]"
               currentUrl={card.imageUrl}
               uploading={uploadingKey === `cat-${card.id}`}
@@ -478,18 +545,18 @@ export default function HomepagePage() {
         <SectionHeader
           icon={<FiEye className="w-5 h-5" />}
           title="Showcase Cards"
-          hint="2 wide landscape feature cards â€” 1200 Ã— 900 px (4:3)"
+          hint="2 wide landscape feature cards â€” 1200 × 900 px (4:3)"
           accent="bg-emerald-50 text-emerald-600 border-emerald-100/60"
         />
         <div className="rounded-xl bg-emerald-50 border border-emerald-200/80 p-3 text-[11px] text-emerald-700">
-          ðŸ“ Recommended: 1200 Ã— 900 px (4:3 landscape). Boski/Fabric left card, Wash &amp; Wear right card.
+          📐 Recommended: 1200 × 900 px (4:3 landscape). Boski/Fabric left card, Wash &amp; Wear right card.
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {settings.showcaseCards.map((card) => (
             <div key={card.id} className="space-y-3">
             <ImageSlot
               label={`${card.badge || ''} â€” ${card.title || card.label}`.trim()}
-              recommended="1200 Ã— 900 px"
+              recommended="1200 × 900 px"
               aspectClass="aspect-[4/3]"
               currentUrl={card.imageUrl}
               uploading={uploadingKey === `show-${card.id}`}
