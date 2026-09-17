@@ -8,7 +8,7 @@
  * PUT /settings/homepage.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
@@ -276,13 +276,14 @@ export default function HomepagePage() {
       }
     },
     retry: false,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
-  // Merge fetched data into local editable state once available
-  const loadedRef = useRef(false);
+  // Re-apply DB data whenever it changes (e.g. after navigating back to this tab).
+  // Skip if an upload is in progress to avoid stomping mid-upload state.
   useEffect(() => {
-    if (!hpData || loadedRef.current) return;
-    loadedRef.current = true;
+    if (!hpData || uploadingKey) return;
     setSettings({
       heroBanner: { ...HP_FALLBACK.heroBanner, ...(hpData.heroBanner || {}) },
       categoryCards: (hpData.categoryCards?.length ? hpData.categoryCards : HP_FALLBACK.categoryCards).map((c: any) => ({
@@ -295,6 +296,7 @@ export default function HomepagePage() {
         ...c, badge: c.badge || '', title: c.title || c.label || '', cta: c.cta || '', href: c.href || '',
       })),
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hpData]);
 
   const persistSettings = async (payload: HomepageSettings) => {
