@@ -3403,14 +3403,19 @@ function HomepageImageSlot({
       <View style={{ flexDirection: 'row', gap: 6, marginTop: 8 }}>
         <TextInput
           style={[styles.hpUrlInput, themed.hpUrlInput]}
-          placeholder="Paste image URL…"
+          placeholder="Or paste image URL (jpg, png)…"
           placeholderTextColor={palette.textFaint}
           value={directUrl}
           onChangeText={onDirectUrlChange}
           autoCapitalize="none"
           autoCorrect={false}
         />
-        <TouchableOpacity style={styles.hpApplyUrlBtn} onPress={onApplyUrl} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={[styles.hpApplyUrlBtn, !directUrl.trim() && { opacity: 0.4 }]}
+          onPress={onApplyUrl}
+          disabled={!directUrl.trim()}
+          activeOpacity={0.8}
+        >
           <Text style={styles.hpApplyUrlText}>Apply</Text>
         </TouchableOpacity>
       </View>
@@ -3589,10 +3594,36 @@ function HomepageView() {
     }
   };
 
-  const applyDirectUrl = (slotKey: string, url: string, onUploaded: (url: string) => void) => {
+function isPageLink(url: string): boolean {
+  const clean = url.trim().toLowerCase();
+  if (/\.(jpg|jpeg|png|webp|gif|svg|avif)(\?.*)?$/i.test(clean)) return false;
+  if (clean.includes('/image/upload/') || clean.includes('images.unsplash.com') || clean.includes('res.cloudinary.com')) return false;
+  return (
+    clean.includes('/products') ||
+    clean.includes('/category') ||
+    clean.includes('/collections') ||
+    clean.startsWith('/')
+  );
+}
+
+  const applyDirectUrl = (
+    slotKey: string,
+    url: string,
+    onImageApplied: (url: string) => void,
+    onLinkApplied?: (link: string) => void,
+  ) => {
     const trimmed = url.trim();
-    if (!trimmed) { Alert.alert('URL Required', 'Please paste a valid image URL.'); return; }
-    onUploaded(trimmed);
+    if (!trimmed) {
+      Alert.alert('Notice', 'Please paste an image URL into the box first, or use the "Upload from Gallery" button.');
+      return;
+    }
+    if (isPageLink(trimmed) && onLinkApplied) {
+      onLinkApplied(trimmed);
+      setDirectUrls((prev) => ({ ...prev, [slotKey]: '' }));
+      Alert.alert('Link Saved', `Saved as card destination Link:\n${trimmed}\n\nYour uploaded photo was preserved. Tap "Save & Publish" to push live.`);
+      return;
+    }
+    onImageApplied(trimmed);
     setDirectUrls((prev) => ({ ...prev, [slotKey]: '' }));
     Alert.alert('URL Applied', 'Image URL applied. Tap Save & Publish to push live.');
   };
@@ -3657,7 +3688,7 @@ function HomepageView() {
           onPressUpload={() => pickAndUploadImage('hero-desktop', (url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, desktop: { url, publicId: '' } } })))}
           directUrl={directUrls['hero-desktop'] || ''}
           onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, 'hero-desktop': v }))}
-          onApplyUrl={() => applyDirectUrl('hero-desktop', directUrls['hero-desktop'] || '', (url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, desktop: { url, publicId: '' } } })))}
+          onApplyUrl={() => applyDirectUrl('hero-desktop', directUrls['hero-desktop'] || '', (url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, desktop: { url, publicId: '' } } })), (link) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, buttonLink: link } })))}
         />
         <HomepageImageSlot
           label="Mobile Banner"
@@ -3669,7 +3700,7 @@ function HomepageView() {
           onPressUpload={() => pickAndUploadImage('hero-mobile', (url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, mobile: { url, publicId: '' } } })))}
           directUrl={directUrls['hero-mobile'] || ''}
           onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, 'hero-mobile': v }))}
-          onApplyUrl={() => applyDirectUrl('hero-mobile', directUrls['hero-mobile'] || '', (url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, mobile: { url, publicId: '' } } })))}
+          onApplyUrl={() => applyDirectUrl('hero-mobile', directUrls['hero-mobile'] || '', (url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, mobile: { url, publicId: '' } } })), (link) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, buttonLink: link } })))}
         />
 
         {/* Banner text fields */}
@@ -3717,12 +3748,12 @@ function HomepageView() {
               onPressUpload={() => pickAndUploadImage(`col-${section.id}`, (url) => updateCardImage('collectionSections', section.id, url))}
               directUrl={directUrls[`col-${section.id}`] || ''}
               onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`col-${section.id}`]: v }))}
-              onApplyUrl={() => applyDirectUrl(`col-${section.id}`, directUrls[`col-${section.id}`] || '', (url) => updateCardImage('collectionSections', section.id, url))}
+              onApplyUrl={() => applyDirectUrl(`col-${section.id}`, directUrls[`col-${section.id}`] || '', (url) => updateCardImage('collectionSections', section.id, url), (link) => updateCardField('collectionSections', section.id, 'href', link))}
             />
             <HpCardTextFields
               fields={[
                 { label: 'Title (black banner bar on the card)', value: section.label || '', onChange: (v) => updateCardField('collectionSections', section.id, 'label', v), placeholder: 'UNSTITCHED FABRIC COLLECTION' },
-                { label: 'Link (e.g. /products/category/unstitched-fabric)', value: section.href || '', onChange: (v) => updateCardField('collectionSections', section.id, 'href', v), placeholder: '/products/category/…' },
+                { label: 'Destination Link (e.g. /products/category/unstitched-fabric)', value: section.href || '', onChange: (v) => updateCardField('collectionSections', section.id, 'href', v), placeholder: '/products/category/…' },
               ]}
             />
           </View>
@@ -3750,13 +3781,13 @@ function HomepageView() {
               onPressUpload={() => pickAndUploadImage(`cat-${card.id}`, (url) => updateCardImage('categoryCards', card.id, url))}
               directUrl={directUrls[`cat-${card.id}`] || ''}
               onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`cat-${card.id}`]: v }))}
-              onApplyUrl={() => applyDirectUrl(`cat-${card.id}`, directUrls[`cat-${card.id}`] || '', (url) => updateCardImage('categoryCards', card.id, url))}
+              onApplyUrl={() => applyDirectUrl(`cat-${card.id}`, directUrls[`cat-${card.id}`] || '', (url) => updateCardImage('categoryCards', card.id, url), (link) => updateCardField('categoryCards', card.id, 'href', link))}
             />
             <HpCardTextFields
               fields={[
                 { label: "Small Text (e.g. Men's / Men's Stitched / Kids)", value: card.subtitle || '', onChange: (v) => updateCardField('categoryCards', card.id, 'subtitle', v), placeholder: "Men's" },
                 { label: 'Title (e.g. TWO PIECE / KIDS)', value: card.label || '', onChange: (v) => updateCardField('categoryCards', card.id, 'label', v), placeholder: 'TWO PIECE' },
-                { label: 'Link (e.g. /products/category/two-piece)', value: card.href || '', onChange: (v) => updateCardField('categoryCards', card.id, 'href', v), placeholder: '/products/category/…' },
+                { label: 'Destination Link (e.g. /products/category/two-piece)', value: card.href || '', onChange: (v) => updateCardField('categoryCards', card.id, 'href', v), placeholder: '/products/category/…' },
               ]}
             />
           </View>
@@ -3784,14 +3815,14 @@ function HomepageView() {
               onPressUpload={() => pickAndUploadImage(`sc-${card.id}`, (url) => updateCardImage('showcaseCards', card.id, url))}
               directUrl={directUrls[`sc-${card.id}`] || ''}
               onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`sc-${card.id}`]: v }))}
-              onApplyUrl={() => applyDirectUrl(`sc-${card.id}`, directUrls[`sc-${card.id}`] || '', (url) => updateCardImage('showcaseCards', card.id, url))}
+              onApplyUrl={() => applyDirectUrl(`sc-${card.id}`, directUrls[`sc-${card.id}`] || '', (url) => updateCardImage('showcaseCards', card.id, url), (link) => updateCardField('showcaseCards', card.id, 'href', link))}
             />
             <HpCardTextFields
               fields={[
                 { label: 'Badge (small gold text, e.g. ROYAL HERITAGE)', value: card.badge || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'badge', v), placeholder: 'ROYAL HERITAGE' },
                 { label: 'Title (e.g. Luxury Boski & Formal Fabrics)', value: card.title || card.label || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'title', v), placeholder: 'Luxury Boski & Formal Fabrics' },
                 { label: 'Button Text (CTA, e.g. DISCOVER COLLECTION)', value: card.cta || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'cta', v), placeholder: 'DISCOVER COLLECTION' },
-                { label: 'Link (e.g. /products/category/unstitched-fabric)', value: card.href || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'href', v), placeholder: '/products/category/…' },
+                { label: 'Destination Link (e.g. /products/category/unstitched-fabric)', value: card.href || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'href', v), placeholder: '/products/category/…' },
               ]}
             />
           </View>

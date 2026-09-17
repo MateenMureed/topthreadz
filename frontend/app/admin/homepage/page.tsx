@@ -203,39 +203,48 @@ function ImageSlot({
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <label className="admin-btn-primary cursor-pointer !py-2 !px-3 !text-xs inline-flex items-center justify-center gap-1.5">
-          <FiUpload className="w-3.5 h-3.5" />
-          {uploading ? 'Uploading…' : 'Upload Image'}
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            hidden
-            disabled={uploading}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) onUpload(file);
-              e.target.value = '';
-            }}
-          />
-        </label>
-        <div className="flex gap-2">
-          <input
-            type="url"
-            placeholder="Paste image URL…"
-            value={directUrl}
-            onChange={(e) => onDirectUrlChange(e.target.value)}
-            className="admin-input-field w-full !text-xs"
-          />
-          <button
-            type="button"
-            onClick={onApplyUrl}
-            className="admin-btn-secondary !py-2 !px-3 !text-xs shrink-0"
-          >
-            Apply
-          </button>
+      <div className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <label className="admin-btn-primary cursor-pointer !py-2 !px-3 !text-xs inline-flex items-center justify-center gap-1.5 shadow-xs hover:shadow-subtle transition-all">
+            <FiUpload className="w-3.5 h-3.5" />
+            {uploading ? 'Uploading…' : currentUrl ? 'Replace Photo' : 'Upload Image'}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              hidden
+              disabled={uploading}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onUpload(file);
+                e.target.value = '';
+              }}
+            />
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Or paste direct image URL (jpg, png)…"
+              value={directUrl}
+              onChange={(e) => onDirectUrlChange(e.target.value)}
+              className="admin-input-field w-full !text-xs"
+            />
+            <button
+              type="button"
+              onClick={onApplyUrl}
+              disabled={!directUrl?.trim()}
+              className="admin-btn-secondary !py-2 !px-3 !text-xs shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Apply
+            </button>
+          </div>
         </div>
+        {currentUrl ? (
+          <div className="flex items-center justify-between text-[11px] text-surface-500 bg-surface-50 px-2.5 py-1 rounded-lg border border-surface-200/60">
+            <span className="truncate max-w-[260px] text-emerald-700 font-medium">✓ Photo ready &amp; applied</span>
+            <span className="text-[10px] text-surface-400">Click &quot;Save &amp; Publish&quot; at top to save</span>
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -381,15 +390,40 @@ export default function HomepagePage() {
     }
   };
 
-  const applyDirectUrl = (slotKey: string, url: string, onApplied: (url: string) => void) => {
+function isPageLink(url: string): boolean {
+  const clean = url.trim().toLowerCase();
+  if (/\.(jpg|jpeg|png|webp|gif|svg|avif)(\?.*)?$/i.test(clean)) return false;
+  if (clean.includes('/image/upload/') || clean.includes('images.unsplash.com') || clean.includes('res.cloudinary.com')) return false;
+  return (
+    clean.includes('/products') ||
+    clean.includes('/category') ||
+    clean.includes('/collections') ||
+    clean.startsWith('/')
+  );
+}
+
+  const applyDirectUrl = (
+    slotKey: string,
+    url: string,
+    onImageApplied: (url: string) => void,
+    onLinkApplied?: (link: string) => void,
+  ) => {
     const trimmed = url.trim();
     if (!trimmed) {
-      toast.error('Paste a valid image URL first.');
+      toast('Please paste an image URL into the box first, or use the "Upload Image" button.', { icon: 'ℹ️' });
       return;
     }
-    onApplied(trimmed);
+
+    if (isPageLink(trimmed) && onLinkApplied) {
+      onLinkApplied(trimmed);
+      setDirectUrls((prev) => ({ ...prev, [slotKey]: '' }));
+      toast.success('Saved as card destination Link! Your uploaded photo was preserved. Click Save & Publish to apply.');
+      return;
+    }
+
+    onImageApplied(trimmed);
     setDirectUrls((prev) => ({ ...prev, [slotKey]: '' }));
-    toast.success('URL applied — click Save & Publish to go live.');
+    toast.success('Image URL applied — click Save & Publish to go live.');
   };
 
   const updateHero = (key: 'desktop' | 'mobile') => (url: string) =>
@@ -478,7 +512,7 @@ export default function HomepagePage() {
             onUpload={(file) => uploadImage('hero-desktop', file, updateHero('desktop'))}
             directUrl={directUrls['hero-desktop'] || ''}
             onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, 'hero-desktop': v }))}
-            onApplyUrl={() => applyDirectUrl('hero-desktop', directUrls['hero-desktop'] || '', updateHero('desktop'))}
+            onApplyUrl={() => applyDirectUrl('hero-desktop', directUrls['hero-desktop'] || '', updateHero('desktop'), (link) => setSettings((p) => ({ ...p, heroBanner: { ...p.heroBanner, buttonLink: link } })))}
           />
           <ImageSlot
             label="Mobile Banner"
@@ -489,7 +523,7 @@ export default function HomepagePage() {
             onUpload={(file) => uploadImage('hero-mobile', file, updateHero('mobile'))}
             directUrl={directUrls['hero-mobile'] || ''}
             onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, 'hero-mobile': v }))}
-            onApplyUrl={() => applyDirectUrl('hero-mobile', directUrls['hero-mobile'] || '', updateHero('mobile'))}
+            onApplyUrl={() => applyDirectUrl('hero-mobile', directUrls['hero-mobile'] || '', updateHero('mobile'), (link) => setSettings((p) => ({ ...p, heroBanner: { ...p.heroBanner, buttonLink: link } })))}
           />
         </div>
 
@@ -518,12 +552,12 @@ export default function HomepagePage() {
       </section>
 
 
-      {/* â”€â”€ COLLECTION SECTIONS â”€â”€ */}
+      {/* ── COLLECTION SECTIONS ── */}
       <section className="apple-card p-5 space-y-5">
         <SectionHeader
           icon={<FiLayers className="w-5 h-5" />}
           title="Collection Section Banners"
-          hint="3 portrait collection cards â€” 900 × 1200 px (3:4)"
+          hint="3 portrait collection cards — 900 × 1200 px (3:4)"
           accent="bg-blue-50 text-blue-600 border-blue-100/60"
         />
         <div className="rounded-xl bg-blue-50 border border-blue-200/80 p-3 text-[11px] text-blue-700">
@@ -541,12 +575,12 @@ export default function HomepagePage() {
               onUpload={(file) => uploadImage(`col-${section.id}`, file, (url) => updateCardImage('collectionSections', section.id, url))}
               directUrl={directUrls[`col-${section.id}`] || ''}
               onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`col-${section.id}`]: v }))}
-              onApplyUrl={() => applyDirectUrl(`col-${section.id}`, directUrls[`col-${section.id}`] || '', (url) => updateCardImage('collectionSections', section.id, url))}
+              onApplyUrl={() => applyDirectUrl(`col-${section.id}`, directUrls[`col-${section.id}`] || '', (url) => updateCardImage('collectionSections', section.id, url), (link) => updateCardField('collectionSections', section.id, 'href', link))}
             />
             <CardTextFields
               fields={[
                 { label: 'Title (black banner bar on the card)', value: section.label || section.title || '', onChange: (v) => updateCardField('collectionSections', section.id, 'label', v), placeholder: 'UNSTITCHED FABRIC COLLECTION' },
-                { label: 'Link (e.g. /products/category/unstitched-fabric)', value: section.href || '', onChange: (v) => updateCardField('collectionSections', section.id, 'href', v), placeholder: '/products/category/two-piece' },
+                { label: 'Destination Link (where clicking the card goes)', value: section.href || '', onChange: (v) => updateCardField('collectionSections', section.id, 'href', v), placeholder: '/products/category/unstitched-fabric' },
               ]}
             />
             </div>
@@ -554,16 +588,16 @@ export default function HomepagePage() {
         </div>
       </section>
 
-      {/* â”€â”€ CATEGORY CARDS â”€â”€ */}
+      {/* ── CATEGORY CARDS ── */}
       <section className="apple-card p-5 space-y-5">
         <SectionHeader
           icon={<FiGrid className="w-5 h-5" />}
           title="Category Showcase Cards"
-          hint="4 tall portrait cards â€” 900 × 1500 px (3:5)"
+          hint="4 tall portrait cards — 900 × 1500 px (3:5)"
           accent="bg-amber-50 text-amber-600 border-amber-100/60"
         />
         <div className="rounded-xl bg-amber-50 border border-amber-200/80 p-3 text-[11px] text-amber-700">
-          📐 Recommended: 900 × 1500 px (3:5 portrait). Use upright portrait photos of models â€” avoid landscapes.
+          📐 Recommended: 900 × 1500 px (3:5 portrait). Use upright portrait photos of models — avoid landscapes.
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {settings.categoryCards.map((card) => (
@@ -577,13 +611,13 @@ export default function HomepagePage() {
               onUpload={(file) => uploadImage(`cat-${card.id}`, file, (url) => updateCardImage('categoryCards', card.id, url))}
               directUrl={directUrls[`cat-${card.id}`] || ''}
               onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`cat-${card.id}`]: v }))}
-              onApplyUrl={() => applyDirectUrl(`cat-${card.id}`, directUrls[`cat-${card.id}`] || '', (url) => updateCardImage('categoryCards', card.id, url))}
+              onApplyUrl={() => applyDirectUrl(`cat-${card.id}`, directUrls[`cat-${card.id}`] || '', (url) => updateCardImage('categoryCards', card.id, url), (link) => updateCardField('categoryCards', card.id, 'href', link))}
             />
             <CardTextFields
               fields={[
                 { label: "Small Text (e.g. Men's / Men's Stitched / Kids)", value: card.subtitle || '', onChange: (v) => updateCardField('categoryCards', card.id, 'subtitle', v), placeholder: "Men's" },
                 { label: 'Title (e.g. TWO PIECE / KIDS)', value: card.label || '', onChange: (v) => updateCardField('categoryCards', card.id, 'label', v), placeholder: 'TWO PIECE' },
-                { label: 'Link (e.g. /products/category/two-piece)', value: card.href || '', onChange: (v) => updateCardField('categoryCards', card.id, 'href', v), placeholder: '/products/category/three-piece' },
+                { label: 'Destination Link (where clicking the card goes)', value: card.href || '', onChange: (v) => updateCardField('categoryCards', card.id, 'href', v), placeholder: '/products/category/two-piece' },
               ]}
             />
             </div>
@@ -591,12 +625,12 @@ export default function HomepagePage() {
         </div>
       </section>
 
-      {/* â”€â”€ SHOWCASE CARDS â”€â”€ */}
+      {/* ── SHOWCASE CARDS ── */}
       <section className="apple-card p-5 space-y-5">
         <SectionHeader
           icon={<FiEye className="w-5 h-5" />}
           title="Showcase Cards"
-          hint="2 wide landscape feature cards â€” 1200 × 900 px (4:3)"
+          hint="2 wide landscape feature cards — 1200 × 900 px (4:3)"
           accent="bg-emerald-50 text-emerald-600 border-emerald-100/60"
         />
         <div className="rounded-xl bg-emerald-50 border border-emerald-200/80 p-3 text-[11px] text-emerald-700">
@@ -606,7 +640,7 @@ export default function HomepagePage() {
           {settings.showcaseCards.map((card) => (
             <div key={card.id} className="space-y-3">
             <ImageSlot
-              label={`${card.badge || ''} â€” ${card.title || card.label}`.trim()}
+              label={`${card.badge || ''} — ${card.title || card.label}`.trim()}
               recommended="1200 × 900 px"
               aspectClass="aspect-[4/3]"
               currentUrl={card.imageUrl}
@@ -614,14 +648,14 @@ export default function HomepagePage() {
               onUpload={(file) => uploadImage(`show-${card.id}`, file, (url) => updateCardImage('showcaseCards', card.id, url))}
               directUrl={directUrls[`show-${card.id}`] || ''}
               onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`show-${card.id}`]: v }))}
-              onApplyUrl={() => applyDirectUrl(`show-${card.id}`, directUrls[`show-${card.id}`] || '', (url) => updateCardImage('showcaseCards', card.id, url))}
+              onApplyUrl={() => applyDirectUrl(`show-${card.id}`, directUrls[`show-${card.id}`] || '', (url) => updateCardImage('showcaseCards', card.id, url), (link) => updateCardField('showcaseCards', card.id, 'href', link))}
             />
             <CardTextFields
               fields={[
                 { label: 'Badge (small gold text, e.g. ROYAL HERITAGE)', value: card.badge || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'badge', v), placeholder: 'ROYAL HERITAGE' },
                 { label: 'Title (e.g. Luxury Boski & Formal Fabrics)', value: card.title || card.label || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'title', v), placeholder: 'Luxury Boski & Formal Fabrics' },
                 { label: 'Button Text (CTA, e.g. DISCOVER COLLECTION)', value: card.cta || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'cta', v), placeholder: 'DISCOVER COLLECTION' },
-                { label: 'Link (e.g. /products/category/unstitched-fabric)', value: card.href || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'href', v), placeholder: '/products/category/unstitched-fabric' },
+                { label: 'Destination Link (where clicking the card goes)', value: card.href || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'href', v), placeholder: '/products/category/unstitched-fabric' },
               ]}
             />
             </div>
