@@ -418,7 +418,7 @@ export default function HomepagePage() {
       }),
     }));
 
-  if (isLoading && !loadedRef.current) {
+  if (isLoading) {
     return (
       <div className="space-y-3">
         {Array(5).fill(0).map((_, i) => (

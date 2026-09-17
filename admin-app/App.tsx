@@ -3470,8 +3470,9 @@ function HomepageView() {
           throw e;
         }
       }
-      const d = res?.data;
-      if (d) {
+      // Backend wraps settings in { data: { heroBanner, ... } } — handle both shapes
+      const d = res?.data?.data ?? res?.data;
+      if (d && (d.heroBanner || d.categoryCards || d.collectionSections || d.showcaseCards)) {
         setSettings({
           heroBanner: { ...HP_DEFAULTS.heroBanner, ...(d.heroBanner || {}) },
           categoryCards: (d.categoryCards?.length ? d.categoryCards : HP_DEFAULTS.categoryCards).map((c: any) => ({

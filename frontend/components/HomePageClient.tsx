@@ -244,26 +244,27 @@ export default function HomePageClient({
             <Link
               key={card.id}
               href={card.href}
-              className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
+              className="group relative block w-full overflow-hidden cursor-pointer"
             >
-              <div className="relative aspect-[9/15] w-full overflow-hidden flex items-center justify-center">
+              <div className="relative aspect-[9/15] w-full overflow-hidden">
                 <Image
                   src={card.imageUrl}
                   alt={card.label}
                   fill
                   sizes="(max-width: 640px) 50vw, 25vw"
-                  className="object-contain object-center p-2"
+                  className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
                 />
                 {/* Dark subtle gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
                 {/* Typography & SHOP NOW pill button */}
                 <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5 flex flex-col items-center text-center">
-                  <span className="font-serif italic text-xs sm:text-sm text-white/90">{card.subtitle}</span>
-                  <h3 className="font-serif text-sm sm:text-base md:text-lg lg:text-xl text-white uppercase tracking-wider font-light mt-0.5 drop-shadow-sm leading-tight">
+                  <span className="font-serif italic text-xs sm:text-sm text-white/90 drop-shadow">{card.subtitle}</span>
+                  <h3 className="font-serif text-sm sm:text-base md:text-lg lg:text-xl text-white uppercase tracking-wider font-light mt-0.5 drop-shadow leading-tight">
                     {card.label}
                   </h3>
-                  <span className="mt-3 sm:mt-4 inline-flex items-center justify-center bg-white text-black group-hover:bg-[#1E2229] group-hover:text-white px-5 sm:px-6 py-1.5 sm:py-2 rounded-full text-[10px] sm:text-[11px] font-bold tracking-widest uppercase transition-all shadow-sm">
+                  {/* Button adapts to image: white text on translucent dark pill */}
+                  <span className="mt-3 sm:mt-4 inline-flex items-center justify-center backdrop-blur-sm bg-white/20 border border-white/50 text-white group-hover:bg-white group-hover:text-black px-5 sm:px-6 py-1.5 sm:py-2 rounded-full text-[10px] sm:text-[11px] font-bold tracking-widest uppercase transition-all shadow-sm">
                     SHOP NOW
                   </span>
                 </div>
@@ -290,17 +291,17 @@ export default function HomePageClient({
             <Link
               key={card.id}
               href={card.href}
-              className="group relative block w-full overflow-hidden bg-[#1E2229] cursor-pointer"
+              className="group relative block w-full overflow-hidden cursor-pointer"
             >
-              <div className="relative aspect-[4/3] w-full overflow-hidden flex items-center justify-center">
+              <div className="relative aspect-[4/3] w-full overflow-hidden">
                 <Image
                   src={card.imageUrl}
                   alt={card.title || (card as any).label || 'Showcase'}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-contain object-center p-4"
+                  className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent pointer-events-none" />
                 <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8 text-white">
                   <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.26em] text-[#E8C86A]">
                     {card.badge}
