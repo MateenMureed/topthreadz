@@ -278,7 +278,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* â”€â”€ STORE HEALTH & GREETING BANNER â”€â”€ */}
+      {/* ── STORE HEALTH & GREETING BANNER ── */}
       <div className="apple-card p-5 relative overflow-hidden bg-gradient-to-r from-black/[0.02] via-transparent to-black/[0.01] dark:from-white/[0.03] dark:to-transparent">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
@@ -319,10 +319,10 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* â”€â”€ 3-PART EXECUTIVE GRID: REVENUE SIDE â€¢ ORDERS SIDE â€¢ ACTION BUTTONS SIDE â”€â”€ */}
+      {/* ── 3-PART EXECUTIVE GRID: REVENUE SIDE • ORDERS SIDE • ACTION BUTTONS SIDE ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* =========================================================================
-            1. REVENUE SECTION (One Side â€” Dedicated Revenue Hub)
+            1. REVENUE SECTION (One Side — Dedicated Revenue Hub)
            ========================================================================= */}
         <div className="lg:col-span-5 space-y-3">
           <div className="flex items-center justify-between px-1">
@@ -422,7 +422,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* =========================================================================
-            2. ORDERS SECTION (One Side â€” Dedicated Orders Hub)
+            2. ORDERS SECTION (One Side — Dedicated Orders Hub)
            ========================================================================= */}
         <div className="lg:col-span-4 space-y-3">
           <div className="flex items-center justify-between px-1">
@@ -540,7 +540,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* =========================================================================
-            3. ACTION BUTTONS SECTION (One Side â€” Dedicated Action Rail)
+            3. ACTION BUTTONS SECTION (One Side — Dedicated Action Rail)
            ========================================================================= */}
         <div className="lg:col-span-3 space-y-3">
           <div className="flex items-center justify-between px-1">
@@ -648,7 +648,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* â”€â”€ VISUAL ANALYTICS & LEADERBOARD TILES â”€â”€ */}
+      {/* ── VISUAL ANALYTICS & LEADERBOARD TILES ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="apple-card p-5">
           <div className="flex items-center justify-between mb-4">
@@ -757,7 +757,7 @@ export default function AdminDashboardPage() {
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-[#1D1D1F] dark:text-white truncate">{act.label}</p>
                   <p className="text-[10px] text-black/40 dark:text-white/40 mt-0.5">
-                    {new Date(act.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} â€¢{' '}
+                    {new Date(act.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} •{' '}
                     {new Date(act.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                   </p>
                 </div>

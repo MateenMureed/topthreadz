@@ -33,14 +33,14 @@ import {
 } from 'react-icons/fi';
 
 /**
- * ProductFormEditor ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â the complete product create/edit form.
+ * ProductFormEditor — the complete product create/edit form.
  * Single source of truth shared by:
  *   /admin/products/new       (AddProductPage)
  *   /admin/products/[id]/edit (EditProductPage)
  *
  * Props:
- *   editingProduct ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â full product object when editing, null/undefined when creating.
- *   onCancel       ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â invoked when the user closes the editor without saving.
+ *   editingProduct — full product object when editing, null/undefined when creating.
+ *   onCancel       — invoked when the user closes the editor without saving.
  */
 export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct?: any | null; onCancel?: () => void }) {
   const router = useRouter();
@@ -191,7 +191,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
     }
   }, [form.name, isSlugEditedManually]);
 
-  // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ AI SEO Engine state & handler ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬
+  // ── AI SEO Engine state & handler ──────────────────────────────────────
   const [seoGenerating, setSeoGenerating] = useState<string | null>(null); // null | 'all' | section name
   const [seoAvailable, setSeoAvailable] = useState(true);
   const [searchIntelligence, setSearchIntelligence] = useState<any>(null);
@@ -279,13 +279,13 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
     try {
       const res = await api.post('/products/generate-seo', { ...buildSeoRequest(), sections });
       applySeoResult(res.data.data, sections);
-      toast.success(`${label} generated ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â review before saving`);
+      toast.success(`${label} generated — review before saving`);
     } catch (e: any) {
       const msg = e?.response?.data?.error || e?.message || 'AI generation failed';
       if (e?.response?.status === 429) {
-        toast.error('Too many AI requests ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â wait a moment and try again.');
+        toast.error('Too many AI requests — wait a moment and try again.');
       } else if (Number(e?.response?.status) === 503) {
-        toast.error(msg + ' Your product data is safe ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â nothing was changed.');
+        toast.error(msg + ' Your product data is safe — nothing was changed.');
       } else {
         toast.error(msg);
       }
@@ -329,7 +329,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
       return next;
     });
   }, [form.images, form.name]);
-  // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Create / Update mutations (navigate back to catalog on success) ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬
+  // ── Create / Update mutations (navigate back to catalog on success) ──
   const createProduct = useMutation({
     mutationFn: (payload: any) => productService.create(payload),
     onSuccess: () => {
@@ -361,7 +361,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
       toast.error(error?.response?.data?.error || 'Failed to update product');
     },
   });
-  // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Hydrate form from editingProduct prop (edit mode) ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬
+  // ── Hydrate form from editingProduct prop (edit mode) ──
   const hydratedRef = useRef(false);
   useEffect(() => {
     if (!editingProduct || hydratedRef.current) return;
@@ -610,7 +610,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                 <p className="text-xs font-semibold truncate">
                   Now Editing: <strong className="font-extrabold text-blue-900 dark:text-white">{editingProduct.name}</strong>{' '}
                   <span className="text-blue-600 dark:text-blue-300 font-normal">
-                    ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ SKU: {editingProduct.sku || 'N/A'} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ {editingProduct.category}
+                    • SKU: {editingProduct.sku || 'N/A'} • {editingProduct.category}
                   </span>
                 </p>
               </div>
@@ -660,7 +660,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                 <div className="flex items-center justify-between gap-2 border-b border-[#E5E7EB] pb-2">
                   <h3 className="text-sm font-bold text-[#0F1F3D] uppercase tracking-wide">1. Basic Information</h3>
                   <button type="button" onClick={autofillBasicWithAi} className="text-xs text-[#0F1F3D] font-bold hover:underline">
-                    ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â¡ Auto-Generate Description
+                    ⚡ Auto-Generate Description
                   </button>
                 </div>
 
@@ -675,18 +675,18 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                     {seoGenerating === 'SEO' ? (
                       <span className="inline-block w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                     ) : (
-                      'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¨'
+                      '✨'
                     )}
-                    {seoGenerating === 'SEO' ? 'Generating with AIÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦' : 'Generate SEO with AI'}
+                    {seoGenerating === 'SEO' ? 'Generating with AI…' : 'Generate SEO with AI'}
                   </button>
                   {seoGenerating && seoGenerating !== 'SEO' && (
                     <span className="text-xs text-[#6B7280] inline-flex items-center gap-1.5">
                       <span className="inline-block w-3 h-3 border-2 border-[#D1D5DB] border-t-[#0F1F3D] rounded-full animate-spin" />
-                      Regenerating {seoGenerating}ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦
+                      Regenerating {seoGenerating}…
                     </span>
                   )}
                   {form.aiGenerated && !seoGenerating && (
-                    <span className="px-2 py-0.5 rounded-full bg-[#DEF7EC] text-[#03543F] text-[11px] font-bold">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¨ AI-assisted</span>
+                    <span className="px-2 py-0.5 rounded-full bg-[#DEF7EC] text-[#03543F] text-[11px] font-bold">✨ AI-assisted</span>
                   )}
                   {seoValidationReport && !seoGenerating && (
                     <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold inline-flex items-center gap-1.5 ${
@@ -696,7 +696,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                         ? 'bg-[#FEE2E2] dark:bg-[#7F1D1D] text-[#991B1B] dark:text-[#FCA5A5]'
                         : 'bg-[#FEF3C7] dark:bg-[#78350F] text-[#92400E] dark:text-[#FDE68A]'
                     }`}>
-                      {seoValidationReport.status === 'SEO Optimized' ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ' : seoValidationReport.status === 'Needs Review' ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â' : 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â '}{' '}
+                      {seoValidationReport.status === 'SEO Optimized' ? '✓' : seoValidationReport.status === 'Needs Review' ? '✗' : '⚠'}{' '}
                       {seoValidationReport.status}: {seoValidationReport.score}/100
                     </span>
                   )}
@@ -709,7 +709,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                 {form.seoSuggestions.length > 0 && (
                   <ul className="text-xs text-[#6B7280] space-y-0.5 pl-1">
                     {form.seoSuggestions.slice(0, 4).map((s, i) => (
-                      <li key={i}>ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ {s}</li>
+                      <li key={i}>• {s}</li>
                     ))}
                   </ul>
                 )}
@@ -731,7 +731,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                     <div className="flex items-center gap-2 border-b border-[#E5E7EB] p-2 bg-[#F9FAFB]">
                       <button type="button" onClick={() => applyRichText('bold')} className="admin-btn-secondary !h-7 !py-0 !px-2 text-xs font-bold">B</button>
                       <button type="button" onClick={() => applyRichText('italic')} className="admin-btn-secondary !h-7 !py-0 !px-2 text-xs italic">I</button>
-                      <button type="button" onClick={() => applyRichText('insertUnorderedList')} className="admin-btn-secondary !h-7 !py-0 !px-2 text-xs">ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ List</button>
+                      <button type="button" onClick={() => applyRichText('insertUnorderedList')} className="admin-btn-secondary !h-7 !py-0 !px-2 text-xs">• List</button>
                     </div>
                     <div
                       ref={descriptionEditorRef}
@@ -906,22 +906,22 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                     </h3>
                     {searchIntelligence && (
                       <span className="px-2 py-0.5 rounded-full bg-[#E0E7FF] dark:bg-[#1E1B4B] text-[#3730A3] dark:text-[#C7D2FE] text-[10px] font-bold">
-                        ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€šÃ‚Â§Ãƒâ€šÃ‚Â  Intent Intelligence Active
+                        🧠 Intent Intelligence Active
                       </span>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     <button type="button" disabled={Boolean(seoGenerating)} onClick={() => runSeoGeneration(['description'], 'Description')} className="admin-btn-secondary !py-1 !px-2.5 text-[11px] font-semibold">
-                      ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â» Description
+                      ↻ Description
                     </button>
                     <button type="button" disabled={Boolean(seoGenerating)} onClick={() => runSeoGeneration(['meta'], 'Meta')} className="admin-btn-secondary !py-1 !px-2.5 text-[11px] font-semibold">
-                      ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â» Meta
+                      ↻ Meta
                     </button>
                     <button type="button" disabled={Boolean(seoGenerating)} onClick={() => runSeoGeneration(['keywords'], 'Keywords')} className="admin-btn-secondary !py-1 !px-2.5 text-[11px] font-semibold">
-                      ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â» Keywords
+                      ↻ Keywords
                     </button>
                     <button type="button" disabled={Boolean(seoGenerating)} onClick={() => runSeoGeneration(['faqs'], 'FAQs')} className="admin-btn-secondary !py-1 !px-2.5 text-[11px] font-semibold">
-                      ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â» FAQs
+                      ↻ FAQs
                     </button>
                   </div>
                 </div>
@@ -937,7 +937,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                         : 'border-transparent text-[#6B7280] dark:text-[#94A3B8] hover:text-[#1A1A1A] dark:hover:text-white'
                     }`}
                   >
-                    <span>ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒâ€¦Ã‚Â  Validation Report</span>
+                    <span>📊 Validation Report</span>
                     {seoValidationReport && (
                       <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
                         seoValidationReport.status === 'SEO Optimized'
@@ -1015,7 +1015,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                                   : 'bg-[#FEF3C7] dark:bg-[#78350F] text-[#92400E] dark:text-[#FDE68A]'
                               }`}
                             >
-                              {(seoValidationReport?.status || (form.seoScore && form.seoScore >= 80 ? 'SEO Optimized' : form.seoScore ? 'SEO Optimized with Warnings' : 'Needs Review')) === 'SEO Optimized' ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ ' : 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â  '}
+                              {(seoValidationReport?.status || (form.seoScore && form.seoScore >= 80 ? 'SEO Optimized' : form.seoScore ? 'SEO Optimized with Warnings' : 'Needs Review')) === 'SEO Optimized' ? '✓ ' : '⚠ '}
                               {seoValidationReport?.status || (form.seoScore && form.seoScore >= 80 ? 'SEO Optimized' : form.seoScore ? 'SEO Optimized with Warnings' : 'Needs Review')}
                             </span>
                           </div>
@@ -1046,7 +1046,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                         <div className="p-2.5 rounded bg-white dark:bg-[#1E2228] border border-[#E5E7EB] dark:border-[#2D3340]">
                           <span className="text-[10px] text-[#6B7280] dark:text-[#94A3B8] font-bold uppercase block">SEO TARGETS</span>
                           <span className="font-semibold text-[#111827] dark:text-white">
-                            1 Primary ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· {searchIntelligence?.stats?.secondaryCount ?? searchIntelligence?.secondaryKeywords?.length ?? 5} Secondary ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· {searchIntelligence?.stats?.supportingCount ?? searchIntelligence?.supportingKeywords?.length ?? 14} Supporting
+                            1 Primary · {searchIntelligence?.stats?.secondaryCount ?? searchIntelligence?.secondaryKeywords?.length ?? 5} Secondary · {searchIntelligence?.stats?.supportingCount ?? searchIntelligence?.supportingKeywords?.length ?? 14} Supporting
                           </span>
                         </div>
                         <div className="p-2.5 rounded bg-white dark:bg-[#1E2228] border border-[#E5E7EB] dark:border-[#2D3340]">
@@ -1073,7 +1073,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                     {/* Hard SEO Limits Checklist (Section 26 & 27) */}
                     <div className="p-4 rounded-lg border border-[#E5E7EB] dark:border-[#2D3340] bg-white dark:bg-[#1E2228] space-y-3 text-xs">
                       <h4 className="font-bold text-[#0F1F3D] dark:text-[#F1F5F9] uppercase tracking-wide text-[11px]">
-                        ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒâ€šÃ‚Â Measured Technical SEO Limits (Section 26 &amp; 27)
+                        📏 Measured Technical SEO Limits (Section 26 &amp; 27)
                       </h4>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         <div className="p-2 rounded bg-[#F9FAFB] dark:bg-[#16191F] border border-[#E5E7EB] dark:border-[#2D3340]">
@@ -1082,7 +1082,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                             {form.metaTitle.length} / 65 chars
                           </div>
                           <div className={`text-[10px] font-medium mt-0.5 ${form.metaTitle.length > 65 ? 'text-[#DC2626]' : form.metaTitle.length >= 45 ? 'text-[#059669]' : 'text-[#D97706]'}`}>
-                            {form.metaTitle.length > 65 ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Exceeds max 65' : form.metaTitle.length >= 45 ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Ideal (45ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ60)' : 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â  Short'}
+                            {form.metaTitle.length > 65 ? '✗ Exceeds max 65' : form.metaTitle.length >= 45 ? '✓ Ideal (45–60)' : '⚠ Short'}
                           </div>
                         </div>
 
@@ -1092,7 +1092,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                             {form.metaDescription.length} / 170 chars
                           </div>
                           <div className={`text-[10px] font-medium mt-0.5 ${form.metaDescription.length > 170 ? 'text-[#DC2626]' : form.metaDescription.length >= 80 ? 'text-[#059669]' : 'text-[#D97706]'}`}>
-                            {form.metaDescription.length > 170 ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Exceeds max 170' : form.metaDescription.length >= 80 ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Ideal (140ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ160)' : 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â  Min 80'}
+                            {form.metaDescription.length > 170 ? '✗ Exceeds max 170' : form.metaDescription.length >= 80 ? '✓ Ideal (140–160)' : '⚠ Min 80'}
                           </div>
                         </div>
 
@@ -1102,7 +1102,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                             {form.name.length} / 100 chars
                           </div>
                           <div className="text-[10px] font-medium text-[#059669] mt-0.5">
-                            {form.name ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ 1 Primary H1' : 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Missing'}
+                            {form.name ? '✓ 1 Primary H1' : '✗ Missing'}
                           </div>
                         </div>
 
@@ -1112,7 +1112,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                             {form.description ? form.description.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length : 0} words
                           </div>
                           <div className="text-[10px] font-medium text-[#059669] mt-0.5">
-                            ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Target 80ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ300 useful
+                            ✓ Target 80–300 useful
                           </div>
                         </div>
 
@@ -1122,7 +1122,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                             {seoValidationReport?.metrics?.isStuffing ? 'STUFFING DETECTED' : 'Natural Language'}
                           </div>
                           <div className={`text-[10px] font-medium mt-0.5 ${seoValidationReport?.metrics?.isStuffing ? 'text-[#DC2626]' : 'text-[#059669]'}`}>
-                            {seoValidationReport?.metrics?.isStuffing ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â High Repetition' : 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Anti-stuffing passed'}
+                            {seoValidationReport?.metrics?.isStuffing ? '✗ High Repetition' : '✓ Anti-stuffing passed'}
                           </div>
                         </div>
 
@@ -1132,7 +1132,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                             /{form.slug || 'product-slug'}
                           </div>
                           <div className="text-[10px] font-medium text-[#059669] mt-0.5">
-                            {form.slug ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Canonical Valid' : 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â  Missing'}
+                            {form.slug ? '✓ Canonical Valid' : '⚠ Missing'}
                           </div>
                         </div>
                       </div>
@@ -1148,21 +1148,21 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                           <ul className="space-y-1">
                             {seoValidationReport.passedChecks.map((check: string, ci: number) => (
                               <li key={ci} className="text-[#065F46] dark:text-[#6EE7B7] flex items-center gap-1.5">
-                                <span>ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ</span>
+                                <span>✓</span>
                                 <span>{check}</span>
                               </li>
                             ))}
                           </ul>
                         ) : (
                           <ul className="space-y-1 text-[#065F46] dark:text-[#6EE7B7]">
-                            <li>ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Title: {form.metaTitle.length || 58} characters (target 45ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ60)</li>
-                            <li>ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Meta: {form.metaDescription.length || 154} characters (target 140ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ160)</li>
-                            <li>ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ H1: valid</li>
-                            <li>ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Canonical: valid</li>
-                            <li>ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Product schema: valid</li>
-                            <li>ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ No keyword stuffing</li>
-                            <li>ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ No unsupported attributes</li>
-                            <li>ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ No duplicate aliases</li>
+                            <li>✓ Title: {form.metaTitle.length || 58} characters (target 45–60)</li>
+                            <li>✓ Meta: {form.metaDescription.length || 154} characters (target 140–160)</li>
+                            <li>✓ H1: valid</li>
+                            <li>✓ Canonical: valid</li>
+                            <li>✓ Product schema: valid</li>
+                            <li>✓ No keyword stuffing</li>
+                            <li>✓ No unsupported attributes</li>
+                            <li>✓ No duplicate aliases</li>
                           </ul>
                         )}
                       </div>
@@ -1175,7 +1175,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                           <ul className="space-y-1 text-[#92400E] dark:text-[#FDE68A]">
                             {seoValidationReport.warnings.map((warn: string, wi: number) => (
                               <li key={wi} className="flex items-center gap-1.5">
-                                <span>ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â </span>
+                                <span>⚠</span>
                                 <span>{warn}</span>
                               </li>
                             ))}
@@ -1193,7 +1193,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                           <ul className="space-y-1 text-[#991B1B] dark:text-[#FCA5A5]">
                             {seoValidationReport.criticalFailures.map((fail: string, fi: number) => (
                               <li key={fi} className="flex items-center gap-1.5">
-                                <span>ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â</span>
+                                <span>✗</span>
                                 <span>{fail}</span>
                               </li>
                             ))}
@@ -1210,7 +1210,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                     {/* Live Google Search Preview Card */}
                     <div className="rounded-lg border border-[#E5E7EB] dark:border-[#2D3340] bg-[#F9FAFB] dark:bg-[#16191F] p-3 text-xs">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#94A3B8] mb-1.5 flex items-center gap-1.5">
-                        <span>ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã¢â‚¬â„¢Ãƒâ€šÃ‚Â Google Search Preview</span>
+                        <span>🌐 Google Search Preview</span>
                       </p>
                       <div className="space-y-0.5">
                         <p className="text-[#1A0DAB] dark:text-[#8AB4F8] text-sm font-semibold hover:underline truncate cursor-pointer">
@@ -1236,7 +1236,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                           maxLength={65}
                         />
                         <p className={`text-[11px] mt-1 ${form.metaTitle.length > 65 ? 'text-[#DC2626] font-bold' : form.metaTitle.length >= 45 ? 'text-[#059669] font-medium' : 'text-[#9CA3AF]'}`}>
-                          {form.metaTitle.length}/65 max {form.metaTitle.length >= 45 && form.metaTitle.length <= 65 ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Ideal (45ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ60 chars)' : form.metaTitle.length > 65 ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Exceeds hard limit 65' : '(Target: 45ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ60)'}
+                          {form.metaTitle.length}/65 max {form.metaTitle.length >= 45 && form.metaTitle.length <= 65 ? '✓ Ideal (45–60 chars)' : form.metaTitle.length > 65 ? '✗ Exceeds hard limit 65' : '(Target: 45–60)'}
                         </p>
                       </div>
                       <div>
@@ -1260,7 +1260,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                         maxLength={170}
                       />
                       <p className={`text-[11px] mt-1 ${form.metaDescription.length > 170 ? 'text-[#DC2626] font-bold' : form.metaDescription.length >= 80 && form.metaDescription.length <= 160 ? 'text-[#059669] font-medium' : form.metaDescription.length > 160 ? 'text-[#D97706]' : 'text-[#9CA3AF]'}`}>
-                        {form.metaDescription.length}/170 max {form.metaDescription.length >= 80 && form.metaDescription.length <= 160 ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Ideal (140ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ160 chars)' : form.metaDescription.length > 170 ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Exceeds hard limit 170' : form.metaDescription.length > 0 && form.metaDescription.length < 80 ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â  Short (min 80)' : '(Target: 140ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ160)'}
+                        {form.metaDescription.length}/170 max {form.metaDescription.length >= 80 && form.metaDescription.length <= 160 ? '✓ Ideal (140–160 chars)' : form.metaDescription.length > 170 ? '✗ Exceeds hard limit 170' : form.metaDescription.length > 0 && form.metaDescription.length < 80 ? '⚠ Short (min 80)' : '(Target: 140–160)'}
                       </p>
                     </div>
 
@@ -1348,7 +1348,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                   <div className="space-y-4">
                     <div className="p-3 rounded-lg bg-[#F0FDF4] dark:bg-[#064E3B]/30 border border-[#BBF7D0] dark:border-[#065F46] text-xs">
                       <p className="font-bold text-[#166534] dark:text-[#A7F3D0]">
-                        ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂºÃƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Internal Search &amp; Storefront Discovery Engine
+                        🛍️ Internal Search &amp; Storefront Discovery Engine
                       </p>
                       <p className="text-[#14532D] dark:text-[#6EE7B7] mt-0.5">
                         These natural phrasing, Roman Urdu, and spelling variations are stored specifically for internal search, autocomplete, and product discovery. They are never stuffed into Google meta tags.
@@ -1538,7 +1538,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                               : 'bg-[#F3F4F6] text-[#374151] border border-[#D1D5DB] hover:bg-[#E5E7EB]'
                             }`}
                         >
-                          {isSelected ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ ' : '+ '}{size}
+                          {isSelected ? '✓ ' : '+ '}{size}
                         </button>
                       );
                     })}
@@ -1613,7 +1613,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                             className="hover:text-[#B91C2B] font-bold"
                             title="Remove color"
                           >
-                            ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â
+                            ×
                           </button>
                         </span>
                       ))
@@ -1713,7 +1713,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                       onChange={(e) => setForm((prev) => ({ ...prev, featured: e.target.checked }))}
                       className="w-4 h-4 rounded text-[#0F1F3D] focus:ring-[#0F1F3D]"
                     />
-                    ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚Â­Ãƒâ€šÃ‚Â Featured Product (Show in Featured List)
+                    ⭐ Featured Product (Show in Featured List)
                   </label>
 
                   <label className="flex items-center gap-2 text-sm font-semibold text-[#1A1A1A] cursor-pointer">
@@ -1723,7 +1723,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                       onChange={(e) => setForm((prev) => ({ ...prev, trending: e.target.checked }))}
                       className="w-4 h-4 rounded text-[#B91C2B] focus:ring-[#B91C2B]"
                     />
-                    ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒâ€šÃ‚Â¥ Trending / New Arrival (Show on Homepage)
+                    🔥 Trending / New Arrival (Show on Homepage)
                   </label>
 
                   <div>
@@ -1796,7 +1796,7 @@ export function ProductFormEditor({ editingProduct, onCancel }: { editingProduct
                         {previewDiscount > 0 && <span className="badge bg-red-100 text-red-600">-{previewDiscount}%</span>}
                       </div>
                       <p className="text-xs text-surface-500">SKU: {form.sku || 'Auto SKU'}</p>
-                      <p className="text-xs text-surface-500">Status: {form.productStatus} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ PUBLIC</p>
+                      <p className="text-xs text-surface-500">Status: {form.productStatus} • PUBLIC</p>
                     </div>
                   </div>
                 </div>

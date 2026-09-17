@@ -57,7 +57,15 @@ export async function fetchServerProducts(params?: { limit?: number; sortBy?: st
   return data?.products || (Array.isArray(data) ? data : []);
 }
 
+async function fetchServerHomepageSettings(revalidate = 120) {
+  const data = await fetchServerData<any>('/settings/homepage', revalidate);
+  return data || null;
+}
+
 export async function fetchServerHeroBanner() {
+  const hp = await fetchServerHomepageSettings();
+  const url = hp?.heroBanner?.desktop?.url;
+  if (url) return url;
   const data = await fetchServerData<any>('/settings/hero-banner', 120);
   return data?.url as string | undefined;
 }
@@ -68,6 +76,9 @@ export async function fetchServerHeroBanners() {
 }
 
 export async function fetchServerHeroBannerMobile() {
+  const hp = await fetchServerHomepageSettings();
+  const url = hp?.heroBanner?.mobile?.url;
+  if (url) return url;
   const data = await fetchServerData<any>('/settings/hero-banner-mobile', 120);
   return (data?.url as string | undefined) ?? null;
 }
@@ -78,6 +89,15 @@ export async function fetchServerStoreSettings() {
 }
 
 export async function fetchServerHeroBannerText() {
+  const hp = await fetchServerHomepageSettings();
+  if (hp?.heroBanner) {
+    return {
+      heading: hp.heroBanner.heading,
+      subheading: hp.heroBanner.subheading,
+      buttonText: hp.heroBanner.buttonText,
+      buttonLink: hp.heroBanner.buttonLink,
+    };
+  }
   const data = await fetchServerData<any>('/settings/hero-banner-text', 120);
   return data || null;
 }

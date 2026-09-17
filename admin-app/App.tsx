@@ -529,7 +529,7 @@ function AdminMain() {
         {activeTab === 'products' && <ProductsView />}
         {activeTab === 'customers' && <CustomersView />}
         {activeTab === 'payments' && <PaymentsView />}
-        {activeTab === 'settings' && <SettingsView onLogout={handleLogout} />}
+        {activeTab === 'settings' && <SettingsView onLogout={handleLogout} onNavigate={(t) => setActiveTab(t)} />}
         {activeTab === 'homepage' && <HomepageView />}
       </View>
 
@@ -647,405 +647,6 @@ function TabButton({
     </TouchableOpacity>
   );
 }
-
-// ----------------------------------------------------
-// 1. DASHBOARD VIEW
-// ----------------------------------------------------
-// ----------------------------------------------------
-// 0. HERO BANNER UPLOAD & MANAGEMENT MODAL
-// ----------------------------------------------------
-function HeroBannerModal({
-  visible,
-  onClose,
-  onUpdated,
-}: {
-  visible: boolean;
-  onClose: () => void;
-  onUpdated: () => void;
-}) {
-  const { themed } = useTheme();
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [currentBanner, setCurrentBanner] = useState<string>('');
-  const [directUrl, setDirectUrl] = useState('');
-  const [bannerText, setBannerText] = useState({
-    heading: 'Shop Our Newest Collection',
-    subheading: 'PREMIUM WASH & WEAR � SHOP OUR COLLECTION',
-    buttonText: 'Shop Now',
-    buttonLink: '/products',
-  });
-
-  const loadBannerData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [bannerRes, textRes] = await Promise.all([
-        api.get('/settings/hero-banner').catch(() => null),
-        api.get('/settings/hero-banner-text').catch(() => null),
-      ]);
-      const bannerData = bannerRes?.data || bannerRes;
-      if (bannerData?.url) {
-        setCurrentBanner(bannerData.url);
-      } else {
-        setCurrentBanner('');
-      }
-      const textData = textRes?.data || textRes;
-      if (textData) {
-        setBannerText({
-          heading: textData.heading || 'Shop Our Newest Collection',
-          subheading: textData.subheading || 'PREMIUM WASH & WEAR • SHOP OUR COLLECTION',
-          buttonText: textData.buttonText || 'Shop Now',
-          buttonLink: textData.buttonLink || '/products',
-        });
-      }
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (visible) {
-      loadBannerData();
-    }
-  }, [visible, loadBannerData]);
-
-  const pickBannerImage = async () => {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) {
-      Alert.alert('Permission Required', 'Please allow gallery access to upload a hero banner.');
-      return;
-    }
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.85,
-    });
-    if (res.canceled || !res.assets?.[0]) return;
-
-    setUploading(true);
-    try {
-      const asset = res.assets[0];
-      const formData = new FormData();
-      const filename = asset.uri.split('/').pop() || 'banner.jpg';
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : 'image/jpeg';
-      formData.append('image', { uri: asset.uri, name: filename, type } as any);
-
-      const uploadRes = await api.postFormData('/settings/hero-banner', formData);
-      const url = uploadRes?.data?.url || uploadRes?.url || uploadRes?.data;
-      if (url) {
-        setCurrentBanner(typeof url === 'string' ? url : url.url);
-        Alert.alert('Banner Uploaded', 'Banner photo uploaded to Cloudinary successfully!');
-      } else {
-        Alert.alert('Notice', 'Image processed successfully!');
-      }
-    } catch (e: any) {
-      Alert.alert('Upload Failed', e?.response?.data?.message || e?.message || 'Could not upload banner.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const takeBannerPhoto = async () => {
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) {
-      Alert.alert('Permission Required', 'Please allow camera access.');
-      return;
-    }
-    const res = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.85,
-    });
-    if (res.canceled || !res.assets?.[0]) return;
-
-    setUploading(true);
-    try {
-      const asset = res.assets[0];
-      const formData = new FormData();
-      const filename = asset.uri.split('/').pop() || 'camera-banner.jpg';
-      formData.append('image', { uri: asset.uri, name: filename, type: 'image/jpeg' } as any);
-
-      const uploadRes = await api.postFormData('/settings/hero-banner', formData);
-      const url = uploadRes?.data?.url || uploadRes?.url;
-      if (url) {
-        setCurrentBanner(typeof url === 'string' ? url : url.url);
-        Alert.alert('Photo Captured', 'Banner photo uploaded successfully!');
-      }
-    } catch (e: any) {
-      Alert.alert('Camera Upload Failed', e?.message || 'Could not upload photo.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleApplyUrl = async () => {
-    const url = directUrl.trim();
-    if (!url) {
-      Alert.alert('URL Required', 'Please paste a valid image URL.');
-      return;
-    }
-    setUploading(true);
-    try {
-      await api.post('/settings/hero-banner', { url });
-      setCurrentBanner(url);
-      setDirectUrl('');
-      Alert.alert('URL Applied', 'Banner URL set!');
-    } catch {
-      setCurrentBanner(url);
-      setDirectUrl('');
-      Alert.alert('URL Preview', 'Banner image URL applied.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleSaveAndPublish = async () => {
-    setSaving(true);
-    try {
-      await api.post('/settings/hero-banner-text', bannerText);
-      Alert.alert('Success', 'Storefront hero banner & promotions published!');
-      onUpdated();
-      onClose();
-    } catch (e: any) {
-      Alert.alert('Save Failed', e?.response?.data?.message || e?.message || 'Failed to update banner text.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleRemoveBanner = () => {
-    Alert.alert('Remove Banner', 'Are you sure you want to remove the storefront hero banner?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await api.delete('/settings/hero-banner');
-            setCurrentBanner('');
-            Alert.alert('Removed', 'Hero banner removed from storefront.');
-            onUpdated();
-          } catch (e: any) {
-            Alert.alert('Error', e?.message || 'Could not remove banner.');
-          }
-        },
-      },
-    ]);
-  };
-
-  return (
-    <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
-      <SafeAreaView style={[styles.bannerModalContainer, themed.bannerModalContainer]}>
-        <StatusBar barStyle="light-content" backgroundColor="#0F1F3D" />
-
-        {/* Top Header */}
-        <View style={styles.bannerModalHeader}>
-          <TouchableOpacity style={styles.bannerModalCloseBtn} onPress={onClose} activeOpacity={0.7}>
-            <Text style={styles.bannerModalCloseText}>✕ Close</Text>
-          </TouchableOpacity>
-          <View style={{ alignItems: 'center' }}>
-            <Text style={styles.bannerModalTitle}>Homepage Hero Banner</Text>
-            <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 1 }}>
-              Storefront promotions & hero visual
-            </Text>
-          </View>
-          <View style={{ width: 60 }} />
-        </View>
-
-        {loading ? (
-          <View style={styles.tabLoader}>
-            <ActivityIndicator size="small" color="#0F1F3D" />
-            <Text style={[styles.tabLoaderText, themed.tabLoaderText]}>Loading banner details...</Text>
-          </View>
-        ) : (
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Live Preview Card */}
-            <View style={styles.bannerSectionCard}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <Text style={styles.bannerSectionCardTitle}>Interactive Store Preview</Text>
-                <View style={styles.heroBannerLiveBadge}>
-                  <Text style={styles.heroBannerLiveText}>
-                    {currentBanner ? '● LIVE PREVIEW' : '⚪ NO IMAGE'}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.bannerPreviewBox}>
-                {currentBanner ? (
-                  <Image
-                    source={{ uri: resolveImageUrl(currentBanner) }}
-                    style={{ width: '100%', height: '100%' }}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F1F3D' }}>
-                    <Text style={{ fontSize: 36, marginBottom: 4 }}>🖼️</Text>
-                    <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>No banner image uploaded</Text>
-                  </View>
-                )}
-
-                {/* Overlaid Banner Text Mockup */}
-                <View style={styles.bannerPreviewOverlay}>
-                  <View style={styles.bannerSubheadingPill}>
-                    <Text style={styles.bannerSubheadingText}>
-                      {bannerText.subheading || 'PREMIUM COLLECTION'}
-                    </Text>
-                  </View>
-                  <Text style={styles.bannerHeadingText} numberOfLines={2}>
-                    {bannerText.heading || 'Shop Our Newest Collection'}
-                  </Text>
-                  <View style={[styles.bannerCtaPill, themed.bannerCtaPill]}>
-                    <Text style={styles.bannerCtaText}>{bannerText.buttonText || 'Shop Now'} →</Text>
-                  </View>
-                </View>
-              </View>
-
-              <Text style={{ fontSize: 11, color: '#6B7280', textAlign: 'center' }}>
-                Recommended dimensions: 1920 × 800 px (or 16:9 ratio) • Full width responsive
-              </Text>
-            </View>
-
-            {/* Upload / Source Section */}
-            <View style={styles.bannerSectionCard}>
-              <Text style={styles.bannerSectionCardTitle}>Banner Photography</Text>
-              <Text style={{ fontSize: 12, color: '#6B7280', marginBottom: 14 }}>
-                Upload high-definition banner photo from your mobile device or paste an external URL.
-              </Text>
-
-              <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
-                <TouchableOpacity
-                  style={[styles.bigPhotoUploadTile, themed.bigPhotoUploadTile]}
-                  onPress={pickBannerImage}
-                  disabled={uploading}
-                  activeOpacity={0.8}
-                >
-                  <Text style={{ fontSize: 32, marginBottom: 6 }}>🖼️</Text>
-                  <Text style={[styles.bigPhotoTileTitle, themed.bigPhotoTileTitle]}>Choose Gallery</Text>
-                  <Text style={styles.bigPhotoTileSub}>Select 16:9 photo</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.bigPhotoUploadTile, themed.bigPhotoUploadTile]}
-                  onPress={takeBannerPhoto}
-                  disabled={uploading}
-                  activeOpacity={0.8}
-                >
-                  <Text style={{ fontSize: 32, marginBottom: 6 }}>📸</Text>
-                  <Text style={[styles.bigPhotoTileTitle, themed.bigPhotoTileTitle]}>Camera Snap</Text>
-                  <Text style={styles.bigPhotoTileSub}>Instant banner photo</Text>
-                </TouchableOpacity>
-              </View>
-
-              {uploading && (
-                <View style={[styles.uploadingNoticeBox, themed.uploadingNoticeBox]}>
-                  <ActivityIndicator size="small" color="#0F1F3D" />
-                  <Text style={styles.uploadingNoticeText}>Optimizing & uploading banner to Cloudinary...</Text>
-                </View>
-              )}
-
-              {/* Direct URL input */}
-              <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
-                <TextInput
-                  style={[styles.liquidPillInputDark, { flex: 1 }]}
-                  placeholder="Or paste direct image URL (https://...)"
-                  placeholderTextColor="#9CA3AF"
-                  value={directUrl}
-                  onChangeText={setDirectUrl}
-                  autoCapitalize="none"
-                />
-                <TouchableOpacity style={styles.addPillMiniBtn} onPress={handleApplyUrl} activeOpacity={0.8}>
-                  <Text style={styles.addPillMiniBtnText}>Set URL</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Customization Text Inputs */}
-            <View style={styles.bannerSectionCard}>
-              <Text style={styles.bannerSectionCardTitle}>Banner Text & Call-To-Action</Text>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Main Headline</Text>
-                <TextInput
-                  style={styles.liquidPillInputDark}
-                  placeholder="e.g. Shop Our Newest Collection"
-                  placeholderTextColor="#9CA3AF"
-                  value={bannerText.heading}
-                  onChangeText={(v) => setBannerText((prev) => ({ ...prev, heading: v }))}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Subheading / Eyebrow Badge</Text>
-                <TextInput
-                  style={styles.liquidPillInputDark}
-                  placeholder="e.g. PREMIUM WASH & WEAR • SHOP OUR COLLECTION"
-                  placeholderTextColor="#9CA3AF"
-                  value={bannerText.subheading}
-                  onChangeText={(v) => setBannerText((prev) => ({ ...prev, subheading: v }))}
-                />
-              </View>
-
-              <View style={{ flexDirection: 'row', gap: 10 }}>
-                <View style={[styles.inputGroup, { flex: 1 }]}>
-                  <Text style={styles.inputLabel}>Button Label</Text>
-                  <TextInput
-                    style={styles.liquidPillInputDark}
-                    placeholder="Shop Now"
-                    placeholderTextColor="#9CA3AF"
-                    value={bannerText.buttonText}
-                    onChangeText={(v) => setBannerText((prev) => ({ ...prev, buttonText: v }))}
-                  />
-                </View>
-
-                <View style={[styles.inputGroup, { flex: 1 }]}>
-                  <Text style={styles.inputLabel}>Button Link</Text>
-                  <TextInput
-                    style={styles.liquidPillInputDark}
-                    placeholder="/products"
-                    placeholderTextColor="#9CA3AF"
-                    value={bannerText.buttonLink}
-                    onChangeText={(v) => setBannerText((prev) => ({ ...prev, buttonLink: v }))}
-                  />
-                </View>
-              </View>
-            </View>
-          </ScrollView>
-        )}
-
-        {/* Sticky Bottom Actions */}
-        <View style={styles.oneUiStickyBottomBar}>
-          {currentBanner ? (
-            <TouchableOpacity style={styles.heroBannerModalRemoveBtn} onPress={handleRemoveBanner} activeOpacity={0.8}>
-              <Text style={styles.heroBannerModalRemoveText}>🗑️ Remove</Text>
-            </TouchableOpacity>
-          ) : null}
-
-          <TouchableOpacity
-            style={[styles.stepperPublishBtn, saving && { opacity: 0.7 }]}
-            onPress={handleSaveAndPublish}
-            disabled={saving}
-            activeOpacity={0.85}
-          >
-            {saving ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.stepperPublishBtnText}>✓ Save & Publish Banner</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    </Modal>
-  );
-}
-
 // ----------------------------------------------------
 // 1. DASHBOARD VIEW (Ultra-Rounded Corners & Liquid Glass)
 // ----------------------------------------------------
@@ -1056,23 +657,17 @@ function DashboardView({ onNavigate }: { onNavigate: (t: Tab) => void }) {
   const [refreshing, setRefreshing] = useState(false);
   const [heroBanner, setHeroBanner] = useState<string | null>(null);
   const [heroText, setHeroText] = useState<any>(null);
-  const [showBannerModal, setShowBannerModal] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
-      const [dashRes, bannerRes, textRes] = await Promise.all([
+      const [dashRes, hpRes] = await Promise.all([
         api.get('/admin/dashboard').catch(() => null),
-        api.get('/settings/hero-banner').catch(() => null),
-        api.get('/settings/hero-banner-text').catch(() => null),
+        api.get('/settings/homepage').catch(() => null),
       ]);
       setData(dashRes?.data || null);
-      const bData = bannerRes?.data || bannerRes;
-      if (bData?.url) {
-        setHeroBanner(bData.url);
-      } else {
-        setHeroBanner(null);
-      }
-      setHeroText(textRes?.data || textRes || null);
+      const hp = hpRes?.data || hpRes || null;
+      setHeroBanner(hp?.heroBanner?.desktop?.url || null);
+      setHeroText(hp?.heroBanner || null);
     } catch (e) {
       console.warn(e);
     } finally {
@@ -1197,34 +792,17 @@ function DashboardView({ onNavigate }: { onNavigate: (t: Tab) => void }) {
             <View style={styles.heroBannerActionRow}>
               <TouchableOpacity
                 style={styles.heroBannerChangeBtn}
-                onPress={() => setShowBannerModal(true)}
+                onPress={() => onNavigate('homepage')}
                 activeOpacity={0.8}
               >
-                <Text style={styles.heroBannerChangeBtnText}>📸 Change / Edit Banner</Text>
+                <Text style={styles.heroBannerChangeBtnText}>📸 Change / Edit in Homepage</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.heroBannerRemoveBtn}
-                onPress={async () => {
-                  Alert.alert('Remove Banner', 'Are you sure you want to remove the storefront banner?', [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                      text: 'Remove',
-                      style: 'destructive',
-                      onPress: async () => {
-                        try {
-                          await api.delete('/settings/hero-banner');
-                          setHeroBanner(null);
-                          Alert.alert('Removed', 'Hero banner removed from store.');
-                        } catch (err: any) {
-                          Alert.alert('Error', err?.message || 'Could not remove banner.');
-                        }
-                      },
-                    },
-                  ]);
-                }}
+                onPress={() => onNavigate('homepage')}
                 activeOpacity={0.8}
               >
-                <Text style={styles.heroBannerRemoveBtnText}>🗑️ Remove</Text>
+                <Text style={styles.heroBannerRemoveBtnText}>🖼️ Homepage Editor</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1237,10 +815,10 @@ function DashboardView({ onNavigate }: { onNavigate: (t: Tab) => void }) {
             </Text>
             <TouchableOpacity
               style={styles.heroBannerUploadBtn}
-              onPress={() => setShowBannerModal(true)}
+              onPress={() => onNavigate('homepage')}
               activeOpacity={0.8}
             >
-              <Text style={styles.heroBannerUploadBtnText}>+ Upload Hero Banner</Text>
+              <Text style={styles.heroBannerUploadBtnText}>+ Add in Homepage Editor</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -1259,10 +837,10 @@ function DashboardView({ onNavigate }: { onNavigate: (t: Tab) => void }) {
           <Text style={[styles.quickActionTitle, themed.quickActionTitle]}>Add Product</Text>
           <Text style={[styles.quickActionSub, themed.quickActionSub]}>Catalog, stock & photos</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.quickActionBtnRounded, themed.quickActionBtnRounded]} onPress={() => setShowBannerModal(true)} activeOpacity={0.8}>
-          <Text style={styles.quickActionIcon}>🎨</Text>
-          <Text style={[styles.quickActionTitle, themed.quickActionTitle]}>Hero Banner</Text>
-          <Text style={[styles.quickActionSub, themed.quickActionSub]}>Upload & customize visual</Text>
+        <TouchableOpacity style={[styles.quickActionBtnRounded, themed.quickActionBtnRounded]} onPress={() => onNavigate('homepage')} activeOpacity={0.8}>
+          <Text style={styles.quickActionIcon}>🏠</Text>
+          <Text style={[styles.quickActionTitle, themed.quickActionTitle]}>Homepage Editor</Text>
+          <Text style={[styles.quickActionSub, themed.quickActionSub]}>Banners, images & text</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.quickActionBtnRounded, themed.quickActionBtnRounded]} onPress={() => onNavigate('payments')} activeOpacity={0.8}>
           <Text style={styles.quickActionIcon}>💳</Text>
@@ -1276,12 +854,6 @@ function DashboardView({ onNavigate }: { onNavigate: (t: Tab) => void }) {
         </TouchableOpacity>
       </View>
 
-      {/* Hero Banner Modal */}
-      <HeroBannerModal
-        visible={showBannerModal}
-        onClose={() => setShowBannerModal(false)}
-        onUpdated={loadData}
-      />
     </ScrollView>
   );
 }
@@ -3537,7 +3109,7 @@ function PaymentsView() {
 // ----------------------------------------------------
 // 6. STORE SETTINGS VIEW
 // ----------------------------------------------------
-function SettingsView({ onLogout }: { onLogout: () => void }) {
+function SettingsView({ onLogout, onNavigate }: { onLogout: () => void; onNavigate: (t: Tab) => void }) {
   const { mode, setMode, themed } = useTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -3545,7 +3117,6 @@ function SettingsView({ onLogout }: { onLogout: () => void }) {
   const [phone, setPhone] = useState('');
   const [standardFee, setStandardFee] = useState('250');
   const [freeThreshold, setFreeThreshold] = useState('10000');
-  const [showBannerModal, setShowBannerModal] = useState(false);
 
   useEffect(() => {
     async function fetchSettings() {
@@ -3622,39 +3193,19 @@ function SettingsView({ onLogout }: { onLogout: () => void }) {
         </View>
       </View>
 
-      {/* Hero Banner Quick Access */}
+      {/* Homepage Editor shortcut — hero banner & all section images live in the Homepage tab */}
       <View style={[styles.cardSection, themed.cardSection]}>
-        <Text style={[styles.cardSectionTitle, themed.cardSectionTitle]}>Storefront Hero Banner</Text>
+        <Text style={[styles.cardSectionTitle, themed.cardSectionTitle]}>Homepage Editor</Text>
         <Text style={{ fontSize: 12, color: '#6B7280', marginBottom: 12, lineHeight: 17 }}>
-          Configure top homepage visual, brand tagline, headline typography & call-to-action button.
+          Hero banner, category cards, collection banners & showcase cards — images, text and links are all managed in the 🏠 Homepage tab.
         </Text>
         <TouchableOpacity
           style={styles.heroBannerSettingsBtn}
-          onPress={() => setShowBannerModal(true)}
+          onPress={() => onNavigate('homepage')}
           activeOpacity={0.8}
         >
-          <Text style={styles.heroBannerSettingsBtnText}>🖼️ Upload & Customize Hero Banner</Text>
+          <Text style={styles.heroBannerSettingsBtnText}>🏠 Open Homepage Editor</Text>
         </TouchableOpacity>
-      </View>
-
-      {/* Homepage Editor — dedicated tab shortcut */}
-      <View style={[styles.cardSection, themed.cardSection]}>
-        <Text style={[styles.cardSectionTitle, themed.cardSectionTitle]}>Homepage Section Images</Text>
-        <Text style={{ fontSize: 12, color: '#6B7280', marginBottom: 12, lineHeight: 17 }}>
-          Upload images for Category Cards, Collection Banners, and Showcase Cards. Use the 🏠 Homepage tab below.
-        </Text>
-        <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-          {[
-            { label: '🃏 Category Cards', ratio: '3:5' },
-            { label: '🗂️ Collections', ratio: '3:4' },
-            { label: '🖼️ Showcase', ratio: '4:3' },
-          ].map((item) => (
-            <View key={item.label} style={{ backgroundColor: '#F3F4F6', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 10, marginBottom: 4 }}>
-              <Text style={{ fontSize: 11, color: '#374151', fontWeight: '600' }}>{item.label}</Text>
-              <Text style={{ fontSize: 10, color: '#6B7280', marginTop: 1 }}>Ratio: {item.ratio}</Text>
-            </View>
-          ))}
-        </View>
       </View>
 
       {/* Store Branding — Logo */}
@@ -3726,13 +3277,6 @@ function SettingsView({ onLogout }: { onLogout: () => void }) {
       <TouchableOpacity style={[styles.logoutDangerBtn, themed.logoutDangerBtn]} onPress={onLogout}>
         <Text style={styles.logoutDangerText}>Sign Out from Administrator Session</Text>
       </TouchableOpacity>
-
-      {/* Hero Banner Modal */}
-      <HeroBannerModal
-        visible={showBannerModal}
-        onClose={() => setShowBannerModal(false)}
-        onUpdated={() => {}}
-      />
     </ScrollView>
   );
 }
@@ -3817,6 +3361,8 @@ function HomepageImageSlot({
   onApplyUrl: () => void;
 }) {
   const { themed, palette } = useTheme();
+  const [ratioW, ratioH] = aspectRatio.split(':').map(Number);
+  const previewRatio = ratioW && ratioH ? ratioW / ratioH : 1;
   return (
     <View style={[styles.hpSlotCard, themed.hpSlotCard]}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
@@ -3828,7 +3374,7 @@ function HomepageImageSlot({
       <Text style={{ fontSize: 10, color: palette.textMuted, marginBottom: 10 }}>Recommended: {recommendedSize}</Text>
 
       {/* Live preview */}
-      <View style={[styles.hpPreviewBox, { aspectRatio: parseFloat(aspectRatio.replace(':', '/').split('/').join('/')) || 1 }]}>
+      <View style={[styles.hpPreviewBox, { aspectRatio: previewRatio }]}>
         {currentUrl ? (
           <Image source={{ uri: currentUrl }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
         ) : (
@@ -3872,6 +3418,33 @@ function HomepageImageSlot({
   );
 }
 
+// ── Per-card text & link editor (title / subtitle / CTA / link) ───────────
+function HpCardTextFields({
+  fields,
+}: {
+  fields: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }[];
+}) {
+  const { themed, palette } = useTheme();
+  return (
+    <View style={[styles.cardSection, themed.cardSection, { marginTop: 8 }]}>
+      <Text style={[styles.cardSectionTitle, themed.cardSectionTitle]}>✏️ Text & Link</Text>
+      {fields.map((f) => (
+        <View key={f.label} style={[styles.inputGroup, themed.inputGroup]}>
+          <Text style={[styles.inputLabel, themed.inputLabel]}>{f.label}</Text>
+          <TextInput
+            style={[styles.textInput, themed.textInput]}
+            value={f.value}
+            onChangeText={f.onChange}
+            placeholder={f.placeholder}
+            placeholderTextColor={palette.textFaint}
+            autoCapitalize="none"
+          />
+        </View>
+      ))}
+    </View>
+  );
+}
+
 // ── Accordion Section ─────────────────────────────────────────────────────
 function AccordionSection({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -3910,9 +3483,15 @@ function HomepageView() {
       if (d) {
         setSettings({
           heroBanner: { ...HP_DEFAULTS.heroBanner, ...(d.heroBanner || {}) },
-          categoryCards: d.categoryCards?.length ? d.categoryCards : HP_DEFAULTS.categoryCards,
-          collectionSections: d.collectionSections?.length ? d.collectionSections : HP_DEFAULTS.collectionSections,
-          showcaseCards: d.showcaseCards?.length ? d.showcaseCards : HP_DEFAULTS.showcaseCards,
+          categoryCards: (d.categoryCards?.length ? d.categoryCards : HP_DEFAULTS.categoryCards).map((c: any) => ({
+            ...c, subtitle: c.subtitle || '', label: c.label || '', href: c.href || '',
+          })),
+          collectionSections: (d.collectionSections?.length ? d.collectionSections : HP_DEFAULTS.collectionSections).map((c: any) => ({
+            ...c, label: c.label || c.title || '', title: c.title || c.label || '', href: c.href || '',
+          })),
+          showcaseCards: (d.showcaseCards?.length ? d.showcaseCards : HP_DEFAULTS.showcaseCards).map((c: any) => ({
+            ...c, badge: c.badge || '', title: c.title || c.label || '', cta: c.cta || '', href: c.href || '',
+          })),
         });
       }
     } catch {
@@ -3930,7 +3509,7 @@ function HomepageView() {
       // Reshape for API: collectionSections needs title field
       const payload = {
         ...settings,
-        collectionSections: settings.collectionSections.map((s) => ({ ...s, title: s.label })),
+        collectionSections: settings.collectionSections.map((s) => ({ ...s, title: s.label || s.title || '' })),
         showcaseCards: settings.showcaseCards.map((s) => ({ ...s, title: s.title || s.label, badge: s.badge || '', cta: s.cta || '' })),
       };
       await api.put('/settings/homepage', payload);
@@ -3989,6 +3568,18 @@ function HomepageView() {
     }));
   };
 
+  const updateCardField = (
+    section: 'categoryCards' | 'collectionSections' | 'showcaseCards',
+    id: string,
+    field: 'label' | 'subtitle' | 'href' | 'badge' | 'title' | 'cta',
+    value: string,
+  ) => {
+    setSettings((prev) => ({
+      ...prev,
+      [section]: (prev[section] as HpCard[]).map((c) => c.id === id ? { ...c, [field]: value } : c),
+    }));
+  };
+
   if (loading) {
     return (
       <View style={styles.tabLoader}>
@@ -4008,12 +3599,12 @@ function HomepageView() {
       {/* ── HERO BANNER ── */}
       <AccordionSection
         title="🖼️ Hero Banner"
-        subtitle="Full-width top banner • Desktop (16:9) + Mobile (9:16)"
+        subtitle="Full-width top banner • Desktop 16:7 (1920 × 800) + Mobile 4:5 (800 × 1000)"
       >
         <HomepageImageSlot
           label="Desktop Banner"
-          aspectRatio="16:9"
-          recommendedSize="1920 × 800 px"
+          aspectRatio="16:7"
+          recommendedSize="1920 × 700 px"
           currentUrl={settings.heroBanner.desktop.url}
           uploading={uploadingKey === 'hero-desktop'}
           onUploaded={(url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, desktop: { url, publicId: '' } } }))}
@@ -4024,8 +3615,8 @@ function HomepageView() {
         />
         <HomepageImageSlot
           label="Mobile Banner"
-          aspectRatio="9:16"
-          recommendedSize="800 × 1200 px"
+          aspectRatio="4:5"
+          recommendedSize="800 × 1000 px"
           currentUrl={settings.heroBanner.mobile.url}
           uploading={uploadingKey === 'hero-mobile'}
           onUploaded={(url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, mobile: { url, publicId: '' } } }))}
@@ -4059,55 +3650,70 @@ function HomepageView() {
         </View>
       </AccordionSection>
 
+      {/* ── COLLECTION SECTION BANNERS (3 portrait cards) ── */}
+      <AccordionSection
+        title="🗂️ Collection Section Banners"
+        subtitle="3 portrait collection cards • Aspect Ratio 3:4 • 900 × 1200 px"
+      >
+        <View style={{ backgroundColor: '#EFF6FF', borderRadius: 8, padding: 10, marginBottom: 10 }}>
+          <Text style={{ fontSize: 11, color: '#1D4ED8', fontWeight: '600' }}>📐 Recommended: 900 × 1200 px (3:4 portrait)</Text>
+          <Text style={{ fontSize: 10, color: '#1D4ED8', marginTop: 3 }}>Unstitched Fabric, Stitched Kurta, Waistcoats & Suits — shown in "OUR NEW COLLECTIONS".</Text>
+        </View>
+        {settings.collectionSections.map((section) => (
+          <View key={section.id} style={{ marginBottom: 14 }}>
+            <HomepageImageSlot
+              label={section.label || 'Collection Card'}
+              aspectRatio="3:4"
+              recommendedSize="900 × 1200 px"
+              currentUrl={section.imageUrl}
+              uploading={uploadingKey === `col-${section.id}`}
+              onUploaded={(url) => updateCardImage('collectionSections', section.id, url)}
+              onPressUpload={() => pickAndUploadImage(`col-${section.id}`, (url) => updateCardImage('collectionSections', section.id, url))}
+              directUrl={directUrls[`col-${section.id}`] || ''}
+              onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`col-${section.id}`]: v }))}
+              onApplyUrl={() => applyDirectUrl(`col-${section.id}`, directUrls[`col-${section.id}`] || '', (url) => updateCardImage('collectionSections', section.id, url))}
+            />
+            <HpCardTextFields
+              fields={[
+                { label: 'Title (black banner bar on the card)', value: section.label || '', onChange: (v) => updateCardField('collectionSections', section.id, 'label', v), placeholder: 'UNSTITCHED FABRIC COLLECTION' },
+                { label: 'Link (e.g. /products/category/unstitched-fabric)', value: section.href || '', onChange: (v) => updateCardField('collectionSections', section.id, 'href', v), placeholder: '/products/category/…' },
+              ]}
+            />
+          </View>
+        ))}
+      </AccordionSection>
+
       {/* ── CATEGORY SHOWCASE CARDS (4 tall cards) ── */}
       <AccordionSection
         title="🃏 Category Showcase Cards"
-        subtitle="4 tall portrait cards • Aspect Ratio 3:5 (9:15)"
+        subtitle="4 tall portrait cards • Aspect Ratio 9:15 • 900 × 1500 px"
       >
         <View style={{ backgroundColor: '#FEF3C7', borderRadius: 8, padding: 10, marginBottom: 10 }}>
           <Text style={{ fontSize: 11, color: '#92400E', fontWeight: '600' }}>📐 Recommended: 900 × 1500 px (3:5 portrait)</Text>
           <Text style={{ fontSize: 10, color: '#92400E', marginTop: 3 }}>Use upright portrait photos of models in outfit. Avoid landscapes.</Text>
         </View>
         {settings.categoryCards.map((card) => (
-          <HomepageImageSlot
-            key={card.id}
-            label={`${card.subtitle || ""} ${card.label}`}
-            aspectRatio="3:5"
-            recommendedSize="900 × 1500 px"
-            currentUrl={card.imageUrl}
-            uploading={uploadingKey === `cat-${card.id}`}
-            onUploaded={(url) => updateCardImage('categoryCards', card.id, url)}
-            onPressUpload={() => pickAndUploadImage(`cat-${card.id}`, (url) => updateCardImage('categoryCards', card.id, url))}
-            directUrl={directUrls[`cat-${card.id}`] || ''}
-            onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`cat-${card.id}`]: v }))}
-            onApplyUrl={() => applyDirectUrl(`cat-${card.id}`, directUrls[`cat-${card.id}`] || '', (url) => updateCardImage('categoryCards', card.id, url))}
-          />
-        ))}
-      </AccordionSection>
-
-      {/* ── COLLECTION SECTION BANNERS (3 tall cards) ── */}
-      <AccordionSection
-        title="🗂️ Collection Section Banners"
-        subtitle="3 portrait collection cards • Aspect Ratio 3:4"
-      >
-        <View style={{ backgroundColor: '#EFF6FF', borderRadius: 8, padding: 10, marginBottom: 10 }}>
-          <Text style={{ fontSize: 11, color: '#1D4ED8', fontWeight: '600' }}>📐 Recommended: 900 × 1200 px (3:4 portrait)</Text>
-          <Text style={{ fontSize: 10, color: '#1D4ED8', marginTop: 3 }}>Unstitched Fabric, Stitched Kurta, Waistcoats & Suits</Text>
-        </View>
-        {settings.collectionSections.map((section) => (
-          <HomepageImageSlot
-            key={section.id}
-            label={section.label}
-            aspectRatio="3:4"
-            recommendedSize="900 × 1200 px"
-            currentUrl={section.imageUrl}
-            uploading={uploadingKey === `col-${section.id}`}
-            onUploaded={(url) => updateCardImage('collectionSections', section.id, url)}
-            onPressUpload={() => pickAndUploadImage(`col-${section.id}`, (url) => updateCardImage('collectionSections', section.id, url))}
-            directUrl={directUrls[`col-${section.id}`] || ''}
-            onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`col-${section.id}`]: v }))}
-            onApplyUrl={() => applyDirectUrl(`col-${section.id}`, directUrls[`col-${section.id}`] || '', (url) => updateCardImage('collectionSections', section.id, url))}
-          />
+          <View key={card.id} style={{ marginBottom: 14 }}>
+            <HomepageImageSlot
+              label={`${card.subtitle || ''} ${card.label}`.trim() || 'Category Card'}
+              aspectRatio="3:5"
+              recommendedSize="900 × 1500 px"
+              currentUrl={card.imageUrl}
+              uploading={uploadingKey === `cat-${card.id}`}
+              onUploaded={(url) => updateCardImage('categoryCards', card.id, url)}
+              onPressUpload={() => pickAndUploadImage(`cat-${card.id}`, (url) => updateCardImage('categoryCards', card.id, url))}
+              directUrl={directUrls[`cat-${card.id}`] || ''}
+              onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`cat-${card.id}`]: v }))}
+              onApplyUrl={() => applyDirectUrl(`cat-${card.id}`, directUrls[`cat-${card.id}`] || '', (url) => updateCardImage('categoryCards', card.id, url))}
+            />
+            <HpCardTextFields
+              fields={[
+                { label: "Small Text (e.g. Men's / Men's Stitched / Kids)", value: card.subtitle || '', onChange: (v) => updateCardField('categoryCards', card.id, 'subtitle', v), placeholder: "Men's" },
+                { label: 'Title (e.g. TWO PIECE / KIDS)', value: card.label || '', onChange: (v) => updateCardField('categoryCards', card.id, 'label', v), placeholder: 'TWO PIECE' },
+                { label: 'Link (e.g. /products/category/two-piece)', value: card.href || '', onChange: (v) => updateCardField('categoryCards', card.id, 'href', v), placeholder: '/products/category/…' },
+              ]}
+            />
+          </View>
         ))}
       </AccordionSection>
 
@@ -4121,19 +3727,28 @@ function HomepageView() {
           <Text style={{ fontSize: 10, color: '#065F46', marginTop: 3 }}>Boski/Fabric left card, Wash & Wear right card. Use wide scenic or flat-lay product shots.</Text>
         </View>
         {settings.showcaseCards.map((card) => (
-          <HomepageImageSlot
-            key={card.id}
-            label={`${card.badge || ''} — ${card.title || card.label}`}
-            aspectRatio="4:3"
-            recommendedSize="1200 × 900 px"
-            currentUrl={card.imageUrl}
-            uploading={uploadingKey === `sc-${card.id}`}
-            onUploaded={(url) => updateCardImage('showcaseCards', card.id, url)}
-            onPressUpload={() => pickAndUploadImage(`sc-${card.id}`, (url) => updateCardImage('showcaseCards', card.id, url))}
-            directUrl={directUrls[`sc-${card.id}`] || ''}
-            onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`sc-${card.id}`]: v }))}
-            onApplyUrl={() => applyDirectUrl(`sc-${card.id}`, directUrls[`sc-${card.id}`] || '', (url) => updateCardImage('showcaseCards', card.id, url))}
-          />
+          <View key={card.id} style={{ marginBottom: 14 }}>
+            <HomepageImageSlot
+              label={`${card.badge || ''} — ${card.title || card.label}`.replace(/^ — /, '') || 'Showcase Card'}
+              aspectRatio="4:3"
+              recommendedSize="1200 × 900 px"
+              currentUrl={card.imageUrl}
+              uploading={uploadingKey === `sc-${card.id}`}
+              onUploaded={(url) => updateCardImage('showcaseCards', card.id, url)}
+              onPressUpload={() => pickAndUploadImage(`sc-${card.id}`, (url) => updateCardImage('showcaseCards', card.id, url))}
+              directUrl={directUrls[`sc-${card.id}`] || ''}
+              onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`sc-${card.id}`]: v }))}
+              onApplyUrl={() => applyDirectUrl(`sc-${card.id}`, directUrls[`sc-${card.id}`] || '', (url) => updateCardImage('showcaseCards', card.id, url))}
+            />
+            <HpCardTextFields
+              fields={[
+                { label: 'Badge (small gold text, e.g. ROYAL HERITAGE)', value: card.badge || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'badge', v), placeholder: 'ROYAL HERITAGE' },
+                { label: 'Title (e.g. Luxury Boski & Formal Fabrics)', value: card.title || card.label || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'title', v), placeholder: 'Luxury Boski & Formal Fabrics' },
+                { label: 'Button Text (CTA, e.g. DISCOVER COLLECTION)', value: card.cta || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'cta', v), placeholder: 'DISCOVER COLLECTION' },
+                { label: 'Link (e.g. /products/category/unstitched-fabric)', value: card.href || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'href', v), placeholder: '/products/category/…' },
+              ]}
+            />
+          </View>
         ))}
       </AccordionSection>
 

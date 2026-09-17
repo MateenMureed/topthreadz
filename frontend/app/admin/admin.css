@@ -596,3 +596,323 @@
 .apple-edit-active-pulse {
   animation: editSectionPulse 1.8s cubic-bezier(0.24, 0, 0.38, 1) 2;
 }
+
+/* ============================================================
+   PAGE TITLE ICON BADGES
+   Small colored squircle sitting to the left of a page <h2>.
+   ============================================================ */
+
+.admin-title-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--admin-radius-lg);
+  flex-shrink: 0;
+  box-shadow: var(--admin-shadow-sm);
+}
+
+/* ============================================================
+   STAT CARDS — accent-bordered summary cards with an icon,
+   a big number, a caption, and an optional affordance button.
+   Pass --stat-accent / --stat-icon-bg / --stat-icon-color inline.
+   ============================================================ */
+
+.admin-stat-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(180deg, var(--admin-surface) 0%, var(--admin-surface-subtle) 100%);
+  border: 1px solid var(--admin-border);
+  border-left: 3px solid var(--stat-accent, var(--admin-navy));
+  border-radius: var(--admin-radius-xl);
+  padding: 18px 20px;
+  box-shadow: var(--admin-shadow-sm);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.admin-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  background: var(--stat-icon-bg, var(--admin-surface-subtle));
+  color: var(--stat-icon-color, var(--admin-navy));
+}
+
+.admin-stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+}
+
+.admin-stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--admin-text);
+  line-height: 1.15;
+}
+
+.admin-stat-caption {
+  font-size: 12px;
+  color: var(--admin-text-muted);
+}
+
+.admin-stat-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  background: var(--stat-icon-bg, var(--admin-surface-subtle));
+  color: var(--stat-icon-color, var(--admin-navy));
+  transition: transform 160ms ease-out, background-color 160ms ease-out;
+  border: none;
+  cursor: pointer;
+}
+
+.admin-stat-arrow:hover {
+  transform: translateX(2px);
+}
+
+.admin-stat-arrow:active {
+  transform: scale(0.92);
+}
+
+/* ============================================================
+   SOFT BUTTONS — pill-shaped, tinted background instead of a
+   solid fill. Used for row-level approve/reject/quiet actions
+   where a full-strength button would be too heavy.
+   ============================================================ */
+
+.admin-btn-soft-success,
+.admin-btn-soft-danger,
+.admin-btn-soft-neutral {
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, transform 100ms ease-out, box-shadow 150ms ease;
+}
+
+.admin-btn-soft-success {
+  background: rgba(16, 185, 129, 0.12);
+  color: #0F9A6B;
+}
+
+.admin-btn-soft-success:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.2);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.18);
+}
+
+.admin-btn-soft-danger {
+  background: var(--admin-destructive-soft);
+  color: var(--admin-destructive);
+}
+
+.admin-btn-soft-danger:hover:not(:disabled) {
+  background: rgba(185, 28, 43, 0.16);
+  box-shadow: 0 2px 8px rgba(185, 28, 43, 0.14);
+}
+
+.admin-btn-soft-neutral {
+  background: var(--admin-surface-subtle);
+  color: var(--admin-text-secondary);
+  border-color: var(--admin-border);
+}
+
+.admin-btn-soft-neutral:hover:not(:disabled) {
+  background: var(--admin-surface-hover);
+}
+
+.admin-btn-soft-success:active:not(:disabled),
+.admin-btn-soft-danger:active:not(:disabled),
+.admin-btn-soft-neutral:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.admin-btn-soft-success:disabled,
+.admin-btn-soft-danger:disabled,
+.admin-btn-soft-neutral:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   DROPDOWN / FLOATING MENU — consistent trigger + panel used
+   for filters and overflow menus across the admin (replaces
+   one-off positioned divs).
+   ============================================================ */
+
+.admin-dropdown-trigger {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 0 12px;
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+  color: var(--admin-text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--admin-transition), box-shadow var(--admin-transition), background-color var(--admin-transition);
+}
+
+.admin-dropdown-trigger:hover {
+  border-color: var(--admin-border-strong);
+  background: var(--admin-surface-hover);
+}
+
+.admin-dropdown-trigger[aria-expanded="true"] {
+  border-color: var(--admin-navy);
+  box-shadow: var(--admin-focus-ring);
+}
+
+.admin-dropdown-trigger .chev {
+  transition: transform 160ms ease-out;
+  color: var(--admin-text-muted);
+}
+
+.admin-dropdown-trigger[aria-expanded="true"] .chev {
+  transform: rotate(180deg);
+}
+
+.admin-dropdown-panel {
+  position: absolute;
+  z-index: 30;
+  margin-top: 6px;
+  min-width: 100%;
+  overflow: hidden;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow-lg);
+  padding: 4px;
+  animation: dropdownIn 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.admin-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--admin-radius-sm);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--admin-text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 120ms ease;
+}
+
+.admin-dropdown-item:hover {
+  background: var(--admin-surface-subtle);
+}
+
+.admin-dropdown-item.active {
+  background: var(--admin-gold-soft);
+  color: var(--admin-navy);
+  font-weight: 700;
+}
+
+.dark .admin-dropdown-item.active {
+  color: var(--admin-text);
+}
+
+/* ============================================================
+   TABLE HEADER WITH LEADING ICONS (used on Payments-style tables)
+   ============================================================ */
+
+.admin-table-head-icon {
+  color: var(--admin-text-muted);
+  opacity: 0.8;
+}
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+
+.admin-empty-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+  border-radius: 9999px;
+  background: var(--admin-surface-subtle);
+  color: var(--admin-text-muted);
+}
+
+.admin-empty-icon .badge-dot {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: var(--admin-gold);
+  color: var(--admin-navy);
+  border: 2px solid var(--admin-surface);
+}
+
+/* ============================================================
+   BUTTON HOVER POLISH — subtle lift added to the shared button
+   language so primary/secondary actions feel more tactile.
+   ============================================================ */
+
+.admin-btn-primary:hover:not(:disabled):not(:active),
+.apple-btn-primary:hover:not(:disabled):not(:active) {
+  box-shadow: 0 4px 14px rgba(15, 31, 61, 0.22);
+  transform: translateY(-1px);
+}
+
+.admin-btn-secondary:hover:not(:disabled):not(:active),
+.apple-btn-secondary:hover:not(:disabled):not(:active) {
+  box-shadow: var(--admin-shadow-sm);
+  transform: translateY(-1px);
+}
