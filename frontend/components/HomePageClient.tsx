@@ -91,11 +91,13 @@ interface HomePageClientProps {
   initialProducts?: any[];
   initialHeroBanner?: string;
   initialSettings?: any;
+  initialHomepageSettings?: any;
 }
 
 export default function HomePageClient({
   initialCategories = [],
   initialProducts = [],
+  initialHomepageSettings,
 }: HomePageClientProps) {
   const { data: productsResponse, isLoading } = useQuery({
     queryKey: ['home', 'products'],
@@ -125,7 +127,9 @@ export default function HomePageClient({
         throw err;
       }
     },
-    staleTime: 5 * 60 * 1000, // cache for 5 min
+    initialData: initialHomepageSettings ? { data: initialHomepageSettings } : undefined,
+    staleTime: 10 * 1000, // 10s freshness window
+    refetchOnWindowFocus: true,
     retry: false,
   });
 

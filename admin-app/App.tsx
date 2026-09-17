@@ -3342,23 +3342,15 @@ function HomepageImageSlot({
   aspectRatio,
   recommendedSize,
   currentUrl,
-  onUploaded,
   uploading,
   onPressUpload,
-  directUrl,
-  onDirectUrlChange,
-  onApplyUrl,
 }: {
   label: string;
   aspectRatio: string;
   recommendedSize: string;
   currentUrl: string;
-  onUploaded: (url: string) => void;
   uploading: boolean;
   onPressUpload: () => void;
-  directUrl: string;
-  onDirectUrlChange: (v: string) => void;
-  onApplyUrl: () => void;
 }) {
   const { themed, palette } = useTheme();
   const [ratioW, ratioH] = aspectRatio.split(':').map(Number);
@@ -3395,30 +3387,16 @@ function HomepageImageSlot({
         {uploading ? (
           <ActivityIndicator color="#fff" size="small" />
         ) : (
-          <Text style={styles.hpUploadBtnText}>📷 Upload from Gallery</Text>
+          <Text style={styles.hpUploadBtnText}>📷 {currentUrl ? 'Replace Photo' : 'Upload from Gallery'}</Text>
         )}
       </TouchableOpacity>
 
-      {/* Paste URL */}
-      <View style={{ flexDirection: 'row', gap: 6, marginTop: 8 }}>
-        <TextInput
-          style={[styles.hpUrlInput, themed.hpUrlInput]}
-          placeholder="Or paste image URL (jpg, png)…"
-          placeholderTextColor={palette.textFaint}
-          value={directUrl}
-          onChangeText={onDirectUrlChange}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-        <TouchableOpacity
-          style={[styles.hpApplyUrlBtn, !directUrl.trim() && { opacity: 0.4 }]}
-          onPress={onApplyUrl}
-          disabled={!directUrl.trim()}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.hpApplyUrlText}>Apply</Text>
-        </TouchableOpacity>
-      </View>
+      {currentUrl ? (
+        <View style={{ marginTop: 6, paddingVertical: 4, paddingHorizontal: 8, backgroundColor: 'rgba(16,185,129,0.1)', borderRadius: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={{ fontSize: 10, color: '#10B981', fontWeight: '600' }}>✓ Uploaded &amp; Saved Live</Text>
+          <Text style={{ fontSize: 9, color: palette.textMuted }}>Storefront updated</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -3478,7 +3456,6 @@ function HomepageView() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
-  const [directUrls, setDirectUrls] = useState<Record<string, string>>({});
 
   const loadSettings = useCallback(async () => {
     setLoading(true);
@@ -3553,7 +3530,34 @@ function HomepageView() {
     }
   };
 
-  const pickAndUploadImage = async (slotKey: string, onUploaded: (url: string) => void) => {
+  const persistSettings = async (payload: HomepageSettings) => {
+    const body = {
+      ...payload,
+      collectionSections: payload.collectionSections.map((s) => ({
+        ...s,
+        title: s.label || s.title || '',
+        label: s.label || s.title || '',
+      })),
+      showcaseCards: payload.showcaseCards.map((s) => ({
+        ...s,
+        title: s.title || s.label || '',
+        label: s.title || s.label || '',
+        badge: s.badge || '',
+        cta: s.cta || '',
+      })),
+    };
+    try {
+      await api.put('/settings/homepage', body);
+    } catch (e: any) {
+      if (e?.response?.status === 404) {
+        await api.put('/admin/settings/homepage', body);
+      } else {
+        throw e;
+      }
+    }
+  };
+
+  const pickAndUploadImage = async (slotKey: string, applyUpdate: (url: string, current: HomepageSettings) => HomepageSettings) => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) { Alert.alert('Permission Required', 'Allow gallery access to upload images.'); return; }
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -3580,10 +3584,21 @@ function HomepageView() {
           throw e;
         }
       }
-      const url = uploadRes?.data?.url || uploadRes?.url;
+      const rawUrl = uploadRes?.data?.url || uploadRes?.data?.data?.url || uploadRes?.url;
+      const url = typeof rawUrl === 'string' ? rawUrl : rawUrl?.url;
       if (url) {
-        onUploaded(typeof url === 'string' ? url : url.url);
-        Alert.alert('Uploaded!', 'Image uploaded to Cloudinary. Tap Save & Publish to apply.');
+        let updatedState: HomepageSettings = settings;
+        setSettings((prev) => {
+          updatedState = applyUpdate(url, prev);
+          return updatedState;
+        });
+        // Auto-save so storefront immediately reflects the new image
+        try {
+          await persistSettings(updatedState);
+          Alert.alert('✅ Uploaded & Saved', 'Image is now live on the storefront!');
+        } catch {
+          Alert.alert('Uploaded', 'Image uploaded. Tap Save & Publish to push live.');
+        }
       } else {
         Alert.alert('Notice', 'Image processed — tap Save & Publish to apply.');
       }
@@ -3594,46 +3609,10 @@ function HomepageView() {
     }
   };
 
-function isPageLink(url: string): boolean {
-  const clean = url.trim().toLowerCase();
-  if (/\.(jpg|jpeg|png|webp|gif|svg|avif)(\?.*)?$/i.test(clean)) return false;
-  if (clean.includes('/image/upload/') || clean.includes('images.unsplash.com') || clean.includes('res.cloudinary.com')) return false;
-  return (
-    clean.includes('/products') ||
-    clean.includes('/category') ||
-    clean.includes('/collections') ||
-    clean.startsWith('/')
-  );
-}
-
-  const applyDirectUrl = (
-    slotKey: string,
-    url: string,
-    onImageApplied: (url: string) => void,
-    onLinkApplied?: (link: string) => void,
-  ) => {
-    const trimmed = url.trim();
-    if (!trimmed) {
-      Alert.alert('Notice', 'Please paste an image URL into the box first, or use the "Upload from Gallery" button.');
-      return;
-    }
-    if (isPageLink(trimmed) && onLinkApplied) {
-      onLinkApplied(trimmed);
-      setDirectUrls((prev) => ({ ...prev, [slotKey]: '' }));
-      Alert.alert('Link Saved', `Saved as card destination Link:\n${trimmed}\n\nYour uploaded photo was preserved. Tap "Save & Publish" to push live.`);
-      return;
-    }
-    onImageApplied(trimmed);
-    setDirectUrls((prev) => ({ ...prev, [slotKey]: '' }));
-    Alert.alert('URL Applied', 'Image URL applied. Tap Save & Publish to push live.');
-  };
-
-  const updateCardImage = (section: 'categoryCards' | 'collectionSections' | 'showcaseCards', id: string, url: string) => {
-    setSettings((prev) => ({
-      ...prev,
-      [section]: (prev[section] as HpCard[]).map((c) => c.id === id ? { ...c, imageUrl: url } : c),
-    }));
-  };
+  const updateCardImage = (section: 'categoryCards' | 'collectionSections' | 'showcaseCards', id: string) => (url: string, current: HomepageSettings): HomepageSettings => ({
+    ...current,
+    [section]: (current[section] as HpCard[]).map((c) => c.id === id ? { ...c, imageUrl: url } : c),
+  });
 
   const updateCardField = (
     section: 'categoryCards' | 'collectionSections' | 'showcaseCards',
@@ -3684,11 +3663,7 @@ function isPageLink(url: string): boolean {
           recommendedSize="1920 × 700 px"
           currentUrl={settings.heroBanner.desktop.url}
           uploading={uploadingKey === 'hero-desktop'}
-          onUploaded={(url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, desktop: { url, publicId: '' } } }))}
-          onPressUpload={() => pickAndUploadImage('hero-desktop', (url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, desktop: { url, publicId: '' } } })))}
-          directUrl={directUrls['hero-desktop'] || ''}
-          onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, 'hero-desktop': v }))}
-          onApplyUrl={() => applyDirectUrl('hero-desktop', directUrls['hero-desktop'] || '', (url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, desktop: { url, publicId: '' } } })), (link) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, buttonLink: link } })))}
+          onPressUpload={() => pickAndUploadImage('hero-desktop', (url, prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, desktop: { url, publicId: '' } } }))}
         />
         <HomepageImageSlot
           label="Mobile Banner"
@@ -3696,11 +3671,7 @@ function isPageLink(url: string): boolean {
           recommendedSize="800 × 1000 px"
           currentUrl={settings.heroBanner.mobile.url}
           uploading={uploadingKey === 'hero-mobile'}
-          onUploaded={(url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, mobile: { url, publicId: '' } } }))}
-          onPressUpload={() => pickAndUploadImage('hero-mobile', (url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, mobile: { url, publicId: '' } } })))}
-          directUrl={directUrls['hero-mobile'] || ''}
-          onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, 'hero-mobile': v }))}
-          onApplyUrl={() => applyDirectUrl('hero-mobile', directUrls['hero-mobile'] || '', (url) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, mobile: { url, publicId: '' } } })), (link) => setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, buttonLink: link } })))}
+          onPressUpload={() => pickAndUploadImage('hero-mobile', (url, prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, mobile: { url, publicId: '' } } }))}
         />
 
         {/* Banner text fields */}
@@ -3744,11 +3715,7 @@ function isPageLink(url: string): boolean {
               recommendedSize="900 × 1200 px"
               currentUrl={section.imageUrl}
               uploading={uploadingKey === `col-${section.id}`}
-              onUploaded={(url) => updateCardImage('collectionSections', section.id, url)}
-              onPressUpload={() => pickAndUploadImage(`col-${section.id}`, (url) => updateCardImage('collectionSections', section.id, url))}
-              directUrl={directUrls[`col-${section.id}`] || ''}
-              onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`col-${section.id}`]: v }))}
-              onApplyUrl={() => applyDirectUrl(`col-${section.id}`, directUrls[`col-${section.id}`] || '', (url) => updateCardImage('collectionSections', section.id, url), (link) => updateCardField('collectionSections', section.id, 'href', link))}
+              onPressUpload={() => pickAndUploadImage(`col-${section.id}`, updateCardImage('collectionSections', section.id))}
             />
             <HpCardTextFields
               fields={[
@@ -3777,11 +3744,7 @@ function isPageLink(url: string): boolean {
               recommendedSize="900 × 1500 px"
               currentUrl={card.imageUrl}
               uploading={uploadingKey === `cat-${card.id}`}
-              onUploaded={(url) => updateCardImage('categoryCards', card.id, url)}
-              onPressUpload={() => pickAndUploadImage(`cat-${card.id}`, (url) => updateCardImage('categoryCards', card.id, url))}
-              directUrl={directUrls[`cat-${card.id}`] || ''}
-              onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`cat-${card.id}`]: v }))}
-              onApplyUrl={() => applyDirectUrl(`cat-${card.id}`, directUrls[`cat-${card.id}`] || '', (url) => updateCardImage('categoryCards', card.id, url), (link) => updateCardField('categoryCards', card.id, 'href', link))}
+              onPressUpload={() => pickAndUploadImage(`cat-${card.id}`, updateCardImage('categoryCards', card.id))}
             />
             <HpCardTextFields
               fields={[
@@ -3811,11 +3774,7 @@ function isPageLink(url: string): boolean {
               recommendedSize="1200 × 900 px"
               currentUrl={card.imageUrl}
               uploading={uploadingKey === `sc-${card.id}`}
-              onUploaded={(url) => updateCardImage('showcaseCards', card.id, url)}
-              onPressUpload={() => pickAndUploadImage(`sc-${card.id}`, (url) => updateCardImage('showcaseCards', card.id, url))}
-              directUrl={directUrls[`sc-${card.id}`] || ''}
-              onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`sc-${card.id}`]: v }))}
-              onApplyUrl={() => applyDirectUrl(`sc-${card.id}`, directUrls[`sc-${card.id}`] || '', (url) => updateCardImage('showcaseCards', card.id, url), (link) => updateCardField('showcaseCards', card.id, 'href', link))}
+              onPressUpload={() => pickAndUploadImage(`sc-${card.id}`, updateCardImage('showcaseCards', card.id))}
             />
             <HpCardTextFields
               fields={[

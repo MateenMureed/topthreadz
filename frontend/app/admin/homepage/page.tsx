@@ -167,9 +167,6 @@ function ImageSlot({
   currentUrl,
   uploading,
   onUpload,
-  onApplyUrl,
-  directUrl,
-  onDirectUrlChange,
 }: {
   label: string;
   recommended: string;
@@ -177,9 +174,6 @@ function ImageSlot({
   currentUrl: string;
   uploading: boolean;
   onUpload: (file: File) => void;
-  onApplyUrl: () => void;
-  directUrl: string;
-  onDirectUrlChange: (v: string) => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -204,45 +198,26 @@ function ImageSlot({
       </div>
 
       <div className="space-y-2">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <label className="admin-btn-primary cursor-pointer !py-2 !px-3 !text-xs inline-flex items-center justify-center gap-1.5 shadow-xs hover:shadow-subtle transition-all">
-            <FiUpload className="w-3.5 h-3.5" />
-            {uploading ? 'Uploading…' : currentUrl ? 'Replace Photo' : 'Upload Image'}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              hidden
-              disabled={uploading}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) onUpload(file);
-                e.target.value = '';
-              }}
-            />
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Or paste direct image URL (jpg, png)…"
-              value={directUrl}
-              onChange={(e) => onDirectUrlChange(e.target.value)}
-              className="admin-input-field w-full !text-xs"
-            />
-            <button
-              type="button"
-              onClick={onApplyUrl}
-              disabled={!directUrl?.trim()}
-              className="admin-btn-secondary !py-2 !px-3 !text-xs shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Apply
-            </button>
-          </div>
-        </div>
+        <label className="admin-btn-primary cursor-pointer w-full !py-2.5 !px-4 !text-xs inline-flex items-center justify-center gap-2 shadow-xs hover:shadow-subtle transition-all">
+          <FiUpload className="w-4 h-4" />
+          {uploading ? 'Uploading & Auto-Saving…' : currentUrl ? 'Replace Photo' : 'Upload Image'}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            hidden
+            disabled={uploading}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) onUpload(file);
+              e.target.value = '';
+            }}
+          />
+        </label>
         {currentUrl ? (
           <div className="flex items-center justify-between text-[11px] text-surface-500 bg-surface-50 px-2.5 py-1 rounded-lg border border-surface-200/60">
-            <span className="truncate max-w-[260px] text-emerald-700 font-medium">✓ Photo ready &amp; applied</span>
-            <span className="text-[10px] text-surface-400">Click &quot;Save &amp; Publish&quot; at top to save</span>
+            <span className="truncate max-w-[260px] text-emerald-700 font-medium">✓ Uploaded &amp; Saved Live</span>
+            <span className="text-[10px] text-surface-400">Storefront updated</span>
           </div>
         ) : null}
       </div>
@@ -284,7 +259,6 @@ function CardTextFields({
 export default function HomepagePage() {
   const queryClient = useQueryClient();
   const [settings, setSettings] = useState<HomepageSettings>(HP_FALLBACK);
-  const [directUrls, setDirectUrls] = useState<Record<string, string>>({});
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
 
   const { isLoading, data: hpData } = useQuery({
@@ -323,32 +297,34 @@ export default function HomepagePage() {
     });
   }, [hpData]);
 
-  const saveMutation = useMutation({
-    mutationFn: async (payload: HomepageSettings) => {
-      const body = {
-        ...payload,
-        collectionSections: payload.collectionSections.map((s) => ({
-          ...s,
-          title: s.label || s.title || '',
-          label: s.label || s.title || '',
-        })),
-        showcaseCards: payload.showcaseCards.map((s) => ({
-          ...s,
-          title: s.title || s.label || '',
-          label: s.title || s.label || '',
-          badge: s.badge || '',
-          cta: s.cta || '',
-        })),
-      };
-      try {
-        return await api.put('/settings/homepage', body);
-      } catch (err: any) {
-        if (err?.response?.status === 404) {
-          return await api.put('/admin/settings/homepage', body);
-        }
-        throw err;
+  const persistSettings = async (payload: HomepageSettings) => {
+    const body = {
+      ...payload,
+      collectionSections: payload.collectionSections.map((s) => ({
+        ...s,
+        title: s.label || s.title || '',
+        label: s.label || s.title || '',
+      })),
+      showcaseCards: payload.showcaseCards.map((s) => ({
+        ...s,
+        title: s.title || s.label || '',
+        label: s.title || s.label || '',
+        badge: s.badge || '',
+        cta: s.cta || '',
+      })),
+    };
+    try {
+      return await api.put('/settings/homepage', body);
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        return await api.put('/admin/settings/homepage', body);
       }
-    },
+      throw err;
+    }
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: persistSettings,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homepage', 'settings'] });
       toast.success('Homepage published to the storefront.');
@@ -356,7 +332,11 @@ export default function HomepagePage() {
     onError: (err: any) => toast.error(err?.response?.data?.message || 'Could not save homepage settings.'),
   });
 
-  const uploadImage = async (slotKey: string, file: File, onUploaded: (url: string) => void) => {
+  const uploadImage = async (
+    slotKey: string,
+    file: File,
+    applyUpdate: (url: string, current: HomepageSettings) => HomepageSettings,
+  ) => {
     setUploadingKey(slotKey);
     try {
       const compressed = await compressImageFile(file, 1920, 1920, 0.85);
@@ -378,8 +358,20 @@ export default function HomepagePage() {
       }
       const url = res?.data?.data?.url || res?.data?.url;
       if (url) {
-        onUploaded(url);
-        toast.success('Image uploaded — click Save & Publish to go live.');
+        let updatedState: HomepageSettings = settings;
+        setSettings((prev) => {
+          updatedState = applyUpdate(url, prev);
+          return updatedState;
+        });
+
+        // Auto-save to the database immediately so the photo is persistent and storefront receives it
+        try {
+          await persistSettings(updatedState);
+          queryClient.invalidateQueries({ queryKey: ['homepage', 'settings'] });
+          toast.success('Image uploaded & auto-saved to storefront!');
+        } catch {
+          toast.error('Image uploaded to cloud, but auto-save failed. Click "Save & Publish" at top.');
+        }
       } else {
         toast.error('Upload succeeded but no URL returned.');
       }
@@ -390,53 +382,18 @@ export default function HomepagePage() {
     }
   };
 
-function isPageLink(url: string): boolean {
-  const clean = url.trim().toLowerCase();
-  if (/\.(jpg|jpeg|png|webp|gif|svg|avif)(\?.*)?$/i.test(clean)) return false;
-  if (clean.includes('/image/upload/') || clean.includes('images.unsplash.com') || clean.includes('res.cloudinary.com')) return false;
-  return (
-    clean.includes('/products') ||
-    clean.includes('/category') ||
-    clean.includes('/collections') ||
-    clean.startsWith('/')
-  );
-}
-
-  const applyDirectUrl = (
-    slotKey: string,
-    url: string,
-    onImageApplied: (url: string) => void,
-    onLinkApplied?: (link: string) => void,
-  ) => {
-    const trimmed = url.trim();
-    if (!trimmed) {
-      toast('Please paste an image URL into the box first, or use the "Upload Image" button.', { icon: 'ℹ️' });
-      return;
-    }
-
-    if (isPageLink(trimmed) && onLinkApplied) {
-      onLinkApplied(trimmed);
-      setDirectUrls((prev) => ({ ...prev, [slotKey]: '' }));
-      toast.success('Saved as card destination Link! Your uploaded photo was preserved. Click Save & Publish to apply.');
-      return;
-    }
-
-    onImageApplied(trimmed);
-    setDirectUrls((prev) => ({ ...prev, [slotKey]: '' }));
-    toast.success('Image URL applied — click Save & Publish to go live.');
-  };
-
-  const updateHero = (key: 'desktop' | 'mobile') => (url: string) =>
-    setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, [key]: { url, publicId: '' } } }));
+  const updateHero = (key: 'desktop' | 'mobile') => (url: string, current: HomepageSettings): HomepageSettings => ({
+    ...current,
+    heroBanner: { ...current.heroBanner, [key]: { url, publicId: '' } },
+  });
 
   const updateHeroText = (key: 'heading' | 'subheading' | 'buttonText' | 'buttonLink') => (e: React.ChangeEvent<HTMLInputElement>) =>
     setSettings((prev) => ({ ...prev, heroBanner: { ...prev.heroBanner, [key]: e.target.value } }));
 
-  const updateCardImage = (section: SectionKey, id: string, url: string) =>
-    setSettings((prev) => ({
-      ...prev,
-      [section]: (prev[section] as HpCard[]).map((c) => (c.id === id ? { ...c, imageUrl: url } : c)),
-    }));
+  const updateCardImage = (section: SectionKey, id: string) => (url: string, current: HomepageSettings): HomepageSettings => ({
+    ...current,
+    [section]: (current[section] as HpCard[]).map((c) => (c.id === id ? { ...c, imageUrl: url } : c)),
+  });
 
   const updateCardField = (
     section: SectionKey,
@@ -510,9 +467,6 @@ function isPageLink(url: string): boolean {
             currentUrl={settings.heroBanner.desktop.url}
             uploading={uploadingKey === 'hero-desktop'}
             onUpload={(file) => uploadImage('hero-desktop', file, updateHero('desktop'))}
-            directUrl={directUrls['hero-desktop'] || ''}
-            onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, 'hero-desktop': v }))}
-            onApplyUrl={() => applyDirectUrl('hero-desktop', directUrls['hero-desktop'] || '', updateHero('desktop'), (link) => setSettings((p) => ({ ...p, heroBanner: { ...p.heroBanner, buttonLink: link } })))}
           />
           <ImageSlot
             label="Mobile Banner"
@@ -521,9 +475,6 @@ function isPageLink(url: string): boolean {
             currentUrl={settings.heroBanner.mobile.url}
             uploading={uploadingKey === 'hero-mobile'}
             onUpload={(file) => uploadImage('hero-mobile', file, updateHero('mobile'))}
-            directUrl={directUrls['hero-mobile'] || ''}
-            onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, 'hero-mobile': v }))}
-            onApplyUrl={() => applyDirectUrl('hero-mobile', directUrls['hero-mobile'] || '', updateHero('mobile'), (link) => setSettings((p) => ({ ...p, heroBanner: { ...p.heroBanner, buttonLink: link } })))}
           />
         </div>
 
@@ -572,10 +523,7 @@ function isPageLink(url: string): boolean {
               aspectClass="aspect-[3/4]"
               currentUrl={section.imageUrl}
               uploading={uploadingKey === `col-${section.id}`}
-              onUpload={(file) => uploadImage(`col-${section.id}`, file, (url) => updateCardImage('collectionSections', section.id, url))}
-              directUrl={directUrls[`col-${section.id}`] || ''}
-              onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`col-${section.id}`]: v }))}
-              onApplyUrl={() => applyDirectUrl(`col-${section.id}`, directUrls[`col-${section.id}`] || '', (url) => updateCardImage('collectionSections', section.id, url), (link) => updateCardField('collectionSections', section.id, 'href', link))}
+              onUpload={(file) => uploadImage(`col-${section.id}`, file, updateCardImage('collectionSections', section.id))}
             />
             <CardTextFields
               fields={[
@@ -608,10 +556,7 @@ function isPageLink(url: string): boolean {
               aspectClass="aspect-[3/5]"
               currentUrl={card.imageUrl}
               uploading={uploadingKey === `cat-${card.id}`}
-              onUpload={(file) => uploadImage(`cat-${card.id}`, file, (url) => updateCardImage('categoryCards', card.id, url))}
-              directUrl={directUrls[`cat-${card.id}`] || ''}
-              onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`cat-${card.id}`]: v }))}
-              onApplyUrl={() => applyDirectUrl(`cat-${card.id}`, directUrls[`cat-${card.id}`] || '', (url) => updateCardImage('categoryCards', card.id, url), (link) => updateCardField('categoryCards', card.id, 'href', link))}
+              onUpload={(file) => uploadImage(`cat-${card.id}`, file, updateCardImage('categoryCards', card.id))}
             />
             <CardTextFields
               fields={[
@@ -645,10 +590,7 @@ function isPageLink(url: string): boolean {
               aspectClass="aspect-[4/3]"
               currentUrl={card.imageUrl}
               uploading={uploadingKey === `show-${card.id}`}
-              onUpload={(file) => uploadImage(`show-${card.id}`, file, (url) => updateCardImage('showcaseCards', card.id, url))}
-              directUrl={directUrls[`show-${card.id}`] || ''}
-              onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`show-${card.id}`]: v }))}
-              onApplyUrl={() => applyDirectUrl(`show-${card.id}`, directUrls[`show-${card.id}`] || '', (url) => updateCardImage('showcaseCards', card.id, url), (link) => updateCardField('showcaseCards', card.id, 'href', link))}
+              onUpload={(file) => uploadImage(`show-${card.id}`, file, updateCardImage('showcaseCards', card.id))}
             />
             <CardTextFields
               fields={[

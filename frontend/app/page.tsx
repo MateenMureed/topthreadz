@@ -10,6 +10,7 @@ import {
   fetchServerHeroBannerMobile,
   fetchServerHeroBannerText,
   fetchServerStoreSettings,
+  fetchServerHomepageSettings,
 } from '@/lib/serverData';
 
 export const revalidate = 60; // ISR revalidate every 60 seconds
@@ -162,13 +163,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [categories, products, heroBanner, heroBannerMobile, heroBannerText, settings] = await Promise.all([
+  const [categories, products, heroBanner, heroBannerMobile, heroBannerText, settings, homepageSettings] = await Promise.all([
     fetchServerCategories(),
     fetchServerProducts({ limit: 50, sortBy: 'newest' }),
     fetchServerHeroBanner(),
     fetchServerHeroBannerMobile(),
     fetchServerHeroBannerText(),
     fetchServerStoreSettings(),
+    fetchServerHomepageSettings(0),
   ]);
 
   // Helper functions for URL generation
@@ -547,6 +549,7 @@ export default async function HomePage() {
         initialProducts={products}
         initialHeroBanner={heroBanner}
         initialSettings={settings}
+        initialHomepageSettings={homepageSettings}
       />
       {/* Customer Testimonials Section (Matching Reference Image 1) */}
       <CustomerReviewsSection />

@@ -57,7 +57,7 @@ export async function fetchServerProducts(params?: { limit?: number; sortBy?: st
   return data?.products || (Array.isArray(data) ? data : []);
 }
 
-async function fetchServerHomepageSettings(revalidate = 120) {
+export async function fetchServerHomepageSettings(revalidate = 120) {
   let data = await fetchServerData<any>('/settings/homepage', revalidate);
   if (!data) {
     data = await fetchServerData<any>('/admin/settings/homepage', revalidate);

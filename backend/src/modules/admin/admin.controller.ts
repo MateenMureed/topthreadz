@@ -764,6 +764,46 @@ export class AdminController {
         update: { value: JSON.stringify(payload) },
         create: { key: 'homepage_settings', value: JSON.stringify(payload) },
       });
+
+      // Also synchronize hero_banner, hero_banner_mobile, and hero_banner_text
+      // so all legacy SSR endpoints and direct siteSetting readers remain 100% in sync
+      if (payload.heroBanner?.desktop?.url) {
+        await prisma.siteSetting.upsert({
+          where: { key: 'hero_banner' },
+          update: { value: JSON.stringify({ url: payload.heroBanner.desktop.url, publicId: payload.heroBanner.desktop.publicId || '' }) },
+          create: { key: 'hero_banner', value: JSON.stringify({ url: payload.heroBanner.desktop.url, publicId: payload.heroBanner.desktop.publicId || '' }) },
+        });
+      }
+      if (payload.heroBanner?.mobile?.url) {
+        await prisma.siteSetting.upsert({
+          where: { key: 'hero_banner_mobile' },
+          update: { value: JSON.stringify({ url: payload.heroBanner.mobile.url, publicId: payload.heroBanner.mobile.publicId || '' }) },
+          create: { key: 'hero_banner_mobile', value: JSON.stringify({ url: payload.heroBanner.mobile.url, publicId: payload.heroBanner.mobile.publicId || '' }) },
+        });
+      }
+      if (payload.heroBanner) {
+        await prisma.siteSetting.upsert({
+          where: { key: 'hero_banner_text' },
+          update: {
+            value: JSON.stringify({
+              heading: payload.heroBanner.heading,
+              subheading: payload.heroBanner.subheading,
+              buttonText: payload.heroBanner.buttonText,
+              buttonLink: payload.heroBanner.buttonLink,
+            }),
+          },
+          create: {
+            key: 'hero_banner_text',
+            value: JSON.stringify({
+              heading: payload.heroBanner.heading,
+              subheading: payload.heroBanner.subheading,
+              buttonText: payload.heroBanner.buttonText,
+              buttonLink: payload.heroBanner.buttonLink,
+            }),
+          },
+        });
+      }
+
       res.json({ success: true, data: payload });
     } catch (error) { next(error); }
   }
