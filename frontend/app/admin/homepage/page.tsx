@@ -24,6 +24,8 @@ import {
   FiGrid,
   FiLayers,
   FiEye,
+  FiType,
+  FiLink,
 } from 'react-icons/fi';
 
 interface HpCard {
@@ -172,6 +174,37 @@ function ImageSlot({
   );
 }
 
+function CardTextFields({
+  fields,
+}: {
+  fields: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }[];
+}) {
+  return (
+    <div className="rounded-2xl border border-surface-200/80 bg-surface-50/50 p-4 space-y-3">
+      <p className="text-xs font-bold text-surface-900 flex items-center gap-1.5">
+        <FiType className="w-3.5 h-3.5 text-surface-500" /> Text &amp; Link
+      </p>
+      <div className="space-y-3">
+        {fields.map((f) => (
+          <div key={f.label} className="space-y-1">
+            <label className="text-[11px] font-semibold text-surface-700 block">{f.label}</label>
+            <input
+              type="text"
+              value={f.value}
+              onChange={(e) => f.onChange(e.target.value)}
+              placeholder={f.placeholder}
+              className="admin-input-field w-full !text-xs"
+            />
+          </div>
+        ))}
+      </div>
+      <p className="text-[10px] text-surface-400 flex items-center gap-1">
+        <FiLink className="w-3 h-3" /> Links accept internal paths (e.g. /products/category/two-piece) or full URLs.
+      </p>
+    </div>
+  );
+}
+
 export default function HomepagePage() {
   const queryClient = useQueryClient();
   const [settings, setSettings] = useState<HomepageSettings>(HP_FALLBACK);
@@ -191,9 +224,15 @@ export default function HomepagePage() {
     loadedRef.current = true;
     setSettings({
       heroBanner: { ...HP_FALLBACK.heroBanner, ...(hpData.heroBanner || {}) },
-      categoryCards: hpData.categoryCards?.length ? hpData.categoryCards : HP_FALLBACK.categoryCards,
-      collectionSections: hpData.collectionSections?.length ? hpData.collectionSections : HP_FALLBACK.collectionSections,
-      showcaseCards: hpData.showcaseCards?.length ? hpData.showcaseCards : HP_FALLBACK.showcaseCards,
+      categoryCards: (hpData.categoryCards?.length ? hpData.categoryCards : HP_FALLBACK.categoryCards).map((c: any) => ({
+        ...c, subtitle: c.subtitle || '', label: c.label || '', href: c.href || '',
+      })),
+      collectionSections: (hpData.collectionSections?.length ? hpData.collectionSections : HP_FALLBACK.collectionSections).map((c: any) => ({
+        ...c, label: c.label || c.title || '', title: c.title || c.label || '', href: c.href || '',
+      })),
+      showcaseCards: (hpData.showcaseCards?.length ? hpData.showcaseCards : HP_FALLBACK.showcaseCards).map((c: any) => ({
+        ...c, badge: c.badge || '', title: c.title || c.label || '', cta: c.cta || '', href: c.href || '',
+      })),
     });
   }, [hpData]);
 
@@ -201,7 +240,7 @@ export default function HomepagePage() {
     mutationFn: (payload: HomepageSettings) =>
       api.put('/settings/homepage', {
         ...payload,
-        collectionSections: payload.collectionSections.map((s) => ({ ...s, title: s.label })),
+        collectionSections: payload.collectionSections.map((s) => ({ ...s, title: s.label || s.title || '' })),
         showcaseCards: payload.showcaseCards.map((s) => ({ ...s, title: s.title || s.label, badge: s.badge || '', cta: s.cta || '' })),
       }),
     onSuccess: () => {
@@ -257,6 +296,17 @@ export default function HomepagePage() {
       [section]: (prev[section] as HpCard[]).map((c) => (c.id === id ? { ...c, imageUrl: url } : c)),
     }));
 
+  const updateCardField = (
+    section: SectionKey,
+    id: string,
+    field: 'label' | 'subtitle' | 'href' | 'badge' | 'title' | 'cta',
+    value: string,
+  ) =>
+    setSettings((prev) => ({
+      ...prev,
+      [section]: (prev[section] as HpCard[]).map((c) => (c.id === id ? { ...c, [field]: value } : c)),
+    }));
+
   if (isLoading && !loadedRef.current) {
     return (
       <div className="space-y-3">
@@ -297,14 +347,14 @@ export default function HomepagePage() {
         <SectionHeader
           icon={<FiMonitor className="w-5 h-5" />}
           title="Hero Banner"
-          hint="Full-width top banner â€” desktop (1920 Ã— 800) + mobile (800 Ã— 1200)"
+          hint="Full-width top banner â€” desktop (1920 × 700) + mobile (800 × 1000)"
           accent="bg-accent-50 text-accent-600 border-accent-100/60"
         />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ImageSlot
             label="Desktop Banner"
-            recommended="1920 Ã— 800 px"
-            aspectClass="aspect-[1920/800]"
+            recommended="1920 × 700 px"
+            aspectClass="aspect-[1920/700]"
             currentUrl={settings.heroBanner.desktop.url}
             uploading={uploadingKey === 'hero-desktop'}
             onUpload={(file) => uploadImage('hero-desktop', file, updateHero('desktop'))}
@@ -314,7 +364,7 @@ export default function HomepagePage() {
           />
           <ImageSlot
             label="Mobile Banner"
-            recommended="800 Ã— 1200 px"
+            recommended="800 × 1000 px"
             aspectClass="aspect-[4/5]"
             currentUrl={settings.heroBanner.mobile.url}
             uploading={uploadingKey === 'hero-mobile'}
@@ -350,35 +400,6 @@ export default function HomepagePage() {
       </section>
 
 
-      {/* â”€â”€ CATEGORY CARDS â”€â”€ */}
-      <section className="apple-card p-5 space-y-5">
-        <SectionHeader
-          icon={<FiGrid className="w-5 h-5" />}
-          title="Category Showcase Cards"
-          hint="4 tall portrait cards â€” 900 Ã— 1500 px (3:5)"
-          accent="bg-amber-50 text-amber-600 border-amber-100/60"
-        />
-        <div className="rounded-xl bg-amber-50 border border-amber-200/80 p-3 text-[11px] text-amber-700">
-          ðŸ“ Recommended: 900 Ã— 1500 px (3:5 portrait). Use upright portrait photos of models â€” avoid landscapes.
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {settings.categoryCards.map((card) => (
-            <ImageSlot
-              key={card.id}
-              label={`${card.subtitle || ''} ${card.label}`.trim()}
-              recommended="900 Ã— 1500 px"
-              aspectClass="aspect-[3/5]"
-              currentUrl={card.imageUrl}
-              uploading={uploadingKey === `cat-${card.id}`}
-              onUpload={(file) => uploadImage(`cat-${card.id}`, file, (url) => updateCardImage('categoryCards', card.id, url))}
-              directUrl={directUrls[`cat-${card.id}`] || ''}
-              onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`cat-${card.id}`]: v }))}
-              onApplyUrl={() => applyDirectUrl(`cat-${card.id}`, directUrls[`cat-${card.id}`] || '', (url) => updateCardImage('categoryCards', card.id, url))}
-            />
-          ))}
-        </div>
-      </section>
-
       {/* â”€â”€ COLLECTION SECTIONS â”€â”€ */}
       <section className="apple-card p-5 space-y-5">
         <SectionHeader
@@ -392,8 +413,8 @@ export default function HomepagePage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {settings.collectionSections.map((section) => (
+            <div key={section.id} className="space-y-3">
             <ImageSlot
-              key={section.id}
               label={section.label || section.title || section.id}
               recommended="900 Ã— 1200 px"
               aspectClass="aspect-[3/4]"
@@ -404,6 +425,50 @@ export default function HomepagePage() {
               onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`col-${section.id}`]: v }))}
               onApplyUrl={() => applyDirectUrl(`col-${section.id}`, directUrls[`col-${section.id}`] || '', (url) => updateCardImage('collectionSections', section.id, url))}
             />
+            <CardTextFields
+              fields={[
+                { label: 'Title (black banner bar on the card)', value: section.label || '', onChange: (v) => updateCardField('collectionSections', section.id, 'label', v), placeholder: 'UNSTITCHED FABRIC COLLECTION' },
+                { label: 'Link (e.g. /products/category/unstitched-fabric)', value: section.href || '', onChange: (v) => updateCardField('collectionSections', section.id, 'href', v), placeholder: '/products/category/two-piece' },
+              ]}
+            />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* â”€â”€ CATEGORY CARDS â”€â”€ */}
+      <section className="apple-card p-5 space-y-5">
+        <SectionHeader
+          icon={<FiGrid className="w-5 h-5" />}
+          title="Category Showcase Cards"
+          hint="4 tall portrait cards â€” 900 Ã— 1500 px (3:5)"
+          accent="bg-amber-50 text-amber-600 border-amber-100/60"
+        />
+        <div className="rounded-xl bg-amber-50 border border-amber-200/80 p-3 text-[11px] text-amber-700">
+          ðŸ“ Recommended: 900 Ã— 1500 px (3:5 portrait). Use upright portrait photos of models â€” avoid landscapes.
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {settings.categoryCards.map((card) => (
+            <div key={card.id} className="space-y-3">
+            <ImageSlot
+              label={`${card.subtitle || ''} ${card.label}`.trim()}
+              recommended="900 Ã— 1500 px"
+              aspectClass="aspect-[3/5]"
+              currentUrl={card.imageUrl}
+              uploading={uploadingKey === `cat-${card.id}`}
+              onUpload={(file) => uploadImage(`cat-${card.id}`, file, (url) => updateCardImage('categoryCards', card.id, url))}
+              directUrl={directUrls[`cat-${card.id}`] || ''}
+              onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`cat-${card.id}`]: v }))}
+              onApplyUrl={() => applyDirectUrl(`cat-${card.id}`, directUrls[`cat-${card.id}`] || '', (url) => updateCardImage('categoryCards', card.id, url))}
+            />
+            <CardTextFields
+              fields={[
+                { label: "Small Text (e.g. Men's / Men's Stitched / Kids)", value: card.subtitle || '', onChange: (v) => updateCardField('categoryCards', card.id, 'subtitle', v), placeholder: "Men's" },
+                { label: 'Title (e.g. TWO PIECE / KIDS)', value: card.label || '', onChange: (v) => updateCardField('categoryCards', card.id, 'label', v), placeholder: 'TWO PIECE' },
+                { label: 'Link (e.g. /products/category/two-piece)', value: card.href || '', onChange: (v) => updateCardField('categoryCards', card.id, 'href', v), placeholder: '/products/category/three-piece' },
+              ]}
+            />
+            </div>
           ))}
         </div>
       </section>
@@ -421,8 +486,8 @@ export default function HomepagePage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {settings.showcaseCards.map((card) => (
+            <div key={card.id} className="space-y-3">
             <ImageSlot
-              key={card.id}
               label={`${card.badge || ''} â€” ${card.title || card.label}`.trim()}
               recommended="1200 Ã— 900 px"
               aspectClass="aspect-[4/3]"
@@ -433,6 +498,15 @@ export default function HomepagePage() {
               onDirectUrlChange={(v) => setDirectUrls((p) => ({ ...p, [`show-${card.id}`]: v }))}
               onApplyUrl={() => applyDirectUrl(`show-${card.id}`, directUrls[`show-${card.id}`] || '', (url) => updateCardImage('showcaseCards', card.id, url))}
             />
+            <CardTextFields
+              fields={[
+                { label: 'Badge (small gold text, e.g. ROYAL HERITAGE)', value: card.badge || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'badge', v), placeholder: 'ROYAL HERITAGE' },
+                { label: 'Title (e.g. Luxury Boski & Formal Fabrics)', value: card.title || card.label || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'title', v), placeholder: 'Luxury Boski & Formal Fabrics' },
+                { label: 'Button Text (CTA, e.g. DISCOVER COLLECTION)', value: card.cta || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'cta', v), placeholder: 'DISCOVER COLLECTION' },
+                { label: 'Link (e.g. /products/category/unstitched-fabric)', value: card.href || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'href', v), placeholder: '/products/category/unstitched-fabric' },
+              ]}
+            />
+            </div>
           ))}
         </div>
       </section>
