@@ -3495,16 +3495,34 @@ function HomepageView() {
 
   useEffect(() => { loadSettings(); }, [loadSettings]);
 
+  const normalizeHpLink = (url?: string): string => {
+    if (!url) return '';
+    let cleaned = url.trim();
+    cleaned = cleaned.replace(/^https?:\/\/(www\.)?topthreadz\.com\.pk/i, '');
+    if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://') && !cleaned.startsWith('/')) {
+      cleaned = '/' + cleaned;
+    }
+    return cleaned;
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Reshape for API: collectionSections needs title field
       const payload = {
         ...settings,
+        heroBanner: {
+          ...settings.heroBanner,
+          buttonLink: normalizeHpLink(settings.heroBanner.buttonLink),
+        },
+        categoryCards: settings.categoryCards.map((c) => ({
+          ...c,
+          href: normalizeHpLink(c.href),
+        })),
         collectionSections: settings.collectionSections.map((s) => ({
           ...s,
           title: s.label || s.title || '',
           label: s.label || s.title || '',
+          href: normalizeHpLink(s.href),
         })),
         showcaseCards: settings.showcaseCards.map((s) => ({
           ...s,
@@ -3512,6 +3530,7 @@ function HomepageView() {
           label: s.title || s.label || '',
           badge: s.badge || '',
           cta: s.cta || '',
+          href: normalizeHpLink(s.href),
         })),
       };
       try {
@@ -3534,10 +3553,19 @@ function HomepageView() {
   const persistSettings = async (payload: HomepageSettings) => {
     const body = {
       ...payload,
+      heroBanner: {
+        ...payload.heroBanner,
+        buttonLink: normalizeHpLink(payload.heroBanner.buttonLink),
+      },
+      categoryCards: payload.categoryCards.map((c) => ({
+        ...c,
+        href: normalizeHpLink(c.href),
+      })),
       collectionSections: payload.collectionSections.map((s) => ({
         ...s,
         title: s.label || s.title || '',
         label: s.label || s.title || '',
+        href: normalizeHpLink(s.href),
       })),
       showcaseCards: payload.showcaseCards.map((s) => ({
         ...s,
@@ -3545,6 +3573,7 @@ function HomepageView() {
         label: s.title || s.label || '',
         badge: s.badge || '',
         cta: s.cta || '',
+        href: normalizeHpLink(s.href),
       })),
     };
     try {

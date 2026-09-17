@@ -225,16 +225,45 @@ function ImageSlot({
   );
 }
 
+function normalizeLink(url: string): string {
+  let cleaned = (url || '').trim();
+  if (!cleaned) return '';
+  // Convert full topthreadz domain URLs to internal relative paths
+  cleaned = cleaned.replace(/^https?:\/\/(www\.)?topthreadz\.com\.pk/i, '');
+  // If it's a relative path without leading slash, add it
+  if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://') && !cleaned.startsWith('/')) {
+    cleaned = '/' + cleaned;
+  }
+  return cleaned;
+}
+
 function CardTextFields({
   fields,
+  onSave,
+  saving,
 }: {
   fields: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }[];
+  onSave?: () => void;
+  saving?: boolean;
 }) {
   return (
     <div className="rounded-2xl border border-surface-200/80 bg-surface-50/50 p-4 space-y-3">
-      <p className="text-xs font-bold text-surface-900 flex items-center gap-1.5">
-        <FiType className="w-3.5 h-3.5 text-surface-500" /> Text &amp; Link
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-bold text-surface-900 flex items-center gap-1.5">
+          <FiType className="w-3.5 h-3.5 text-surface-500" /> Text &amp; Link
+        </p>
+        {onSave && (
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={saving}
+            className="text-[11px] font-semibold text-primary-700 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 border border-primary-200/80 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 shadow-2xs"
+          >
+            <FiSave className="w-3 h-3" />
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+        )}
+      </div>
       <div className="space-y-3">
         {fields.map((f) => (
           <div key={f.label} className="space-y-1">
@@ -243,6 +272,9 @@ function CardTextFields({
               type="text"
               value={f.value}
               onChange={(e) => f.onChange(e.target.value)}
+              onBlur={() => {
+                if (onSave) onSave();
+              }}
               placeholder={f.placeholder}
               className="admin-input-field w-full !text-xs"
             />
@@ -250,7 +282,7 @@ function CardTextFields({
         ))}
       </div>
       <p className="text-[10px] text-surface-400 flex items-center gap-1">
-        <FiLink className="w-3 h-3" /> Links accept internal paths (e.g. /products/category/two-piece) or full URLs.
+        <FiLink className="w-3 h-3" /> Auto-saves on blur or click Save. Accepts paths like /products/category/...
       </p>
     </div>
   );
@@ -260,6 +292,7 @@ export default function HomepagePage() {
   const queryClient = useQueryClient();
   const [settings, setSettings] = useState<HomepageSettings>(HP_FALLBACK);
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const hasInitializedRef = useRef(false);
 
   const { isLoading, data: hpData } = useQuery({
     queryKey: ['homepage', 'settings'],
@@ -276,14 +309,15 @@ export default function HomepagePage() {
       }
     },
     retry: false,
-    staleTime: 0,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
     refetchOnMount: 'always',
   });
 
-  // Re-apply DB data whenever it changes (e.g. after navigating back to this tab).
-  // Skip if an upload is in progress to avoid stomping mid-upload state.
+  // Only apply server data on initial mount so background queries never overwrite user input
   useEffect(() => {
-    if (!hpData || uploadingKey) return;
+    if (!hpData || hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
     setSettings({
       heroBanner: { ...HP_FALLBACK.heroBanner, ...(hpData.heroBanner || {}) },
       categoryCards: (hpData.categoryCards?.length ? hpData.categoryCards : HP_FALLBACK.categoryCards).map((c: any) => ({
@@ -296,16 +330,23 @@ export default function HomepagePage() {
         ...c, badge: c.badge || '', title: c.title || c.label || '', cta: c.cta || '', href: c.href || '',
       })),
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hpData]);
 
   const persistSettings = async (payload: HomepageSettings) => {
     const body = {
-      ...payload,
+      heroBanner: {
+        ...payload.heroBanner,
+        buttonLink: normalizeLink(payload.heroBanner.buttonLink),
+      },
+      categoryCards: payload.categoryCards.map((c) => ({
+        ...c,
+        href: normalizeLink(c.href || ''),
+      })),
       collectionSections: payload.collectionSections.map((s) => ({
         ...s,
         title: s.label || s.title || '',
         label: s.label || s.title || '',
+        href: normalizeLink(s.href || ''),
       })),
       showcaseCards: payload.showcaseCards.map((s) => ({
         ...s,
@@ -313,13 +354,20 @@ export default function HomepagePage() {
         label: s.title || s.label || '',
         badge: s.badge || '',
         cta: s.cta || '',
+        href: normalizeLink(s.href || ''),
       })),
     };
     try {
-      return await api.put('/settings/homepage', body);
+      const res = await api.put('/settings/homepage', body);
+      const savedData = res?.data?.data ?? body;
+      queryClient.setQueryData(['homepage', 'settings'], savedData);
+      return res;
     } catch (err: any) {
       if (err?.response?.status === 404) {
-        return await api.put('/admin/settings/homepage', body);
+        const res = await api.put('/admin/settings/homepage', body);
+        const savedData = res?.data?.data ?? body;
+        queryClient.setQueryData(['homepage', 'settings'], savedData);
+        return res;
       }
       throw err;
     }
@@ -328,7 +376,6 @@ export default function HomepagePage() {
   const saveMutation = useMutation({
     mutationFn: persistSettings,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['homepage', 'settings'] });
       toast.success('Homepage published to the storefront.');
     },
     onError: (err: any) => toast.error(err?.response?.data?.message || 'Could not save homepage settings.'),
@@ -360,14 +407,10 @@ export default function HomepagePage() {
       }
       const url = res?.data?.data?.url || res?.data?.url;
       if (url) {
-        // Compute new state synchronously from current snapshot — avoids stale-closure bug
         const updatedState = applyUpdate(url, settings);
         setSettings(updatedState);
 
-        // Push to query cache directly (no refetch) so the useEffect doesn't overwrite with old data
-        queryClient.setQueryData(['homepage', 'settings'], updatedState);
-
-        // Auto-save to the database immediately
+        // Auto-save to the database immediately so the photo is persistent and storefront receives it
         try {
           await persistSettings(updatedState);
           toast.success('Image uploaded & auto-saved to storefront!');
@@ -481,7 +524,18 @@ export default function HomepagePage() {
         </div>
 
         <div className="rounded-2xl border border-surface-200/80 bg-surface-50/50 p-4 space-y-3">
-          <p className="text-xs font-bold text-surface-900">Banner Text & CTA</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-surface-900">Banner Text &amp; CTA</p>
+            <button
+              type="button"
+              onClick={() => saveMutation.mutate(settings)}
+              disabled={saveMutation.isPending}
+              className="text-[11px] font-semibold text-primary-700 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 border border-primary-200/80 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 shadow-2xs"
+            >
+              <FiSave className="w-3 h-3" />
+              {saveMutation.isPending ? 'Saving…' : 'Save Banner Text'}
+            </button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {([
               { key: 'heading', label: 'Headline', placeholder: 'Shop Our Newest Collection' },
@@ -495,6 +549,7 @@ export default function HomepagePage() {
                   type="text"
                   value={settings.heroBanner[key]}
                   onChange={updateHeroText(key)}
+                  onBlur={() => saveMutation.mutate(settings)}
                   placeholder={placeholder}
                   className="admin-input-field w-full text-xs"
                 />
@@ -519,20 +574,22 @@ export default function HomepagePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {settings.collectionSections.map((section) => (
             <div key={section.id} className="space-y-3">
-            <ImageSlot
-              label={section.label || section.title || section.id}
-              recommended="900 × 1200 px"
-              aspectClass="aspect-[3/4]"
-              currentUrl={section.imageUrl}
-              uploading={uploadingKey === `col-${section.id}`}
-              onUpload={(file) => uploadImage(`col-${section.id}`, file, updateCardImage('collectionSections', section.id))}
-            />
-            <CardTextFields
-              fields={[
-                { label: 'Title (black banner bar on the card)', value: section.label || section.title || '', onChange: (v) => updateCardField('collectionSections', section.id, 'label', v), placeholder: 'UNSTITCHED FABRIC COLLECTION' },
-                { label: 'Destination Link (where clicking the card goes)', value: section.href || '', onChange: (v) => updateCardField('collectionSections', section.id, 'href', v), placeholder: '/products/category/unstitched-fabric' },
-              ]}
-            />
+              <ImageSlot
+                label={section.label || section.title || section.id}
+                recommended="900 × 1200 px"
+                aspectClass="aspect-[3/4]"
+                currentUrl={section.imageUrl}
+                uploading={uploadingKey === `col-${section.id}`}
+                onUpload={(file) => uploadImage(`col-${section.id}`, file, updateCardImage('collectionSections', section.id))}
+              />
+              <CardTextFields
+                onSave={() => saveMutation.mutate(settings)}
+                saving={saveMutation.isPending}
+                fields={[
+                  { label: 'Title (black banner bar on the card)', value: section.label || section.title || '', onChange: (v) => updateCardField('collectionSections', section.id, 'label', v), placeholder: 'UNSTITCHED FABRIC COLLECTION' },
+                  { label: 'Destination Link (where clicking the card goes)', value: section.href || '', onChange: (v) => updateCardField('collectionSections', section.id, 'href', v), placeholder: '/products/category/unstitched-fabric' },
+                ]}
+              />
             </div>
           ))}
         </div>
@@ -552,21 +609,23 @@ export default function HomepagePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {settings.categoryCards.map((card) => (
             <div key={card.id} className="space-y-3">
-            <ImageSlot
-              label={`${card.subtitle || ''} ${card.label}`.trim()}
-              recommended="900 × 1500 px"
-              aspectClass="aspect-[3/5]"
-              currentUrl={card.imageUrl}
-              uploading={uploadingKey === `cat-${card.id}`}
-              onUpload={(file) => uploadImage(`cat-${card.id}`, file, updateCardImage('categoryCards', card.id))}
-            />
-            <CardTextFields
-              fields={[
-                { label: "Small Text (e.g. Men's / Men's Stitched / Kids)", value: card.subtitle || '', onChange: (v) => updateCardField('categoryCards', card.id, 'subtitle', v), placeholder: "Men's" },
-                { label: 'Title (e.g. TWO PIECE / KIDS)', value: card.label || '', onChange: (v) => updateCardField('categoryCards', card.id, 'label', v), placeholder: 'TWO PIECE' },
-                { label: 'Destination Link (where clicking the card goes)', value: card.href || '', onChange: (v) => updateCardField('categoryCards', card.id, 'href', v), placeholder: '/products/category/two-piece' },
-              ]}
-            />
+              <ImageSlot
+                label={`${card.subtitle || ''} ${card.label}`.trim()}
+                recommended="900 × 1500 px"
+                aspectClass="aspect-[3/5]"
+                currentUrl={card.imageUrl}
+                uploading={uploadingKey === `cat-${card.id}`}
+                onUpload={(file) => uploadImage(`cat-${card.id}`, file, updateCardImage('categoryCards', card.id))}
+              />
+              <CardTextFields
+                onSave={() => saveMutation.mutate(settings)}
+                saving={saveMutation.isPending}
+                fields={[
+                  { label: "Small Text (e.g. Men's / Men's Stitched / Kids)", value: card.subtitle || '', onChange: (v) => updateCardField('categoryCards', card.id, 'subtitle', v), placeholder: "Men's" },
+                  { label: 'Title (e.g. TWO PIECE / KIDS)', value: card.label || '', onChange: (v) => updateCardField('categoryCards', card.id, 'label', v), placeholder: 'TWO PIECE' },
+                  { label: 'Destination Link (where clicking the card goes)', value: card.href || '', onChange: (v) => updateCardField('categoryCards', card.id, 'href', v), placeholder: '/products/category/two-piece' },
+                ]}
+              />
             </div>
           ))}
         </div>
@@ -586,26 +645,45 @@ export default function HomepagePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {settings.showcaseCards.map((card) => (
             <div key={card.id} className="space-y-3">
-            <ImageSlot
-              label={`${card.badge || ''} — ${card.title || card.label}`.trim()}
-              recommended="1200 × 900 px"
-              aspectClass="aspect-[4/3]"
-              currentUrl={card.imageUrl}
-              uploading={uploadingKey === `show-${card.id}`}
-              onUpload={(file) => uploadImage(`show-${card.id}`, file, updateCardImage('showcaseCards', card.id))}
-            />
-            <CardTextFields
-              fields={[
-                { label: 'Badge (small gold text, e.g. ROYAL HERITAGE)', value: card.badge || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'badge', v), placeholder: 'ROYAL HERITAGE' },
-                { label: 'Title (e.g. Luxury Boski & Formal Fabrics)', value: card.title || card.label || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'title', v), placeholder: 'Luxury Boski & Formal Fabrics' },
-                { label: 'Button Text (CTA, e.g. DISCOVER COLLECTION)', value: card.cta || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'cta', v), placeholder: 'DISCOVER COLLECTION' },
-                { label: 'Destination Link (where clicking the card goes)', value: card.href || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'href', v), placeholder: '/products/category/unstitched-fabric' },
-              ]}
-            />
+              <ImageSlot
+                label={`${card.badge || ''} — ${card.title || card.label}`.trim()}
+                recommended="1200 × 900 px"
+                aspectClass="aspect-[4/3]"
+                currentUrl={card.imageUrl}
+                uploading={uploadingKey === `show-${card.id}`}
+                onUpload={(file) => uploadImage(`show-${card.id}`, file, updateCardImage('showcaseCards', card.id))}
+              />
+              <CardTextFields
+                onSave={() => saveMutation.mutate(settings)}
+                saving={saveMutation.isPending}
+                fields={[
+                  { label: 'Badge (small gold text, e.g. ROYAL HERITAGE)', value: card.badge || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'badge', v), placeholder: 'ROYAL HERITAGE' },
+                  { label: 'Title (e.g. Luxury Boski & Formal Fabrics)', value: card.title || card.label || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'title', v), placeholder: 'Luxury Boski & Formal Fabrics' },
+                  { label: 'Button Text (CTA, e.g. DISCOVER COLLECTION)', value: card.cta || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'cta', v), placeholder: 'DISCOVER COLLECTION' },
+                  { label: 'Destination Link (where clicking the card goes)', value: card.href || '', onChange: (v) => updateCardField('showcaseCards', card.id, 'href', v), placeholder: '/products/category/unstitched-fabric' },
+                ]}
+              />
             </div>
           ))}
         </div>
       </section>
+
+      {/* Sticky Bottom Save Bar */}
+      <div className="sticky bottom-4 z-20 apple-card !p-3 flex items-center justify-between shadow-xl border border-surface-300/80 bg-white/95 backdrop-blur-md">
+        <div className="flex items-center gap-2.5 text-xs text-surface-600">
+          <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="font-medium text-surface-800">Links and text auto-save on blur.</span>
+          <span className="hidden sm:inline text-surface-400">• Click Save &amp; Publish anytime to sync the storefront.</span>
+        </div>
+        <button
+          onClick={() => saveMutation.mutate(settings)}
+          disabled={saveMutation.isPending}
+          className="admin-btn-primary !py-2 !px-5 !text-xs inline-flex items-center gap-2 shadow-xs hover:shadow-subtle"
+        >
+          <FiSave className="w-4 h-4" />
+          {saveMutation.isPending ? 'Publishing…' : 'Save & Publish to Storefront'}
+        </button>
+      </div>
     </div>
   );
 }

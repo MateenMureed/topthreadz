@@ -94,6 +94,16 @@ interface HomePageClientProps {
   initialHomepageSettings?: any;
 }
 
+function normalizeLink(url?: string): string {
+  if (!url) return '/products';
+  let cleaned = url.trim();
+  cleaned = cleaned.replace(/^https?:\/\/(www\.)?topthreadz\.com\.pk/i, '');
+  if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://') && !cleaned.startsWith('/')) {
+    cleaned = '/' + cleaned;
+  }
+  return cleaned || '/products';
+}
+
 export default function HomePageClient({
   initialCategories = [],
   initialProducts = [],
@@ -213,7 +223,7 @@ export default function HomePageClient({
           {collectionSections.map((section) => (
             <Link
               key={section.id}
-              href={section.href}
+              href={normalizeLink(section.href)}
               className="group relative block w-full overflow-hidden cursor-pointer"
             >
               <div className="relative aspect-[3/4] w-full overflow-hidden">
@@ -242,7 +252,7 @@ export default function HomePageClient({
           {categoryCards.map((card) => (
             <Link
               key={card.id}
-              href={card.href}
+              href={normalizeLink(card.href)}
               className="group relative block w-full overflow-hidden cursor-pointer"
             >
               <div className="relative aspect-[9/15] w-full overflow-hidden">
@@ -289,7 +299,7 @@ export default function HomePageClient({
           {showcaseCards.map((card) => (
             <Link
               key={card.id}
-              href={card.href}
+              href={normalizeLink(card.href)}
               className="group relative block w-full overflow-hidden cursor-pointer"
             >
               <div className="relative aspect-[4/3] w-full overflow-hidden">
