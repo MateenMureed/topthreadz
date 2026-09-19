@@ -44,5 +44,12 @@
     "prisma": "^6.19.3",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
+  },
+  "allowScripts": {
+    "@prisma/client": true,
+    "@prisma/engines": true,
+    "bcrypt": true,
+    "esbuild": true,
+    "prisma": true
   }
 }

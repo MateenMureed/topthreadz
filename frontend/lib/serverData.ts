@@ -57,6 +57,27 @@ export async function fetchServerProducts(params?: { limit?: number; sortBy?: st
   return data?.products || (Array.isArray(data) ? data : []);
 }
 
+/**
+ * Like fetchServerProducts but also returns the API pagination block, so the
+ * category page can server-render the product grid AND seed the client-side
+ * infinite query with correct has-more state (no skeleton flash on hydration).
+ */
+export async function fetchServerProductsPage(params?: { limit?: number; sortBy?: string; category?: string }): Promise<{ products: any[]; pagination: any | null }> {
+  const query = new URLSearchParams();
+  if (params?.limit) query.set('limit', String(params.limit));
+  if (params?.sortBy) query.set('sortBy', params.sortBy);
+  if (params?.category) query.set('category', params.category);
+
+  const endpoint = `/products?${query.toString()}`;
+  const data = await fetchServerData<any>(endpoint, 30);
+  const products = data?.products || (Array.isArray(data) ? data : []);
+  return {
+    products,
+    pagination: data?.pagination || null,
+  };
+}
+
+
 export async function fetchServerHomepageSettings(revalidate = 120) {
   let data = await fetchServerData<any>('/settings/homepage', revalidate);
   if (!data) {

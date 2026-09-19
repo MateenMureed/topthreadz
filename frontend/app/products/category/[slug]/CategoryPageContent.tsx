@@ -2,20 +2,27 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { productService } from '@/services/product.service';
-import api from '@/services/api';
 import ProductCard from '@/components/ProductCard';
 import ScrollReveal from '@/components/ScrollReveal';
-import { resolveImageUrl } from '@/lib/images';
 import { FiChevronDown, FiSliders, FiPackage } from 'react-icons/fi';
 
 interface Props {
   slug: string;
+  /** Server-fetched first page — keeps the product grid inside the initial HTML. */
+  initialProducts?: any[];
+  initialPagination?: any | null;
+  /** Server-resolved banner image so the banner never depends on a client fetch. */
+  bannerUrl?: string | null;
 }
 
-export default function CategoryPageContent({ slug }: Props) {
+export default function CategoryPageContent({
+  slug,
+  initialProducts,
+  initialPagination,
+  bannerUrl,
+}: Props) {
   const rawSlug = decodeURIComponent(slug || '');
   const categoryName = rawSlug
     .replace(/[-_]/g, ' ')
@@ -25,20 +32,9 @@ export default function CategoryPageContent({ slug }: Props) {
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  // Fetch categories client-side to read custom banners uploaded by admin
-  const { data: categoriesData } = useQuery({
-    queryKey: ['categories-client'],
-    queryFn: () => api.get('/categories').then((r) => r.data?.data || r.data || []),
-    staleTime: 60 * 1000,
-  });
-
-  const matchedCategory = (categoriesData || []).find(
-    (c: any) =>
-      c.slug?.toLowerCase() === rawSlug.toLowerCase() ||
-      c.name?.toLowerCase() === categoryName.toLowerCase()
-  );
-
-  const bannerUrl = matchedCategory?.bannerImage || matchedCategory?.coverImage || null;
+  // How many items were already server-rendered. Cards below this index are
+  // only reachable via infinite scroll, so they keep their reveal animation.
+  const ssrCount = Array.isArray(initialProducts) ? initialProducts.length : 0;
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ['products', 'category', slug, sortBy],
@@ -49,6 +45,33 @@ export default function CategoryPageContent({ slug }: Props) {
         category: categoryName,
         sortBy,
       }),
+    // Seed the query with the server-rendered first page: hydration renders
+    // the real grid immediately (no skeleton flash, no "Loading..." state in
+    // the initial HTML) and infinite scroll continues from correct state.
+    // An explicitly empty server page (pagination present, zero items) is also
+    // seeded, so categories with no products show the honest empty state in
+    // the initial HTML instead of a loading skeleton.
+    initialData:
+      ssrCount > 0 || (Array.isArray(initialProducts) && initialPagination)
+        ? {
+            pages: [
+              {
+                data: {
+                  products: initialProducts,
+                  pagination:
+                    initialPagination || {
+                      page: 1,
+                      totalPages: 1,
+                      total: initialProducts!.length,
+                    },
+                },
+              },
+            ],
+            pageParams: [1],
+          }
+        : undefined,
+    initialDataUpdatedAt: ssrCount > 0 || (Array.isArray(initialProducts) && initialPagination) ? Date.now() : undefined,
+    staleTime: 60 * 1000,
     getNextPageParam: (lastPage) => {
       const pagination = lastPage?.data?.pagination || lastPage?.pagination;
       if (!pagination) return undefined;
@@ -88,55 +111,8 @@ export default function CategoryPageContent({ slug }: Props) {
         : 'lg:grid-cols-4';
 
   return (
-    <div className="w-full min-h-[70vh] pb-12">
-      {/* ── 1. FULL WIDTH CATEGORY BANNER (Like Image 1) ── */}
-      <div className="w-full mb-4 sm:mb-6">
-        {bannerUrl ? (
-          <div className="relative w-full aspect-[16/9] overflow-hidden bg-surface-100 dark:bg-[#1A1D24]">
-            <Image
-              src={resolveImageUrl(bannerUrl)}
-              alt={`${categoryName} Collection Banner`}
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover object-center"
-            />
-          </div>
-        ) : (
-          /* Editorial fallback banner with gold accent & premium styling */
-          <div className="relative w-full aspect-[4/1] min-h-[170px] sm:min-h-[250px] md:min-h-[330px] overflow-hidden bg-gradient-to-r from-[#0B1528] via-[#122240] to-[#0B1528] flex items-center justify-center text-center px-4">
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#D4A84B] to-transparent" />
-            <div className="absolute -right-16 -bottom-16 w-64 h-64 rounded-full bg-[#D4A84B]/10 blur-3xl pointer-events-none" />
-            <div className="relative z-10 space-y-2">
-              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] text-[#D4A84B]">
-                TOP THREADZ COLLECTION
-              </span>
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-display font-black tracking-tight text-white uppercase">
-                {categoryName}
-              </h1>
-              <p className="text-xs sm:text-sm text-white/70 tracking-wider font-light max-w-xl mx-auto">
-                Fine fabric, cut to your signature look.
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
-        {/* ── 2. BREADCRUMB & CONTROLS (Like Image 1) ── */}
-        <div className="mb-6">
-          {/* Breadcrumb: Home > Sultan Unstitched Premium Fabric */}
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs sm:text-[13px] text-surface-600 dark:text-surface-400 mb-3 sm:mb-4">
-            <Link href="/" className="hover:text-surface-950 dark:hover:text-white transition-colors">
-              Home
-            </Link>
-            <span className="text-surface-400 dark:text-surface-500 font-light">&gt;</span>
-            <span className="font-semibold text-surface-900 dark:text-white truncate">
-              {categoryName}
-            </span>
-          </nav>
-
-          {/* Action row: Left: Filter + Items count, Right: SORT BY */}
+    <div className="w-full pb-2">
+      {/* ── CONTROLS: Left: Filter + Items count, Right: SORT BY ── */}
           <div className="flex items-center justify-between gap-4 border-b border-surface-200 dark:border-[#2D3340] pb-3 sm:pb-4">
             {/* Filter + Items */}
             <div className="flex items-center gap-5 sm:gap-7">
@@ -175,7 +151,6 @@ export default function CategoryPageContent({ slug }: Props) {
               </div>
             </div>
           </div>
-        </div>
 
         {/* Filter Drawer / Quick Filter Pill Bar */}
         {filterDrawerOpen && (
@@ -273,24 +248,31 @@ export default function CategoryPageContent({ slug }: Props) {
           <div
             className={`grid grid-cols-2 ${desktopGridCols} gap-0 border-t border-l border-stone-200/80 dark:border-[#2D3340] w-full`}
           >
-            {products.map((product, i) => (
-              <div
-                key={product.id}
-                className="border-r border-b border-stone-200/80 dark:border-[#2D3340] bg-white dark:bg-[#1E2228]"
-              >
-                <ScrollReveal
-                  delay={(i % 4) * 60}
-                  animation="slide-up"
+            {products.map((product, i) => {
+              const card = <ProductCard {...product} imageFit="cover" />;
+              return (
+                <div
+                  key={product.id}
+                  className="border-r border-b border-stone-200/80 dark:border-[#2D3340] bg-white dark:bg-[#1E2228]"
                 >
-                  <ProductCard {...product} imageFit="cover" />
-                </ScrollReveal>
-              </div>
-            ))}
+                  {/* Server-rendered cards render fully visible so the initial
+                      HTML carries real content; only infinite-scroll cards
+                      (fetched client-side) get the reveal animation. */}
+                  {i < ssrCount ? (
+                    card
+                  ) : (
+                    <ScrollReveal delay={(i % 4) * 60} animation="slide-up">
+                      {card}
+                    </ScrollReveal>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
         {/* Infinite Scroll Trigger */}
-        <div ref={observerTarget} className="mt-8 flex justify-center py-4">
+        <div ref={observerTarget} className="mt-4 flex justify-center py-2">
           {isFetchingNextPage ? (
             <div className="flex gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-surface-800 dark:bg-white animate-bounce" />
@@ -308,6 +290,5 @@ export default function CategoryPageContent({ slug }: Props) {
           ) : null}
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

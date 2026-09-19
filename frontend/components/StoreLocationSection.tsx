@@ -1,249 +1,342 @@
-import React from 'react';
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import type { IconType } from 'react-icons';
 import {
-  FiMapPin,
+  FiArrowRight,
+  FiCheck,
   FiClock,
-  FiPhone,
+  FiCopy,
+  FiMapPin,
   FiNavigation,
+  FiShield,
   FiShoppingBag,
   FiTruck,
-  FiShield,
-  FiExternalLink,
-  FiMessageCircle,
 } from 'react-icons/fi';
 
 const GOOGLE_MAPS_URL = 'https://maps.app.goo.gl/JnY6MPP9w9bBnfJd9';
 const MAPS_EMBED_URL =
   'https://maps.google.com/maps?q=Top+Threadz+Zamzama+Commercial+Area+Karachi&t=&z=16&ie=UTF8&iwloc=&output=embed';
-const PHONE_NUMBER = '+92 300 9070520';
-const WHATSAPP_URL = 'https://wa.me/923009070520?text=Hello%20Top%20Threadz,%20I%20would%20like%20to%20inquire%20about%20store%20timings%20and%20location.';
+const ADDRESS = 'Street 2, DHA Phase 5 Zamzama Commercial Area, Defence V, Karachi, 75600, Pakistan';
+const PLUS_CODE = 'R28V+R3W Karachi';
+const STORE_TIMEZONE = 'Asia/Karachi';
+
+/* -------------------------------------------------------------------------- */
+/*  Store hours: single source of truth for the list AND the live open badge   */
+/* -------------------------------------------------------------------------- */
+
+type Hours = { open: number; close: number }; // minutes from midnight
+
+const SUNDAY: Hours = { open: 14 * 60, close: 22 * 60 };
+const WEEKDAY: Hours = { open: 11 * 60, close: 22 * 60 + 30 };
+// Index = JS weekday (0 = Sunday)
+const WEEKLY_HOURS: Hours[] = [SUNDAY, WEEKDAY, WEEKDAY, WEEKDAY, WEEKDAY, WEEKDAY, WEEKDAY];
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+const HOURS_ROWS = [
+  { label: 'Mon – Sat', days: [1, 2, 3, 4, 5, 6], hours: WEEKDAY },
+  { label: 'Sunday', days: [0], hours: SUNDAY },
+];
+
+const formatTime = (minutes: number) => {
+  const h24 = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  const suffix = h24 >= 12 ? 'PM' : 'AM';
+  return `${h24 % 12 || 12}:${String(m).padStart(2, '0')} ${suffix}`;
+};
+
+type StoreStatus = { isOpen: boolean; day: number; message: string };
+
+// Always evaluated in Karachi time, whatever timezone the visitor's device is in.
+function getStoreStatus(now: Date = new Date()): StoreStatus | null {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: STORE_TIMEZONE,
+    weekday: 'short',
+    hour: 'numeric',
+    minute: 'numeric',
+    hourCycle: 'h23',
+  }).formatToParts(now);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
+
+  const day = DAY_NAMES.indexOf(get('weekday'));
+  if (day < 0) return null;
+  const minutes = (Number(get('hour')) % 24) * 60 + Number(get('minute'));
+  const today = WEEKLY_HOURS[day];
+
+  if (minutes >= today.open && minutes < today.close) {
+    return { isOpen: true, day, message: `Open now · until ${formatTime(today.close)}` };
+  }
+  if (minutes < today.open) {
+    return { isOpen: false, day, message: `Closed · opens today at ${formatTime(today.open)}` };
+  }
+  const tomorrow = WEEKLY_HOURS[(day + 1) % 7];
+  return { isOpen: false, day, message: `Closed · opens tomorrow at ${formatTime(tomorrow.open)}` };
+}
+
+const IN_STORE_PERKS = ['Touch & drape fabric feel', 'Expert fit & cut advice', 'Exclusive outlet editions'];
+
+const ONLINE_FEATURES: { icon: IconType; title: string; text: string }[] = [
+  {
+    icon: FiTruck,
+    title: '2 – 5 working days delivery',
+    text: 'Swift shipping across Karachi, Lahore, Islamabad, and all cities.',
+  },
+  {
+    icon: FiShoppingBag,
+    title: 'Cash on delivery & free shipping',
+    text: 'Pay cash upon delivery. Free shipping on all orders over PKR 10,000.',
+  },
+  {
+    icon: FiShield,
+    title: '7-day return & exchange',
+    text: 'Hassle-free exchanges if you need another shade or sizing.',
+  },
+];
+
+const eyebrowClass = 'text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400';
 
 export default function StoreLocationSection() {
+  const [status, setStatus] = useState<StoreStatus | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [mapActive, setMapActive] = useState(false);
+  const mapWrapRef = useRef<HTMLDivElement>(null);
+
+  // Computed after mount so server and client HTML always match.
+  useEffect(() => {
+    const update = () => setStatus(getStoreStatus());
+    update();
+    const timer = setInterval(update, 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // An embedded map traps touch/scroll gestures on phones. It stays inert until
+  // tapped, and goes inert again as soon as the visitor touches anything else.
+  useEffect(() => {
+    if (!mapActive) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (!mapWrapRef.current?.contains(e.target as Node)) setMapActive(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [mapActive]);
+
+  const copyAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(ADDRESS);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard blocked: nothing else to do */
+    }
+  };
+
   return (
     <section
       id="store-location"
-      className="w-full bg-[#fcfcfb] dark:bg-[#12161E] py-14 sm:py-20 border-t border-stone-200/80 dark:border-stone-800 transition-colors"
+      aria-labelledby="store-location-heading"
+      className="w-full border-t border-stone-200/80 bg-[#FAFAF8] py-12 transition-colors dark:border-stone-800 dark:bg-[#12161E] sm:py-16 lg:py-20"
     >
-      <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
-          <span className="font-serif italic text-xs sm:text-sm text-[#8C7355] tracking-widest uppercase block mb-1.5">
-            Flagship Experience &bull; Online Convenience
-          </span>
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-normal tracking-[0.22em] text-[#1E2229] dark:text-white uppercase">
-            VISIT OUR STORE OR SHOP ONLINE
+      <div className="mx-auto max-w-[1536px] px-4 sm:px-6 lg:px-8">
+        {/* Heading: same pattern as the other homepage sections (title + italic tagline) */}
+        <header className="mx-auto mb-8 max-w-2xl text-center sm:mb-12">
+          <h2
+            id="store-location-heading"
+            className="text-lg font-normal uppercase tracking-[0.22em] text-[#1E2229] dark:text-white sm:text-2xl md:text-3xl"
+          >
+            Visit Our Store or Shop Online
           </h2>
-          <div className="w-12 h-0.5 bg-[#8C7355] mx-auto my-3" />
-          <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
-            Step inside our flagship outlet in Karachi to touch and feel our premium fabric weaves in person, or order from the comfort of your home with express delivery across Pakistan.
+          <p className="mt-2 font-serif text-sm italic text-stone-500 dark:text-stone-400">
+            Our flagship outlet in Karachi, and express delivery across Pakistan
           </p>
-        </div>
+        </header>
 
-        {/* Dual Cards Grid: Physical Store vs Online Ordering */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-stretch mb-10 sm:mb-12">
-          {/* Card 1: Visit Our Store (7 Cols) */}
-          <div className="lg:col-span-7 bg-white dark:bg-[#191F2B] rounded-2xl border border-stone-200/90 dark:border-stone-800/80 p-6 sm:p-8 shadow-xs flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between gap-4 pb-5 border-b border-stone-100 dark:border-stone-800">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60 flex items-center justify-center shadow-2xs">
-                    <FiMapPin className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base sm:text-lg font-bold text-stone-900 dark:text-white tracking-wide">
-                      Top Threadz Flagship Store
-                    </h3>
-                    <p className="text-xs text-stone-500 dark:text-stone-400">
-                      Zamzama Commercial Area &bull; Karachi
+        {/*
+          Phone: info → map → online (single column).
+          Desktop: info + online side by side on top, compact full-width map underneath.
+        */}
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-12 lg:gap-6">
+          {/* ------------------------------ STORE INFO ------------------------------ */}
+          <article className="rounded-xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-[#191F2B] sm:p-6 lg:col-span-7 lg:col-start-1 lg:row-start-1">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+              <span className={eyebrowClass}>Flagship store</span>
+              <span className="inline-flex min-h-[28px] items-center">
+                {status ? (
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold ${status.isOpen
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-400'
+                      : 'border-stone-200 bg-stone-100 text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300'
+                      }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${status.isOpen ? 'animate-pulse bg-emerald-500' : 'bg-stone-400'
+                        }`}
+                    />
+                    {status.message}
+                  </span>
+                ) : null}
+              </span>
+            </div>
+
+            <h3 className="mt-3 text-xl font-semibold tracking-wide text-[#1E2229] dark:text-white sm:text-2xl">
+              Top Threadz Flagship Store
+            </h3>
+            <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">Zamzama Commercial Area, Karachi</p>
+
+            <dl className="mt-5 grid gap-5 border-t border-stone-100 pt-5 dark:border-stone-800 md:grid-cols-2 md:gap-8">
+              {/* Address */}
+              <div className="flex gap-3">
+                <FiMapPin aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-stone-500 dark:text-stone-400" />
+                <div className="min-w-0 flex-1">
+                  <dt className={eyebrowClass}>Address</dt>
+                  <dd className="mt-1.5 text-sm leading-relaxed text-stone-800 dark:text-stone-200">{ADDRESS}</dd>
+                  <dd className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <span className="font-mono text-xs text-stone-500 dark:text-stone-400">Plus Code: {PLUS_CODE}</span>
+                    <button
+                      type="button"
+                      onClick={copyAddress}
+                      className="inline-flex h-9 items-center gap-1.5 rounded-md border border-stone-200 px-3 text-xs font-semibold text-stone-700 transition-colors hover:border-stone-900 dark:border-stone-700 dark:text-stone-200 dark:hover:border-stone-300"
+                    >
+                      {copied ? (
+                        <FiCheck aria-hidden="true" className="h-3.5 w-3.5 text-emerald-600" />
+                      ) : (
+                        <FiCopy aria-hidden="true" className="h-3.5 w-3.5" />
+                      )}
+                      <span aria-live="polite">{copied ? 'Copied' : 'Copy address'}</span>
+                    </button>
+                  </dd>
+                </div>
+              </div>
+
+              {/* Hours */}
+              <div className="flex gap-3">
+                <FiClock aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-stone-500 dark:text-stone-400" />
+                <div className="min-w-0 flex-1">
+                  <dt className={eyebrowClass}>Store hours</dt>
+                  <dd className="mt-1">
+                    <ul className="divide-y divide-stone-100 text-sm dark:divide-stone-800">
+                      {HOURS_ROWS.map((row) => {
+                        const isToday = status ? row.days.includes(status.day) : false;
+                        return (
+                          <li
+                            key={row.label}
+                            className={`flex items-center justify-between gap-3 py-2 ${isToday
+                              ? 'font-semibold text-stone-900 dark:text-white'
+                              : 'text-stone-600 dark:text-stone-300'
+                              }`}
+                          >
+                            <span className="flex items-center gap-2">
+                              {row.label}
+                              {isToday ? (
+                                <span className="rounded bg-navy px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white dark:bg-white dark:text-navy">
+                                  Today
+                                </span>
+                              ) : null}
+                            </span>
+                            <span className="tabular-nums">
+                              {formatTime(row.hours.open)} – {formatTime(row.hours.close)}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+                      Air-conditioned showroom · Valet parking nearby
                     </p>
-                  </div>
-                </div>
-                <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-[11px] font-semibold border border-emerald-200/70 dark:border-emerald-800/60">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Open For Walk-ins
-                </span>
-              </div>
-
-              {/* Key Store Details */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
-                <div className="space-y-1.5">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 flex items-center gap-1.5">
-                    <FiMapPin className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                    Exact Address
-                  </p>
-                  <p className="text-xs sm:text-[13px] text-stone-800 dark:text-stone-200 leading-snug">
-                    Street 2, DHA Phase 5 Zamzama Commercial Area, Defence V, Karachi, 75600, Pakistan
-                  </p>
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400 font-mono">
-                    Plus Code: R28V+R3W Karachi
-                  </p>
-                </div>
-
-                <div className="space-y-1.5">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 flex items-center gap-1.5">
-                    <FiClock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                    Store Timings
-                  </p>
-                  <div className="text-xs sm:text-[13px] text-stone-800 dark:text-stone-200 leading-snug space-y-0.5">
-                    <p><span className="font-semibold text-stone-900 dark:text-white">Mon &ndash; Sat:</span> 11:00 AM &ndash; 10:30 PM</p>
-                    <p><span className="font-semibold text-stone-900 dark:text-white">Sunday:</span> 2:00 PM &ndash; 10:00 PM</p>
-                  </div>
-                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                    Air-conditioned showroom &bull; Valet parking nearby
-                  </p>
+                  </dd>
                 </div>
               </div>
+            </dl>
 
-              {/* In-store experience highlights */}
-              <div className="rounded-xl bg-stone-50 dark:bg-stone-900/50 p-4 border border-stone-200/70 dark:border-stone-800 mb-6">
-                <p className="text-xs font-semibold text-stone-900 dark:text-stone-100 mb-2">
-                  What you will experience in store:
-                </p>
-                <ul className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-stone-600 dark:text-stone-300">
-                  <li className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#8C7355]" />
-                    Touch &amp; drape fabric feel
-                  </li>
-                  <li className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#8C7355]" />
-                    Expert fit &amp; cut advice
-                  </li>
-                  <li className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#8C7355]" />
-                    Exclusive outlet editions
-                  </li>
-                </ul>
-              </div>
-            </div>
+            {/* In-store perks */}
+            <ul className="mt-5 flex flex-wrap gap-2 border-t border-stone-100 pt-5 dark:border-stone-800">
+              {IN_STORE_PERKS.map((perk) => (
+                <li
+                  key={perk}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs text-stone-700 dark:border-stone-700 dark:bg-stone-900/40 dark:text-stone-200"
+                >
+                  <FiCheck aria-hidden="true" className="h-3 w-3 shrink-0 text-emerald-600" />
+                  {perk}
+                </li>
+              ))}
+            </ul>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <a
-                href={GOOGLE_MAPS_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 bg-[#1E2229] hover:bg-black text-white px-5 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wider uppercase transition-all shadow-xs hover:shadow-md"
-              >
-                <FiNavigation className="w-4 h-4" />
-                <span>Get Directions On Google Maps</span>
-                <FiExternalLink className="w-3.5 h-3.5 opacity-70" />
-              </a>
-
-              <a
-                href={WHATSAPP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 sm:px-5 py-2.5 rounded-xl text-xs font-semibold tracking-wider transition-all shadow-xs"
-              >
-                <FiMessageCircle className="w-4 h-4" />
-                <span>Chat On WhatsApp</span>
-              </a>
-
-              <a
-                href={`tel:${PHONE_NUMBER.replace(/\s+/g, '')}`}
-                className="inline-flex items-center justify-center gap-1.5 border border-stone-300 dark:border-stone-700 hover:border-stone-900 dark:hover:border-stone-300 text-stone-700 dark:text-stone-200 px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors"
-              >
-                <FiPhone className="w-3.5 h-3.5 text-[#8C7355]" />
-                <span>{PHONE_NUMBER}</span>
-              </a>
-            </div>
-          </div>
-
-          {/* Card 2: Shop Online / Nationwide Service (5 Cols) */}
-          <div className="lg:col-span-5 bg-gradient-to-br from-[#1E2229] to-[#12161E] text-white rounded-2xl p-6 sm:p-8 flex flex-col justify-between shadow-md border border-stone-800">
-            <div>
-              <div className="flex items-center gap-2.5 mb-3">
-                <span className="px-2.5 py-0.5 rounded-full bg-[#8C7355]/30 text-[#E8C86A] text-[10px] font-bold uppercase tracking-widest border border-[#8C7355]/40">
-                  Nationwide Delivery
-                </span>
-                <span className="text-[11px] text-stone-400">Available 24/7</span>
-              </div>
-              <h3 className="text-xl sm:text-2xl font-serif font-normal tracking-wide text-white mb-2">
-                Can&apos;t Visit In Person?
-              </h3>
-              <p className="text-xs text-stone-300 leading-relaxed mb-6">
-                Explore our complete catalog from anywhere in Pakistan. Every order is inspected, securely packed, and delivered directly to your doorstep with guaranteed authenticity.
-              </p>
-
-              <div className="space-y-4 mb-6">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 mt-0.5 text-[#E8C86A]">
-                    <FiTruck className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-white">2 &ndash; 5 Working Days Delivery</p>
-                    <p className="text-[11px] text-stone-400">Swift shipping across Karachi, Lahore, Islamabad, and all cities.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 mt-0.5 text-[#E8C86A]">
-                    <FiShoppingBag className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-white">Cash on Delivery &amp; Free Shipping</p>
-                    <p className="text-[11px] text-stone-400">Pay cash upon delivery. Free shipping on all orders over PKR 10,000.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 mt-0.5 text-[#E8C86A]">
-                    <FiShield className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-white">7-Day Return &amp; Exchange Policy</p>
-                    <p className="text-[11px] text-stone-400">Hassle-free exchanges if you need another shade or sizing.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <Link
-                href="/products"
-                className="w-full inline-flex items-center justify-center gap-2 bg-white text-[#1E2229] hover:bg-[#E8C86A] hover:text-black px-6 py-3 rounded-xl text-xs font-bold tracking-[0.16em] uppercase transition-all duration-200 shadow-md"
-              >
-                <FiShoppingBag className="w-4 h-4" />
-                <span>Shop Full Online Catalog</span>
-                <span>&rarr;</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Embedded Interactive Map Card */}
-        <div className="rounded-2xl overflow-hidden border border-stone-200/90 dark:border-stone-800 shadow-sm bg-white dark:bg-[#191F2B]">
-          <div className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-stone-100 dark:border-stone-800 bg-stone-50/60 dark:bg-stone-900/40">
-            <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-              <p className="text-xs sm:text-sm font-semibold text-stone-800 dark:text-stone-200">
-                Live Google Maps Location &bull; Top Threadz Karachi
-              </p>
-            </div>
             <a
               href={GOOGLE_MAPS_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8C7355] hover:text-stone-950 dark:hover:text-white underline underline-offset-4 transition-colors"
+              className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-navy px-6 text-xs font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-navy-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 focus-visible:ring-offset-2 dark:bg-white dark:text-[#1E2229] dark:hover:bg-stone-200"
             >
-              <span>Open in Google Maps App</span>
-              <FiExternalLink className="w-3.5 h-3.5" />
+              <FiNavigation aria-hidden="true" className="h-4 w-4" />
+              Get directions
             </a>
-          </div>
+          </article>
 
-          <div className="relative w-full h-[320px] sm:h-[400px] bg-stone-100 dark:bg-stone-900">
+          {/* --------------------------------- MAP ---------------------------------- */}
+          <div
+            ref={mapWrapRef}
+            className="relative h-[220px] overflow-hidden rounded-xl border border-stone-200 bg-stone-100 dark:border-stone-800 dark:bg-stone-900 sm:h-[260px] lg:col-span-12 lg:col-start-1 lg:row-start-2 lg:h-[300px]"
+          >
             <iframe
               src={MAPS_EMBED_URL}
-              width="100%"
-              height="100%"
               style={{ border: 0 }}
               allowFullScreen={false}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               title="Top Threadz Karachi Flagship Store Location"
-              className="w-full h-full grayscale-[15%] contrast-[105%] hover:grayscale-0 transition-all duration-300"
+              className="absolute inset-0 h-full w-full"
             />
+            {!mapActive ? (
+              <button
+                type="button"
+                onClick={() => setMapActive(true)}
+                aria-label="Activate the map to pan and zoom"
+                className="absolute inset-0 z-10 flex items-end justify-center pb-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-navy/40"
+              >
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-xs font-semibold text-stone-800 shadow-md backdrop-blur">
+                  <FiMapPin aria-hidden="true" className="h-3.5 w-3.5" />
+                  Tap to explore the map
+                </span>
+              </button>
+            ) : null}
           </div>
+
+          {/* ------------------------------ SHOP ONLINE ----------------------------- */}
+          <article className="flex flex-col rounded-xl border border-navy bg-navy p-5 text-white dark:border-stone-800 sm:p-6 lg:col-span-5 lg:col-start-8 lg:row-start-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-300">
+              Nationwide delivery <span className="mx-1 text-stone-500">·</span>
+              <span className="font-normal normal-case tracking-normal text-stone-400">Available 24/7</span>
+            </p>
+            <h3 className="mt-3 font-serif text-2xl font-normal tracking-wide">Can&apos;t visit in person?</h3>
+            <p className="mt-2 text-sm leading-relaxed text-stone-300">
+              Explore our complete catalog from anywhere in Pakistan. Every order is inspected, securely packed, and
+              delivered directly to your doorstep with guaranteed authenticity.
+            </p>
+
+            <ul className="mt-5 space-y-4">
+              {ONLINE_FEATURES.map(({ icon: Icon, title, text }) => (
+                <li key={title} className="flex items-start gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white">
+                    <Icon aria-hidden="true" className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold">{title}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-stone-300">{text}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-auto pt-6">
+              <Link
+                href="/products"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-white px-6 text-xs font-bold uppercase tracking-[0.14em] text-navy transition-colors hover:bg-stone-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy"
+              >
+                Shop full catalog
+                <FiArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            </div>
+          </article>
         </div>
       </div>
     </section>

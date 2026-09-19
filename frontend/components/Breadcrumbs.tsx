@@ -36,7 +36,9 @@ export default function Breadcrumbs() {
     },
   });
 
-  if (isHome || normalizedPathname.startsWith('/admin')) {
+  // Category pages render their own server-side breadcrumb directly below the
+  // category banner; hide this global one there so two breadcrumbs don't stack.
+  if (isHome || normalizedPathname.startsWith('/admin') || isCategoryRoute) {
     return null;
   }
 

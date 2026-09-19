@@ -37,5 +37,8 @@
     "safari >= 15.4",
     "ios_saf >= 15.4",
     "not dead"
-  ]
+  ],
+  "allowScripts": {
+    "sharp": true
+  }
 }

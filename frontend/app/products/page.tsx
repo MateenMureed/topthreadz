@@ -9,6 +9,7 @@ import { productService } from '@/services/product.service';
 import api from '@/services/api';
 import ProductGrid from '@/components/ProductGrid';
 import { FiSearch, FiX, FiFilter, FiChevronDown } from 'react-icons/fi';
+import { getCategorySeoConfig } from '@/lib/categorySeo';
 
 const PRIMARY_CATEGORIES = [
   { name: 'All Products', slug: '' },
@@ -269,6 +270,27 @@ function ProductsPageContent() {
             </p>
           ) : null}
         </div>
+
+        {/* ── 6. END-OF-GRID COLLECTION DESCRIPTION (When filtering by category) ── */}
+        {subcategory && (() => {
+          const catSeo = getCategorySeoConfig(subcategory);
+          if (!catSeo?.endDescription) return null;
+          return (
+            <section
+              className="mt-6 sm:mt-10 w-full text-left"
+              aria-label={`${subcategory} Collection Overview`}
+            >
+              {catSeo.collectionTitle && (
+                <h2 className="text-sm sm:text-base font-display font-semibold text-stone-900 dark:text-white mb-2 tracking-tight">
+                  {catSeo.collectionTitle}
+                </h2>
+              )}
+              <p className="text-xs sm:text-[13px] md:text-sm leading-relaxed text-stone-600 dark:text-stone-400 font-normal text-justify">
+                {catSeo.endDescription}
+              </p>
+            </section>
+          );
+        })()}
       </div>
     </div>
   );
