@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/services/api';
-import { FiCheckCircle, FiChevronDown, FiEdit2, FiTruck, FiPackage } from 'react-icons/fi';
+import { FiCheckCircle } from 'react-icons/fi';
 import { useCartStore } from '@/store/cartStore';
 import { useHydration } from '@/hooks/useHydration';
 import { orderService, paymentService } from '@/services/order.service';
@@ -14,6 +14,7 @@ import Image from 'next/image';
 import { submitHostedCheckout } from '@/lib/paymentCheckout';
 import { isBackendUploadUrl, isCloudinaryUrl, cloudinaryLoader, resolveImageUrl } from '@/lib/images';
 import toast from 'react-hot-toast';
+import { SelectField, StepHeader, TextAreaField, TextField } from '@/components/checkout/CheckoutFields';
 
 const PAKISTAN_LOCATIONS: Record<string, string[]> = {
   Punjab: ['Lahore', 'Rawalpindi', 'Faisalabad', 'Multan', 'Gujranwala', 'Sialkot'],
@@ -25,10 +26,25 @@ const PAKISTAN_LOCATIONS: Record<string, string[]> = {
   AzadKashmir: ['Muzaffarabad', 'Mirpur', 'Kotli'],
 };
 
+const PROVINCE_LABELS: Record<string, string> = {
+  GilgitBaltistan: 'Gilgit Baltistan',
+  AzadKashmir: 'Azad Kashmir',
+};
+
+const PROVINCE_OPTIONS = Object.keys(PAKISTAN_LOCATIONS).map((province) => ({
+  value: province,
+  label: PROVINCE_LABELS[province] ?? province,
+}));
+
 type ShippingMethod = 'FIXED';
 type PaymentMethod = 'SAFEPAY' | 'COD';
-type SectionMode = 'edit' | 'summary';
 type AccordionSection = 'email' | 'shipping' | 'payment';
+
+// Flat accordion rows separated by hairlines (see the wrapper's divide-y below).
+const sectionClass = 'py-3 sm:py-4';
+const subHeadingClass = 'mb-3 text-sm font-bold text-surface-700';
+// Pill button: full-width on phones (easy thumb target), auto width from `sm` up.
+const stepButtonClass = 'btn-primary !rounded-full min-h-[44px] w-full justify-center px-8 text-sm font-bold sm:w-auto';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -42,10 +58,9 @@ export default function CheckoutPage() {
   const [checkoutEmail, setCheckoutEmail] = useState('');
   const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('FIXED');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD');
-  const [emailMode, setEmailMode] = useState<SectionMode>('edit');
-  const [shippingMode, setShippingMode] = useState<SectionMode>('edit');
-  const [paymentMode, setPaymentMode] = useState<SectionMode>('edit');
-  const [activeSection, setActiveSection] = useState<AccordionSection>('email');
+  const [completed, setCompleted] = useState({ email: false, shipping: false, payment: false });
+  const [activeSection, setActiveSection] = useState<AccordionSection | null>('email');
+  const [shippingAttempted, setShippingAttempted] = useState(false);
 
   const [address, setAddress] = useState({
     firstName: '',
@@ -57,6 +72,9 @@ export default function CheckoutPage() {
     province: '',
   });
 
+  const setField = (key: keyof typeof address, value: string) =>
+    setAddress((prev) => ({ ...prev, [key]: value }));
+
   const { data: storeSettings } = useQuery({
     queryKey: ['store-settings'],
     queryFn: () => api.get('/settings/store').then((res) => res.data?.data),
@@ -66,15 +84,20 @@ export default function CheckoutPage() {
   const freeDeliveryThreshold = Number(storeSettings?.freeDeliveryThreshold ?? 10000);
   const standardDeliveryFee = Number(storeSettings?.standardDeliveryFee ?? 250);
 
-  const cityOptions = address.province ? (PAKISTAN_LOCATIONS[address.province] || []) : [];
+  const cityOptions = (address.province ? PAKISTAN_LOCATIONS[address.province] || [] : []).map((city) => ({
+    value: city,
+    label: city,
+  }));
   const subtotal = getSubtotal();
   const isFreeDelivery = subtotal >= freeDeliveryThreshold;
   const delivery = isFreeDelivery ? 0 : standardDeliveryFee;
   const total = Math.round(subtotal + delivery);
-  const bagItem = items[0];
-  const bagItemImage = resolveImageUrl(bagItem?.image);
   const isEmailValid = useMemo(() => /.+@.+\..+/.test(checkoutEmail.trim()), [checkoutEmail]);
-  const isPhoneValid = useMemo(() => /^(\+92|0)?3[0-9]{9}$/.test(address.phone.trim()), [address.phone]);
+
+  // People type numbers like "0300 1234567" or "0300-1234567" on phones.
+  // Validate (and send) the cleaned version so those don't get rejected.
+  const normalizedPhone = useMemo(() => address.phone.replace(/[\s()-]/g, ''), [address.phone]);
+  const isPhoneValid = useMemo(() => /^(?:\+?92|0)?3\d{9}$/.test(normalizedPhone), [normalizedPhone]);
 
   const isShippingValid = useMemo(() => {
     return Boolean(
@@ -91,28 +114,66 @@ export default function CheckoutPage() {
     return items.length > 0 && isEmailValid && isShippingValid;
   }, [items.length, isEmailValid, isShippingValid]);
 
-  const handleCheckoutEmailChange = (value: string) => {
-    setCheckoutEmail(value);
-    // Guest checkout has no account step: move on as soon as the entered email
-    // is valid, without a useEffect-driven section transition.
-    if (/.+@.+\..+/.test(value.trim())) {
-      setEmailMode('summary');
-      setActiveSection('shipping');
+  // Inline errors: shown after the first failed "Continue", phone also while typing.
+  const fieldErrors = {
+    firstName: shippingAttempted && !address.firstName.trim() ? 'Enter your first name.' : undefined,
+    lastName: shippingAttempted && !address.lastName.trim() ? 'Enter your last name.' : undefined,
+    phone:
+      address.phone && !isPhoneValid
+        ? 'Enter a valid mobile number, e.g. 0300 1234567.'
+        : shippingAttempted && !address.phone
+          ? 'Enter your mobile number.'
+          : undefined,
+    streetAddress:
+      shippingAttempted && !address.streetAddress.trim() ? 'Enter your delivery address.' : undefined,
+    province: shippingAttempted && !address.province ? 'Select your province.' : undefined,
+    city: shippingAttempted && !address.city ? 'Select your city.' : undefined,
+  };
+
+  // Real accordion: tapping an open section closes it, tapping a closed one opens it.
+  const toggleSection = (section: AccordionSection) =>
+    setActiveSection((prev) => (prev === section ? null : section));
+  const markDone = (section: AccordionSection) =>
+    setCompleted((prev) => ({ ...prev, [section]: true }));
+
+  const saveEmailSection = () => {
+    if (!isEmailValid) {
+      toast.error('Enter a valid email address');
+      document.getElementById('checkout-email')?.focus();
+      return;
     }
+    markDone('email');
+    setActiveSection('shipping');
   };
 
   const saveShippingSection = () => {
-    if (!isShippingValid) {
-      toast.error('Please complete all shipping fields correctly');
+    const firstInvalidId = !address.firstName.trim()
+      ? 'checkout-first-name'
+      : !address.lastName.trim()
+        ? 'checkout-last-name'
+        : !isPhoneValid
+          ? 'checkout-phone'
+          : !address.streetAddress.trim()
+            ? 'checkout-address'
+            : !address.province
+              ? 'checkout-province'
+              : !address.city
+                ? 'checkout-city'
+                : null;
+
+    if (firstInvalidId) {
+      setShippingAttempted(true);
+      // Jump straight to the first field that needs attention.
+      document.getElementById(firstInvalidId)?.focus();
       return;
     }
-    setShippingMode('summary');
+    markDone('shipping');
     setActiveSection('payment');
   };
 
   const savePaymentSection = () => {
-    setPaymentMode('summary');
-    setActiveSection('payment');
+    markDone('payment');
+    setActiveSection(null);
   };
 
   const handlePlaceOrder = async () => {
@@ -175,8 +236,14 @@ export default function CheckoutPage() {
       const createdOrder = await orderService.createGuest({
         guestName: fullName,
         guestEmail: checkoutEmail.trim(),
-        guestPhone: address.phone.trim(),
-        address: { fullName, phone: address.phone.trim(), address: address.streetAddress.trim(), city: address.city.trim(), province: address.province.trim() },
+        guestPhone: normalizedPhone,
+        address: {
+          fullName,
+          phone: normalizedPhone,
+          address: address.streetAddress.trim(),
+          city: address.city.trim(),
+          province: address.province.trim(),
+        },
         items: resolvedItems.map((item) => ({ productId: item.productId, quantity: Number(item.quantity), size: item.size, color: item.color })),
       });
       const createdOrderId = createdOrder?.data?.id || createdOrder?.id;
@@ -243,13 +310,13 @@ export default function CheckoutPage() {
         </p>
 
         {/* Unique Tracking Card */}
-        <div className="mt-6 p-6 rounded-2xl bg-white border-2 border-surface-900 shadow-soft text-left">
-          <div className="flex items-center justify-between border-b border-surface-200 pb-3">
+        <div className="mt-6 p-5 sm:p-6 rounded-2xl bg-white border-2 border-surface-900 shadow-soft text-left">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-surface-200 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-surface-500">Unique Tracking Number</span>
             <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Order Placed</span>
           </div>
           <div className="mt-3 flex items-center justify-between">
-            <span className="font-mono text-2xl sm:text-3xl font-black text-surface-950 tracking-wider">
+            <span className="break-all font-mono text-xl sm:text-3xl font-black text-surface-950 tracking-wider">
               {trackingNumber || orderId}
             </span>
           </div>
@@ -258,7 +325,7 @@ export default function CheckoutPage() {
           </p>
         </div>
 
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
           <Link href="/orders" className="btn-primary w-full sm:w-auto px-8 py-3 text-sm uppercase font-bold tracking-wider">
             Track Order
           </Link>
@@ -274,314 +341,329 @@ export default function CheckoutPage() {
   const shippingExpanded = activeSection === 'shipping';
   const paymentExpanded = activeSection === 'payment';
 
+  // One-line recap shown under a completed section's title while it is collapsed.
+  const compactLine = 'mt-0.5 truncate text-sm text-surface-600';
+  const paymentLabel = paymentMethod === 'COD' ? 'Cash on delivery' : 'Credit / debit card via Safepay';
+
   return (
-    <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-5 md:gap-7">
-        <div className="space-y-4">
-          <section className="border border-surface-300 rounded-2xl bg-surface-100 p-4 sm:p-5">
-            <div className="flex items-center justify-between">
-              <p className="font-bold text-xl text-black flex items-center gap-2">
-                <FiCheckCircle className="text-green-600" /> 1 ENTER EMAIL
-              </p>
-              <div className="flex items-center gap-2">
-                {emailMode === 'summary' ? (
-                  <button
-                    type="button"
-                    className="text-black"
-                    onClick={() => {
-                      setEmailMode('edit');
-                      setActiveSection('email');
-                    }}
-                  >
-                    <FiEdit2 className="w-5 h-5" />
-                  </button>
-                ) : null}
-                <button type="button" className="text-black" onClick={() => setActiveSection('email')}>
-                  <FiChevronDown className={`w-5 h-5 transition-transform ${emailExpanded ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
-            </div>
+    <div className="mx-auto max-w-[1280px] px-4 py-5 sm:px-6 md:py-8 lg:px-8">
+      {/* minmax(0,1fr) stops long content (emails, addresses) from stretching the grid past the screen */}
+      <div className="grid grid-cols-1 gap-5 md:gap-7 xl:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="divide-y divide-surface-200 border-y border-surface-200">
+          {/* ------------------------------ EMAIL ------------------------------ */}
+          <section className={sectionClass}>
+            <StepHeader
+              title="Email"
+              done={completed.email}
+              expanded={emailExpanded}
+              onToggle={() => toggleSection('email')}
+            />
 
             {emailExpanded ? (
-              emailMode === 'edit' ? (
-              <div className="mt-4">
-                <p className="text-surface-700 text-sm mb-2">Already have an account? <Link href="/login" className="font-semibold underline">SIGN IN</Link></p>
-                <div className="checkout-floating-field" data-filled={Boolean(checkoutEmail)}>
-                  <input
-                    id="checkout-email"
-                    name="email"
-                    type="email"
-                    value={checkoutEmail}
-                    onChange={(e) => handleCheckoutEmailChange(e.target.value)}
-                    autoComplete="email"
-                    className={`checkout-floating-input ${checkoutEmail && !isEmailValid ? 'checkout-field-error' : ''}`}
-                    placeholder=" "
-                  />
-                  <label htmlFor="checkout-email">Email address</label>
-                  {checkoutEmail && !isEmailValid && <p className="checkout-field-message">Enter a valid email address.</p>}
-                </div>
-              </div>
-              ) : (
-                <p className="mt-3 text-black font-medium">{checkoutEmail}</p>
-              )
-            ) : (
-              emailMode === 'summary' ? <p className="mt-3 text-black font-medium">{checkoutEmail}</p> : null
-            )}
-          </section>
-
-          <section className="border border-surface-300 rounded-2xl bg-surface-100 p-4 sm:p-5">
-            <div className="flex items-center justify-between">
-              <p className="font-bold text-xl text-black flex items-center gap-2">
-                <FiCheckCircle className="text-green-600" /> 2 SHIPPING
-              </p>
-              <div className="flex items-center gap-2">
-                {shippingMode === 'summary' ? (
-                  <button
-                    type="button"
-                    className="text-black"
-                    onClick={() => {
-                      setShippingMode('edit');
-                      setActiveSection('shipping');
-                    }}
-                  >
-                    <FiEdit2 className="w-5 h-5" />
-                  </button>
-                ) : null}
-                <button type="button" className="text-black" onClick={() => setActiveSection('shipping')}>
-                  <FiChevronDown className={`w-5 h-5 transition-transform ${shippingExpanded ? 'rotate-180' : ''}`} />
+              <form
+                noValidate
+                className="pb-2 pt-3"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  saveEmailSection();
+                }}
+              >
+                <p className="mb-3 text-sm text-surface-700">
+                  Already have an account?{' '}
+                  <Link href="/login" className="font-semibold text-navy underline underline-offset-2">
+                    Sign in
+                  </Link>
+                </p>
+                <TextField
+                  id="checkout-email"
+                  name="email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  enterKeyHint="next"
+                  label="Email address"
+                  value={checkoutEmail}
+                  onChange={(e) => setCheckoutEmail(e.target.value)}
+                  error={checkoutEmail && !isEmailValid ? 'Enter a valid email address.' : undefined}
+                  hint="Your order confirmation will be sent here."
+                />
+                <button type="submit" className={`${stepButtonClass} mt-4`}>
+                  Continue
                 </button>
-              </div>
-            </div>
-
-            {shippingExpanded ? (
-              shippingMode === 'edit' ? (
-              <div className="mt-4">
-                <h3 className="font-bold text-black mb-2">Customer Details</h3>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="checkout-floating-field" data-filled={Boolean(address.firstName)}>
-                    <input id="checkout-first-name" name="given-name" autoComplete="given-name" value={address.firstName} onChange={(e) => setAddress({ ...address, firstName: e.target.value })} className="checkout-floating-input" placeholder=" " />
-                    <label htmlFor="checkout-first-name">First Name</label>
-                  </div>
-                  <div className="checkout-floating-field" data-filled={Boolean(address.lastName)}>
-                    <input id="checkout-last-name" name="family-name" autoComplete="family-name" value={address.lastName} onChange={(e) => setAddress({ ...address, lastName: e.target.value })} className="checkout-floating-input" placeholder=" " />
-                    <label htmlFor="checkout-last-name">Last Name</label>
-                  </div>
-                  <div className="checkout-floating-field md:col-span-2" data-filled={Boolean(address.phone)}>
-                    <input id="checkout-phone" name="tel" type="tel" autoComplete="tel" value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} className={`checkout-floating-input ${address.phone && !isPhoneValid ? 'checkout-field-error' : ''}`} placeholder=" " />
-                    <label htmlFor="checkout-phone">Mobile Number</label>
-                    {address.phone && !isPhoneValid && <p className="checkout-field-message">Enter a valid Pakistani mobile number.</p>}
-                  </div>
-                  <div className="checkout-floating-field md:col-span-2" data-filled={Boolean(address.streetAddress)}>
-                    <input id="checkout-address" name="street-address" autoComplete="street-address" value={address.streetAddress} onChange={(e) => setAddress({ ...address, streetAddress: e.target.value })} className="checkout-floating-input" placeholder=" " />
-                    <label htmlFor="checkout-address">Street Address</label>
-                  </div>
-                  <div className="checkout-floating-field" data-filled={Boolean(address.country)}>
-                    <input id="checkout-country" name="country" autoComplete="country-name" value={address.country} readOnly className="checkout-floating-input checkout-floating-readonly" placeholder=" " />
-                    <label htmlFor="checkout-country">Country</label>
-                  </div>
-                  <div className="checkout-floating-field" data-filled={Boolean(address.province)}>
-                    <select id="checkout-province" name="address-level1" autoComplete="address-level1" value={address.province} onChange={(e) => setAddress({ ...address, province: e.target.value, city: '' })} className="checkout-floating-input checkout-floating-select">
-                      <option value="">Select Your Region</option>
-                      {Object.keys(PAKISTAN_LOCATIONS).map((province) => (
-                        <option key={province} value={province}>{province === 'GilgitBaltistan' ? 'Gilgit Baltistan' : province === 'AzadKashmir' ? 'Azad Kashmir' : province}</option>
-                      ))}
-                    </select>
-                    <label htmlFor="checkout-province">State / Province</label>
-                  </div>
-                  <div className="checkout-floating-field md:col-span-2" data-filled={Boolean(address.city)}>
-                    <select id="checkout-city" name="address-level2" autoComplete="address-level2" value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} className="checkout-floating-input checkout-floating-select" disabled={!address.province}>
-                      <option value="">Select Your City</option>
-                      {cityOptions.map((city) => (
-                        <option key={city} value={city}>{city}</option>
-                      ))}
-                    </select>
-                    <label htmlFor="checkout-city">City</label>
-                  </div>
-                </div>
-
-                <h3 className="font-bold text-black mt-5 mb-2">Shipping Method</h3>
-                <div className="space-y-2">
-                  <label className="border-2 border-surface-900 rounded-xl bg-white p-3.5 flex items-start gap-3 cursor-pointer shadow-xs">
-                    <input type="radio" checked readOnly className="mt-1 accent-surface-950" />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <p className="font-bold text-black text-sm">
-                          {isFreeDelivery ? 'Free Nationwide Shipping' : 'Standard Shipping'}
-                        </p>
-                        <span className={`font-bold text-sm ${isFreeDelivery ? 'text-emerald-600' : 'text-black'}`}>
-                          {isFreeDelivery ? 'FREE (PKR 0.00)' : `PKR ${delivery.toLocaleString()}`}
-                        </span>
-                      </div>
-                      <p className="text-xs text-surface-500 mt-0.5">
-                        {isFreeDelivery
-                          ? 'Your order qualifies for FREE Delivery on orders over PKR 10,000!'
-                          : `Orders over PKR ${freeDeliveryThreshold.toLocaleString()} qualify for FREE delivery (Shop PKR ${(freeDeliveryThreshold - subtotal).toLocaleString()} more for free shipping).`}
-                      </p>
-                    </div>
-                  </label>
-                </div>
-
-                <button type="button" onClick={saveShippingSection} className="btn-primary mt-4 px-5 py-2">Save Shipping</button>
-              </div>
-              ) : (
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <p className="font-bold text-black">Shipping Type</p>
-                    <p className="text-black">{isFreeDelivery ? 'Free Delivery (Orders > 10k)' : `Standard Shipping (PKR ${delivery.toLocaleString()})`}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-black">Customer Details</p>
-                    <p className="text-black">{address.firstName} {address.lastName}</p>
-                    <p className="text-black">{address.streetAddress}</p>
-                    <p className="text-black">{address.city} {address.province}</p>
-                    <p className="text-black">{address.phone}</p>
-                  </div>
-                </div>
-              )
-            ) : shippingMode === 'summary' ? (
-              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="font-bold text-black">Shipping Type</p>
-                  <p className="text-black">{isFreeDelivery ? 'Free Delivery (Orders > 10k)' : `Standard Shipping (PKR ${delivery.toLocaleString()})`}</p>
-                </div>
-                <div>
-                  <p className="font-bold text-black">Customer Details</p>
-                  <p className="text-black">{address.firstName} {address.lastName}</p>
-                  <p className="text-black">{address.streetAddress}</p>
-                  <p className="text-black">{address.city} {address.province}</p>
-                  <p className="text-black">{address.phone}</p>
-                </div>
-              </div>
+              </form>
+            ) : completed.email ? (
+              <p className={compactLine}>{checkoutEmail}</p>
             ) : null}
           </section>
 
-          <section className="border border-surface-300 rounded-2xl bg-surface-100 p-4 sm:p-5">
-            <div className="flex items-center justify-between">
-              <p className="font-bold text-xl text-black flex items-center gap-2">
-                <FiCheckCircle className="text-green-600" /> 3 PAYMENT
-              </p>
-              <div className="flex items-center gap-2">
-                {paymentMode === 'summary' ? (
-                  <button
-                    type="button"
-                    className="text-black"
-                    onClick={() => {
-                      setPaymentMode('edit');
-                      setActiveSection('payment');
-                    }}
-                  >
-                    <FiEdit2 className="w-5 h-5" />
-                  </button>
-                ) : null}
-                <button type="button" className="text-black" onClick={() => setActiveSection('payment')}>
-                  <FiChevronDown className={`w-5 h-5 transition-transform ${paymentExpanded ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
-            </div>
+          {/* ---------------------------- SHIPPING ----------------------------- */}
+          <section className={sectionClass}>
+            <StepHeader
+              title="Shipping details"
+              done={completed.shipping}
+              expanded={shippingExpanded}
+              onToggle={() => toggleSection('shipping')}
+            />
 
-            {paymentExpanded ? (
-              paymentMode === 'edit' ? (
-              <div className="mt-4 space-y-3">
-                <label className="border-2 border-surface-900 rounded-xl bg-surface-50/50 p-4 flex items-center gap-3 cursor-pointer shadow-sm">
+            {shippingExpanded ? (
+              <form
+                noValidate
+                className="pb-2 pt-3"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  saveShippingSection();
+                }}
+              >
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                  <TextField
+                    id="checkout-first-name"
+                    name="given-name"
+                    autoComplete="given-name"
+                    autoCapitalize="words"
+                    enterKeyHint="next"
+                    label="First name"
+                    value={address.firstName}
+                    onChange={(e) => setField('firstName', e.target.value)}
+                    error={fieldErrors.firstName}
+                  />
+                  <TextField
+                    id="checkout-last-name"
+                    name="family-name"
+                    autoComplete="family-name"
+                    autoCapitalize="words"
+                    enterKeyHint="next"
+                    label="Last name"
+                    value={address.lastName}
+                    onChange={(e) => setField('lastName', e.target.value)}
+                    error={fieldErrors.lastName}
+                  />
+                  <TextField
+                    id="checkout-phone"
+                    name="tel"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    enterKeyHint="next"
+                    maxLength={16}
+                    label="Mobile number"
+                    className="sm:col-span-2"
+                    value={address.phone}
+                    onChange={(e) => setField('phone', e.target.value)}
+                    error={fieldErrors.phone}
+                    hint="We'll call or message this number about your delivery. e.g. 0300 1234567"
+                  />
+                  <TextAreaField
+                    id="checkout-address"
+                    name="street-address"
+                    autoComplete="street-address"
+                    autoCapitalize="sentences"
+                    label="Delivery address"
+                    className="sm:col-span-2"
+                    value={address.streetAddress}
+                    onChange={(e) => setField('streetAddress', e.target.value)}
+                    error={fieldErrors.streetAddress}
+                    hint="House or flat number, street, area, nearest landmark"
+                  />
+                  <TextField
+                    id="checkout-country"
+                    name="country"
+                    autoComplete="country-name"
+                    label="Country"
+                    className="sm:col-span-2"
+                    value={address.country}
+                    readOnly
+                    locked
+                    tabIndex={-1}
+                  />
+                  <SelectField
+                    id="checkout-province"
+                    name="address-level1"
+                    autoComplete="address-level1"
+                    label="State / Province"
+                    placeholder="Select your province"
+                    options={PROVINCE_OPTIONS}
+                    value={address.province}
+                    onChange={(e) => setAddress((prev) => ({ ...prev, province: e.target.value, city: '' }))}
+                    error={fieldErrors.province}
+                  />
+                  <SelectField
+                    id="checkout-city"
+                    name="address-level2"
+                    autoComplete="address-level2"
+                    label="City"
+                    placeholder={address.province ? 'Select your city' : 'Select a province first'}
+                    options={cityOptions}
+                    value={address.city}
+                    onChange={(e) => setField('city', e.target.value)}
+                    disabled={!address.province}
+                    error={fieldErrors.city}
+                  />
+                </div>
+
+                <h3 className={`${subHeadingClass} mt-6`}>Shipping method</h3>
+                <label className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-surface-900 bg-white p-4 shadow-sm">
                   <input
                     type="radio"
-                    name="payment_method"
-                    checked={paymentMethod === 'COD'}
-                    onChange={() => setPaymentMethod('COD')}
-                    className="h-4 w-4 accent-surface-900"
+                    name="shipping_method"
+                    checked={shippingMethod === 'FIXED'}
+                    onChange={() => setShippingMethod('FIXED')}
+                    className="mt-0.5 h-5 w-5 shrink-0 accent-surface-900"
                   />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-surface-900 text-sm">CASH ON DELIVERY (COD)</span>
-                      <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide">Active</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                      <p className="text-sm font-bold text-surface-900">
+                        {isFreeDelivery ? 'Free Nationwide Shipping' : 'Standard Shipping'}
+                      </p>
+                      <span className={`text-sm font-bold ${isFreeDelivery ? 'text-emerald-600' : 'text-surface-900'}`}>
+                        {isFreeDelivery ? 'FREE (PKR 0.00)' : `PKR ${delivery.toLocaleString()}`}
+                      </span>
                     </div>
-                    <p className="text-xs text-surface-600 mt-0.5">Pay with cash when your parcel is delivered to your address.</p>
+                    <p className="mt-1 text-xs leading-relaxed text-surface-600">
+                      {isFreeDelivery
+                        ? `Your order qualifies for free delivery on orders over PKR ${freeDeliveryThreshold.toLocaleString()}.`
+                        : `Orders over PKR ${freeDeliveryThreshold.toLocaleString()} qualify for free delivery. Add PKR ${Math.max(0, freeDeliveryThreshold - subtotal).toLocaleString()} more to get it.`}
+                    </p>
                   </div>
-                  <div className="ml-auto flex items-center gap-2 shrink-0">
+                </label>
+
+                <button type="submit" className={`${stepButtonClass} mt-5`}>
+                  Continue to payment
+                </button>
+              </form>
+            ) : completed.shipping ? (
+              <>
+                <p className={compactLine}>
+                  {address.firstName} {address.lastName} · {address.phone}
+                </p>
+                <p className={compactLine}>
+                  {address.streetAddress.replace(/\s+/g, ' ')}, {address.city}
+                </p>
+              </>
+            ) : null}
+          </section>
+
+          {/* ----------------------------- PAYMENT ----------------------------- */}
+          <section className={sectionClass}>
+            <StepHeader
+              title="Payment method"
+              done={completed.payment}
+              expanded={paymentExpanded}
+              onToggle={() => toggleSection('payment')}
+            />
+
+            {paymentExpanded ? (
+              <div className="space-y-3 pb-2 pt-3">
+                <label className="flex cursor-pointer flex-col gap-3 rounded-2xl border-2 border-surface-900 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
+                    <input
+                      type="radio"
+                      name="payment_method"
+                      checked={paymentMethod === 'COD'}
+                      onChange={() => setPaymentMethod('COD')}
+                      className="mt-0.5 h-5 w-5 shrink-0 accent-surface-900"
+                    />
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="text-sm font-bold text-surface-900">Cash on delivery (COD)</span>
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800">Active</span>
+                      </div>
+                      <p className="mt-1 text-xs leading-relaxed text-surface-600">
+                        Pay with cash when your parcel is delivered to your address.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2 pl-8 sm:pl-0">
                     <Image src="/payment-logos/cod.svg" alt="Cash on delivery" width={72} height={24} sizes="72px" className="h-6 w-auto shrink-0" />
                   </div>
                 </label>
 
-                <label className="border border-surface-200 rounded-xl bg-surface-100/60 p-4 flex items-center gap-3 opacity-75 cursor-not-allowed">
-                  <input
-                    type="radio"
-                    name="payment_method"
-                    disabled
-                    checked={false}
-                    className="h-4 w-4 opacity-50"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-surface-600 text-sm">CREDIT / DEBIT CARD</span>
-                      <span className="rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 uppercase tracking-wide">Coming Soon</span>
+                <label className="flex cursor-not-allowed flex-col gap-3 rounded-2xl border border-surface-200 bg-surface-100/60 p-4 opacity-75 sm:flex-row sm:items-center">
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
+                    <input
+                      type="radio"
+                      name="payment_method"
+                      disabled
+                      checked={false}
+                      readOnly
+                      className="mt-0.5 h-5 w-5 shrink-0 opacity-50"
+                    />
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="text-sm font-bold text-surface-600">Credit / debit card</span>
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800">Coming soon</span>
+                      </div>
+                      <p className="mt-1 text-xs leading-relaxed text-surface-500">
+                        Online card payment via Safepay will be activated soon.
+                      </p>
                     </div>
-                    <p className="text-xs text-surface-500 mt-0.5">Online card payment via Safepay will be activated soon.</p>
                   </div>
-                  <div className="ml-auto flex items-center gap-2 shrink-0 opacity-60">
+                  <div className="flex shrink-0 items-center gap-2 pl-8 opacity-60 sm:pl-0">
                     <Image src="/payment-logos/visa.svg" alt="Visa" width={72} height={24} sizes="72px" className="h-6 w-auto shrink-0" />
                     <Image src="/payment-logos/mastercard.svg" alt="Mastercard" width={72} height={24} sizes="72px" className="h-6 w-auto shrink-0" />
                   </div>
                 </label>
 
-                <p className="text-xs text-surface-500 mt-1">
-                  Cash on Delivery is currently available for all orders across Pakistan.
+                <p className="px-1 text-xs text-surface-500">
+                  Cash on delivery is currently available for all orders across Pakistan.
                 </p>
-                <button type="button" onClick={savePaymentSection} className="btn-primary mt-2 px-6 py-2.5 text-xs font-bold uppercase tracking-wide">Save Payment</button>
+                <button type="button" onClick={savePaymentSection} className={stepButtonClass}>
+                  Save payment method
+                </button>
               </div>
-              ) : (
-                <p className="mt-3 text-black font-medium">
-                  {paymentMethod === 'COD' ? 'Cash on delivery' : 'Credit / debit card via Safepay'}
-                </p>
-              )
-            ) : (
-              paymentMode === 'summary' ? (
-                <p className="mt-3 text-black font-medium">
-                  {paymentMethod === 'COD' ? 'Cash on delivery' : 'Credit / debit card via Safepay'}
-                </p>
-              ) : null
-            )}
+            ) : completed.payment ? (
+              <p className={compactLine}>{paymentLabel}</p>
+            ) : null}
           </section>
         </div>
 
-        <aside className="space-y-4 xl:sticky xl:top-24 h-fit">
+        {/* ------------------------------- SIDEBAR ------------------------------- */}
+        <aside className="h-fit space-y-4 xl:sticky xl:top-24">
           <div className="sidebar-line-card">
-            <div className="flex items-center justify-between border-b border-surface-300 pb-3">
-              <p className="font-bold text-black text-2xl uppercase">Your Bag ({items.length})</p>
-              <p className="font-bold text-black text-xl">PKR {Math.round(subtotal).toLocaleString()}</p>
+            <div className="flex items-baseline justify-between gap-3 border-b border-surface-300 pb-3">
+              <p className="text-lg font-bold uppercase text-black sm:text-xl">Your Bag ({items.length})</p>
+              <p className="shrink-0 text-base font-bold text-black sm:text-lg">PKR {Math.round(subtotal).toLocaleString()}</p>
             </div>
 
-            {bagItem ? (
-              <div className="pt-4 grid grid-cols-[88px_1fr] gap-3">
-                <div className="w-[88px] h-[110px] rounded-lg bg-surface-200 overflow-hidden">
-                  {bagItemImage ? (
-                    <Image
-                      src={bagItemImage}
-                      alt={bagItem.name}
-                      width={88}
-                      height={110}
-                      loader={isCloudinaryUrl(bagItemImage) ? cloudinaryLoader : undefined}
-                      unoptimized={isBackendUploadUrl(bagItemImage)}
-                      sizes="88px"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : null}
-                </div>
-                <div>
-                  <p className="font-semibold text-black text-lg">{bagItem.name}</p>
-                  <p className="font-bold text-black mt-1">PKR {Math.round(bagItem.price * (1 - bagItem.discount / 100)).toLocaleString()}</p>
-                  <p className="text-sm text-surface-700 mt-2">Size <span className="font-semibold">{bagItem.size || 'N/A'}</span></p>
-                  <p className="text-sm text-surface-700">Qty <span className="font-semibold">{bagItem.quantity}</span></p>
-                </div>
-              </div>
-            ) : null}
+            <ul className="divide-y divide-surface-200">
+              {items.map((item) => {
+                const image = resolveImageUrl(item.image);
+                return (
+                  <li key={`${item.productId}-${item.size ?? ''}-${item.color ?? ''}`} className="grid grid-cols-[72px_minmax(0,1fr)] gap-3 py-4 last:pb-0 sm:grid-cols-[88px_minmax(0,1fr)]">
+                    <div className="h-[90px] w-[72px] overflow-hidden rounded-lg bg-surface-200 sm:h-[110px] sm:w-[88px]">
+                      {image ? (
+                        <Image
+                          src={image}
+                          alt={item.name}
+                          width={88}
+                          height={110}
+                          loader={isCloudinaryUrl(image) ? cloudinaryLoader : undefined}
+                          unoptimized={isBackendUploadUrl(image)}
+                          sizes="88px"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : null}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="break-words text-base font-semibold text-black">{item.name}</p>
+                      <p className="mt-1 font-bold text-black">PKR {Math.round(item.price * (1 - item.discount / 100)).toLocaleString()}</p>
+                      <p className="mt-2 text-sm text-surface-700">Size <span className="font-semibold">{item.size || 'N/A'}</span></p>
+                      <p className="text-sm text-surface-700">Qty <span className="font-semibold">{item.quantity}</span></p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
 
           <div className="sidebar-line-card">
-            <p className="font-bold text-black text-2xl">ORDER SUMMARY</p>
+            <p className="text-lg font-bold text-black sm:text-xl">ORDER SUMMARY</p>
             <div className="mt-4 space-y-3 text-sm text-black">
-              <div className="flex justify-between"><span>Subtotal</span><span className="font-bold">PKR {subtotal.toLocaleString()}</span></div>
-              <div className="flex justify-between"><span>Shipping</span><span className="font-bold">PKR {delivery.toLocaleString()}</span></div>
-              <div className="flex justify-between border-t border-surface-300 pt-3"><span>Total Amount</span><span className="font-bold">PKR {total.toLocaleString()}</span></div>
+              <div className="flex justify-between gap-3"><span>Subtotal</span><span className="font-bold">PKR {subtotal.toLocaleString()}</span></div>
+              <div className="flex justify-between gap-3"><span>Shipping</span><span className="font-bold">PKR {delivery.toLocaleString()}</span></div>
+              <div className="flex justify-between gap-3 border-t border-surface-300 pt-3"><span>Total Amount</span><span className="font-bold">PKR {total.toLocaleString()}</span></div>
             </div>
 
             <button

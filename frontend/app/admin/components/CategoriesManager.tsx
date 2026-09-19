@@ -52,8 +52,9 @@ export default function CategoriesManager() {
 
       const formData = new FormData();
       formData.append('images', file);
+      formData.append('type', 'category');
 
-      const res = await api.post('/products/upload-images', formData, {
+      const res = await api.post('/products/upload-images?type=category', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 

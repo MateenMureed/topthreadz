@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { productService } from './product.service';
 import { AuthRequest } from '../../middleware/auth.middleware';
 import { isCloudinaryConfigured, uploadToCloudinary } from '../../config/cloudinary';
+import { applyProductBranding } from '../../utils/brandWatermark';
 
 export class ProductController {
   async uploadImages(req: AuthRequest, res: Response, next: NextFunction) {
@@ -11,20 +12,38 @@ export class ProductController {
         return res.json({ success: true, data: { urls: [], images: [] } });
       }
 
+      const skipBranding = req.query.type === 'category' || req.body?.type === 'category';
+
+      // Apply the Top Threadz logo watermark to every product image before upload.
+      // Branding runs on the raw buffer so Cloudinary always receives the final image.
+      const brandedBuffers = await Promise.all(
+        files.map(async (file) => {
+          if (skipBranding) return file.buffer;
+          try {
+            return await applyProductBranding(file.buffer);
+          } catch (brandErr) {
+            // If branding fails for any reason, fall back to the original buffer
+            // so the upload still succeeds and we don't block the admin.
+            console.error('[brandWatermark] Branding failed, using original buffer:', brandErr);
+            return file.buffer;
+          }
+        })
+      );
+
       let images: Array<{ url: string; publicId: string }> = [];
 
       if (isCloudinaryConfigured()) {
         try {
-          images = await Promise.all(files.map((file) => uploadToCloudinary(file.buffer)));
+          images = await Promise.all(brandedBuffers.map((buf) => uploadToCloudinary(buf)));
         } catch {
-          images = files.map((file, idx) => ({
-            url: `data:${file.mimetype || 'image/jpeg'};base64,${file.buffer.toString('base64')}`,
+          images = brandedBuffers.map((buf, idx) => ({
+            url: `data:image/jpeg;base64,${buf.toString('base64')}`,
             publicId: `img-${Date.now()}-${idx}`,
           }));
         }
       } else {
-        images = files.map((file, idx) => ({
-          url: `data:${file.mimetype || 'image/jpeg'};base64,${file.buffer.toString('base64')}`,
+        images = brandedBuffers.map((buf, idx) => ({
+          url: `data:image/jpeg;base64,${buf.toString('base64')}`,
           publicId: `img-${Date.now()}-${idx}`,
         }));
       }
