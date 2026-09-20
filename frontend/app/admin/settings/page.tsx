@@ -49,7 +49,7 @@ export default function SettingsPage({ initialSection }: { initialSection?: Sett
         whatsappNumber: settingsData.whatsappNumber || '923009070520',
         phoneNumber: settingsData.phoneNumber || '+92 300 1234567',
         email: settingsData.email || 'support@topthreadz.pk',
-        operatingDays: settingsData.operatingDays || 'Mon to Fri: 9:00 AM - 6:00 PM',
+        operatingDays: settingsData.operatingDays || 'Store: Mon – Fri: 9:00 AM – 12:00 Midnight | Online Shopping: 24/7',
         address: settingsData.address || 'topthreadz, R28V+R3W, Street 2, DHA Phase 5 Zamzama Commercial Area Defence V Karachi, 75600, Pakistan',
         standardDeliveryFee: String(settingsData.standardDeliveryFee ?? 250),
         freeDeliveryThreshold: String(settingsData.freeDeliveryThreshold ?? 10000),
@@ -234,7 +234,7 @@ export default function SettingsPage({ initialSection }: { initialSection?: Sett
                 type="text"
                 value={form.operatingDays}
                 onChange={(e) => setForm({ ...form, operatingDays: e.target.value })}
-                placeholder="e.g. Mon to Fri: 9:00 AM - 6:00 PM"
+                placeholder="e.g. Mon – Fri: 9:00 AM – 12:00 Midnight | Online: 24/7"
                 className="w-full rounded-xl border border-surface-300 px-3.5 py-2.5 text-sm font-medium focus:border-black outline-none"
               />
             </div>

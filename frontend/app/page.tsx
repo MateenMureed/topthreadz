@@ -287,15 +287,9 @@ export default async function HomePage() {
         openingHoursSpecification: [
           {
             '@type': 'OpeningHoursSpecification',
-            dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Saturday', 'Sunday'],
-            opens: '11:00',
-            closes: '22:30',
-          },
-          {
-            '@type': 'OpeningHoursSpecification',
-            dayOfWeek: ['Friday'],
-            opens: '14:00',
-            closes: '22:30',
+            dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+            opens: '09:00',
+            closes: '23:59',
           },
         ],
         parentOrganization: {

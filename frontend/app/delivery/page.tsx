@@ -37,7 +37,7 @@ export default function DeliveryPolicyPage() {
   void email; // reserved for dynamic contact display; link uses ObfuscatedEmail
 
   const operatingDays =
-    settingsData?.operatingDays || 'Mon to Fri: 9:00 AM - 6:00 PM';
+    settingsData?.operatingDays || 'Store: Mon – Fri: 9:00 AM – 12:00 Midnight | Online Shopping: 24/7';
 
   return (
     <div className="min-h-screen bg-surface-50 py-8 sm:py-12 px-3 sm:px-6 lg:px-8">

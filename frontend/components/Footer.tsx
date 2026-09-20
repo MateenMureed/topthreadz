@@ -36,7 +36,7 @@ export default function Footer() {
   const phoneNumber = settings?.phoneNumber || '+92 300 9070520';
   const email = settings?.email || 'support@topthreadz.pk';
   const operatingDays =
-    settings?.operatingDays || 'Mon – Sat: 11:00 AM – 10:30 PM | Sun: 2:00 PM – 10:00 PM';
+    settings?.operatingDays || 'Store: Mon – Fri: 9:00 AM – 12:00 Midnight | Online Shopping: 24/7';
 
   if (pathname?.startsWith('/admin')) return null;
 

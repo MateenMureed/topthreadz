@@ -49,11 +49,9 @@ export default function AboutPage() {
           'Wednesday',
           'Thursday',
           'Friday',
-          'Saturday',
-          'Sunday',
         ],
-        opens: '11:00',
-        closes: '22:00',
+        opens: '09:00',
+        closes: '23:59',
       },
     ],
     sameAs: [
@@ -214,7 +212,8 @@ export default function AboutPage() {
                     <FiClock className="text-[#B88728]" /> Store Timings &amp; Contact
                   </div>
                   <p className="text-xs text-surface-600">
-                    <strong>Monday – Sunday:</strong> 11:00 AM – 10:00 PM
+                    <strong>Store Hours:</strong> Monday – Friday, 9:00 AM – 12:00 AM (Midnight)<br />
+                    <strong>Online Shopping:</strong> Open 24/7
                   </p>
                   <div className="flex flex-col gap-1 text-xs text-surface-600">
                     <a href="tel:+923009070520" className="inline-flex items-center gap-1.5 hover:text-black">
