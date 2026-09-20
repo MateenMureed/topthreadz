@@ -35,7 +35,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // ── AUTH GUARD ──
   useEffect(() => {
     if (hydrated && !isAuthenticated) {
-      router.replace('/admin-login');
+      router.replace('/login');
     }
   }, [hydrated, isAuthenticated, router]);
 
@@ -51,7 +51,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const interval = window.setInterval(() => {
       if (Date.now() - lastActivityRef.current > 60 * 60 * 1000) {
         logout();
-        window.location.href = '/admin-login';
+        window.location.href = '/';
       }
     }, 60 * 1000);
     return () => {
@@ -62,7 +62,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleLogout = useCallback(() => {
     logout();
-    router.replace('/admin-login');
+    // Land on the storefront homepage after signing out of the admin panel.
+    router.replace('/');
   }, [logout, router]);
 
   // ── LIVE BADGE COUNTS (sidebar pending orders + low stock) ──
