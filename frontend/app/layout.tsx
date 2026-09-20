@@ -82,19 +82,30 @@ export const metadata: Metadata = {
       'max-video-preview': -1,
     },
   },
+  // Favicon / PWA — single source of truth for every page. All paths are
+  // root-relative files served from /public. favicon.ico is kept as the
+  // legacy fallback for maximum browser compatibility; favicon.svg covers
+  // modern browsers. No CSS/JS favicon switching — favicon.svg handles both
+  // light and dark browser/OS environments.
   icons: {
     icon: [
-      { url: '/favicon-logo', type: 'image/x-icon' },
       { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
     ],
-    shortcut: '/favicon-logo',
-    apple: '/favicon-full-512.png',
+    shortcut: '/favicon.ico',
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
+  manifest: '/site.webmanifest',
   category: 'fashion',
 };
 
 export const viewport: Viewport = {
   colorScheme: 'light',
+  themeColor: '#000000',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -153,8 +164,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     },
     sameAs: [
       'https://www.topthreadz.com.pk',
-      'https://www.facebook.com/topthreadz',
-      'https://www.instagram.com/top.threadz',
+      'https://www.facebook.com/p/Top-Threadz-100090096882903/',
+      'https://www.instagram.com/top.threadz/',
     ],
   };
 
@@ -179,8 +190,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     },
     sameAs: [
       'https://www.topthreadz.com.pk',
-      'https://www.facebook.com/topthreadz',
-      'https://www.instagram.com/topthreadz',
+      'https://www.facebook.com/p/Top-Threadz-100090096882903/',
+      'https://www.instagram.com/top.threadz/',
     ],
   };
 

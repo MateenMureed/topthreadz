@@ -12,7 +12,7 @@ A production-ready, secure men's clothing eCommerce system built for the Pakista
 | Database | PostgreSQL + Prisma ORM |
 | Auth | JWT (access + refresh tokens), bcrypt |
 | Payments | Bank Alfalah APG |
-| Infra | Docker, NGINX reverse proxy |
+| Infra | Vercel (frontend + backend serverless), Neon PostgreSQL, Cloudinary |
 
 ## Quick Start (Development)
 
@@ -49,13 +49,10 @@ npm run dev                # http://localhost:3000
 | Admin | admin@menswear.pk | Admin@123 |
 | User | user@test.pk | User@123 |
 
-## Docker Deployment
+## Deployment
 
-```bash
-docker-compose up --build
-```
-
-Access at `http://localhost` (NGINX proxies everything).
+Frontend and backend both deploy on Vercel. See `backend/DEPLOYMENT.md` for the
+full backend serverless deployment guide (Neon PostgreSQL, Cloudinary, Upstash Redis).
 
 ## Project Structure
 
@@ -79,8 +76,6 @@ Access at `http://localhost` (NGINX proxies everything).
 │   ├── components/          # Reusable UI components
 │   ├── services/            # API layer (Axios + interceptors)
 │   └── store/               # Zustand state management
-├── nginx/                   # NGINX reverse proxy config
-├── docker-compose.yml
 └── .env.example
 ```
 

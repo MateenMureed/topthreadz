@@ -17,8 +17,9 @@ import {
   FiShield,
   FiTruck,
 } from 'react-icons/fi';
-import { FaWhatsapp } from 'react-icons/fa';
+import { FaWhatsapp, FaFacebookF, FaInstagram } from 'react-icons/fa';
 import { SiGmail } from 'react-icons/si';
+import { SOCIAL_LINKS } from '@/lib/seo';
 
 type SectionKey = 'shop' | 'policies' | 'contact';
 
@@ -263,7 +264,7 @@ export default function Footer() {
                 }`}
             >
               <div className="min-h-0 space-y-4 overflow-hidden pb-3.5 lg:pb-0">
-                {/* Instant Action Icons for WhatsApp and Email without visible text */}
+                {/* Instant Action Icons for WhatsApp, Email, Facebook and Instagram */}
                 <div className="flex items-center gap-3 pt-1">
                   {/* WhatsApp Icon */}
                   <a
@@ -275,6 +276,30 @@ export default function Footer() {
                     className="group/wa relative flex h-11 w-11 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 shadow-sm transition-all duration-300 ease-out hover:scale-115 hover:-translate-y-1 hover:border-[#25D366] hover:bg-[#25D366] hover:text-white hover:shadow-[0_0_22px_rgba(37,211,102,0.45)] active:scale-95"
                   >
                     <FaWhatsapp className="h-5 w-5 transition-transform duration-300 group-hover/wa:rotate-6" />
+                  </a>
+
+                  {/* Facebook Icon */}
+                  <a
+                    href={SOCIAL_LINKS.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Follow us on Facebook"
+                    title="Follow on Facebook"
+                    className="group/fb relative flex h-11 w-11 items-center justify-center rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 shadow-sm transition-all duration-300 ease-out hover:scale-115 hover:-translate-y-1 hover:border-[#1877F2] hover:bg-[#1877F2] hover:text-white hover:shadow-[0_0_22px_rgba(24,119,242,0.45)] active:scale-95"
+                  >
+                    <FaFacebookF className="h-5 w-5 transition-transform duration-300 group-hover/fb:rotate-6" />
+                  </a>
+
+                  {/* Instagram Icon */}
+                  <a
+                    href={SOCIAL_LINKS.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Follow us on Instagram"
+                    title="Follow on Instagram"
+                    className="group/ig relative flex h-11 w-11 items-center justify-center rounded-full border border-pink-500/30 bg-pink-500/10 text-pink-400 shadow-sm transition-all duration-300 ease-out hover:scale-115 hover:-translate-y-1 hover:border-[#E4405F] hover:bg-[#E4405F] hover:text-white hover:shadow-[0_0_22px_rgba(228,64,95,0.45)] active:scale-95"
+                  >
+                    <FaInstagram className="h-5 w-5 transition-transform duration-300 group-hover/ig:rotate-6" />
                   </a>
 
                   {/* Gmail / Email Icon */}

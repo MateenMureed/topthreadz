@@ -135,24 +135,9 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       images: [ogImage],
     },
-    icons: {
-      icon: [
-        { url: '/favicon.ico', sizes: 'any' },
-        { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-        { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      ],
-      apple: [
-        { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
-      ],
-      other: [
-        {
-          rel: 'mask-icon',
-          url: '/safari-pinned-tab.svg',
-          color: '#000000',
-        },
-      ],
-    },
-    manifest: '/site.webmanifest',
+    // NOTE: favicon icons, apple-touch-icon, theme-color and the web manifest
+    // are intentionally NOT redeclared here — they are defined once in
+    // app/layout.tsx and inherited by every page (including this one).
     verification: {
       google: 'h2s93E-7aU8K0vVK_RxrpR-ps_P7ylL0oop_o3qCSJw',
     },
@@ -228,10 +213,8 @@ export default async function HomePage() {
           availableLanguage: ['English', 'Urdu'],
         },
         sameAs: [
-          'https://www.facebook.com/topthreadz',
-          'https://www.instagram.com/topthreadz',
-          'https://www.youtube.com/topthreadz',
-          'https://www.pinterest.com/topthreadz',
+          'https://www.facebook.com/p/Top-Threadz-100090096882903/',
+          'https://www.instagram.com/top.threadz/',
         ],
       },
 

@@ -3,6 +3,12 @@ import type { Metadata } from 'next';
 export const SITE_URL = 'https://www.topthreadz.com.pk';
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/images/topthreadz-logo.jpg`;
 
+/** Official social profiles (verified). Used in the footer and schema.org sameAs. */
+export const SOCIAL_LINKS = {
+  facebook: 'https://www.facebook.com/p/Top-Threadz-100090096882903/',
+  instagram: 'https://www.instagram.com/top.threadz/',
+} as const;
+
 /**
  * Self-canonical metadata for public indexable pages. Prevents the
  * "Alternate page with proper canonical tag" issue by letting each page

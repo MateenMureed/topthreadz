@@ -25,7 +25,7 @@ export default function AboutPage() {
     description:
       'Top Threadz is a premier Pakistani menswear brand specializing in luxury wash & wear unstitched fabric, ready-to-wear kurtas, and tailored suits.',
     telephone: '+923009070520',
-    email: 'support@topthreadz.pk',
+    email: 'mail@topthreadz.pk',
     priceRange: 'PKR 2,500 - PKR 15,000',
     address: {
       '@type': 'PostalAddress',
@@ -57,8 +57,8 @@ export default function AboutPage() {
       },
     ],
     sameAs: [
-      'https://www.facebook.com/topthreadz',
-      'https://www.instagram.com/topthreadz',
+      'https://www.facebook.com/p/Top-Threadz-100090096882903/',
+      'https://www.instagram.com/top.threadz/',
     ],
   };
 
