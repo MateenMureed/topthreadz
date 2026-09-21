@@ -87,17 +87,15 @@ export default function Footer() {
               className="pointer-events-none absolute right-0 top-1 hidden h-[calc(100%-0.25rem)] w-px bg-gradient-to-b from-transparent via-[#D4A84B]/25 to-transparent lg:block"
             />
 
-            <Link href="/" className="hover-lift inline-flex items-center gap-2.5">
-              <div className="relative h-7 w-24">
-                <Image
-                  src={footerLogoSrc}
-                  alt="Top Threadz"
-                  width={140}
-                  height={44}
-                  unoptimized={!footerLogoSrc.startsWith('/')}
-                  className="h-full w-auto object-contain brightness-125 rounded"
-                />
-              </div>
+            <Link href="/" className="hover-lift inline-block">
+              <Image
+                src={footerLogoSrc}
+                alt="Top Threadz"
+                width={160}
+                height={50}
+                unoptimized={!footerLogoSrc.startsWith('/')}
+                className="h-10 w-auto object-contain"
+              />
             </Link>
 
             <p className="max-w-sm text-[12px] leading-relaxed text-white/55">
