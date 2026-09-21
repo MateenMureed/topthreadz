@@ -82,21 +82,21 @@ export const metadata: Metadata = {
       'max-video-preview': -1,
     },
   },
-  // Favicon / PWA — SVG is listed first so modern browsers (Chrome, Firefox,
-  // Edge) pick it up with priority. The SVG already has embedded light/dark
-  // switching via a <style> media query — no black box, clean TT mark.
-  // favicon.ico stays last as the legacy fallback for IE / very old browsers.
+  // Favicon — light-series PNGs (black TT on white) are used as primary PNG
+  // fallbacks so the icon is clearly visible in all browser tabs. The SVG is
+  // still listed first for modern browsers (Chrome/Firefox/Edge) which render
+  // it with embedded light/dark switching. ICO is legacy-only.
   icons: {
     icon: [
-      // SVG first — modern browsers honour this and it handles light/dark natively
+      // SVG first — handles light/dark natively in modern browsers
       { url: '/favicon.svg', type: 'image/svg+xml' },
-      // PNG fallbacks for browsers that don't support SVG favicons
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      // Light PNG fallbacks — black TT on white background, visible everywhere
+      { url: '/favicon-light-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-light-16x16.png', sizes: '16x16', type: 'image/png' },
       // ICO last — legacy fallback only
       { url: '/favicon.ico', sizes: 'any' },
     ],
-    shortcut: '/favicon.ico',
+    shortcut: '/favicon-light-32x32.png',
     apple: [
       { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
