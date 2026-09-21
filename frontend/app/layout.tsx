@@ -82,40 +82,19 @@ export const metadata: Metadata = {
       'max-video-preview': -1,
     },
   },
-  // Favicon / PWA — single source of truth for every page. All paths are
-  // root-relative files served from /public. favicon.ico is kept as the
-  // legacy fallback for maximum browser compatibility; favicon.svg covers
-  // modern browsers with internal SVG light/dark support. Media queries on
-  // 32x32 and 16x16 PNG favicons ensure OS/browser-level light/dark theme
-  // pairing without JavaScript.
+  // Favicon / PWA — SVG is listed first so modern browsers (Chrome, Firefox,
+  // Edge) pick it up with priority. The SVG already has embedded light/dark
+  // switching via a <style> media query — no black box, clean TT mark.
+  // favicon.ico stays last as the legacy fallback for IE / very old browsers.
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: 'any' },
+      // SVG first — modern browsers honour this and it handles light/dark natively
       { url: '/favicon.svg', type: 'image/svg+xml' },
-      {
-        url: '/favicon-light-32x32.png',
-        sizes: '32x32',
-        type: 'image/png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/favicon-32x32.png',
-        sizes: '32x32',
-        type: 'image/png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/favicon-light-16x16.png',
-        sizes: '16x16',
-        type: 'image/png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/favicon-16x16.png',
-        sizes: '16x16',
-        type: 'image/png',
-        media: '(prefers-color-scheme: dark)',
-      },
+      // PNG fallbacks for browsers that don't support SVG favicons
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      // ICO last — legacy fallback only
+      { url: '/favicon.ico', sizes: 'any' },
     ],
     shortcut: '/favicon.ico',
     apple: [
