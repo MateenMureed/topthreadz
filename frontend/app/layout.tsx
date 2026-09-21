@@ -85,14 +85,37 @@ export const metadata: Metadata = {
   // Favicon / PWA — single source of truth for every page. All paths are
   // root-relative files served from /public. favicon.ico is kept as the
   // legacy fallback for maximum browser compatibility; favicon.svg covers
-  // modern browsers. No CSS/JS favicon switching — favicon.svg handles both
-  // light and dark browser/OS environments.
+  // modern browsers with internal SVG light/dark support. Media queries on
+  // 32x32 and 16x16 PNG favicons ensure OS/browser-level light/dark theme
+  // pairing without JavaScript.
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
       { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      {
+        url: '/favicon-light-32x32.png',
+        sizes: '32x32',
+        type: 'image/png',
+        media: '(prefers-color-scheme: light)',
+      },
+      {
+        url: '/favicon-32x32.png',
+        sizes: '32x32',
+        type: 'image/png',
+        media: '(prefers-color-scheme: dark)',
+      },
+      {
+        url: '/favicon-light-16x16.png',
+        sizes: '16x16',
+        type: 'image/png',
+        media: '(prefers-color-scheme: light)',
+      },
+      {
+        url: '/favicon-16x16.png',
+        sizes: '16x16',
+        type: 'image/png',
+        media: '(prefers-color-scheme: dark)',
+      },
     ],
     shortcut: '/favicon.ico',
     apple: [
@@ -105,7 +128,10 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: 'light',
-  themeColor: '#000000',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#000000' },
+    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

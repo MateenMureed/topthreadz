@@ -28,15 +28,15 @@ const STORE_TIMEZONE = 'Asia/Karachi';
 
 type Hours = { open: number; close: number }; // minutes from midnight
 
-const SUNDAY: Hours = { open: 14 * 60, close: 22 * 60 };
-const WEEKDAY: Hours = { open: 11 * 60, close: 22 * 60 + 30 };
-// Index = JS weekday (0 = Sunday)
-const WEEKLY_HOURS: Hours[] = [SUNDAY, WEEKDAY, WEEKDAY, WEEKDAY, WEEKDAY, WEEKDAY, WEEKDAY];
+const WEEKDAY: Hours = { open: 9 * 60, close: 12 * 60 }; // 9:00 AM – 12:00 PM
+// Index = JS weekday (0 = Sunday). null = store closed (online orders stay open 24/7).
+const WEEKLY_HOURS: (Hours | null)[] = [null, WEEKDAY, WEEKDAY, WEEKDAY, WEEKDAY, WEEKDAY, null];
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const FULL_DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-const HOURS_ROWS = [
-  { label: 'Mon – Sat', days: [1, 2, 3, 4, 5, 6], hours: WEEKDAY },
-  { label: 'Sunday', days: [0], hours: SUNDAY },
+const HOURS_ROWS: { label: string; days: number[]; hours: Hours | null }[] = [
+  { label: 'Mon – Fri', days: [1, 2, 3, 4, 5], hours: WEEKDAY },
+  { label: 'Sat & Sun', days: [6, 0], hours: null },
 ];
 
 const formatTime = (minutes: number) => {
@@ -64,14 +64,25 @@ function getStoreStatus(now: Date = new Date()): StoreStatus | null {
   const minutes = (Number(get('hour')) % 24) * 60 + Number(get('minute'));
   const today = WEEKLY_HOURS[day];
 
-  if (minutes >= today.open && minutes < today.close) {
-    return { isOpen: true, day, message: `Open now · until ${formatTime(today.close)}` };
+  if (today) {
+    if (minutes >= today.open && minutes < today.close) {
+      return { isOpen: true, day, message: `Open now · until ${formatTime(today.close)}` };
+    }
+    if (minutes < today.open) {
+      return { isOpen: false, day, message: `Closed · opens today at ${formatTime(today.open)}` };
+    }
   }
-  if (minutes < today.open) {
-    return { isOpen: false, day, message: `Closed · opens today at ${formatTime(today.open)}` };
+
+  // Find the next day the store is open (skips Sat & Sun)
+  for (let offset = 1; offset <= 7; offset++) {
+    const nextDay = (day + offset) % 7;
+    const next = WEEKLY_HOURS[nextDay];
+    if (next) {
+      const when = offset === 1 ? 'tomorrow' : FULL_DAY_NAMES[nextDay];
+      return { isOpen: false, day, message: `Closed · opens ${when} at ${formatTime(next.open)}` };
+    }
   }
-  const tomorrow = WEEKLY_HOURS[(day + 1) % 7];
-  return { isOpen: false, day, message: `Closed · opens tomorrow at ${formatTime(tomorrow.open)}` };
+  return { isOpen: false, day, message: 'Closed' };
 }
 
 const IN_STORE_PERKS = ['Touch & drape fabric feel', 'Expert fit & cut advice', 'Exclusive outlet editions'];
@@ -234,7 +245,9 @@ export default function StoreLocationSection() {
                               ) : null}
                             </span>
                             <span className="tabular-nums">
-                              {formatTime(row.hours.open)} – {formatTime(row.hours.close)}
+                              {row.hours
+                                ? `${formatTime(row.hours.open)} – ${formatTime(row.hours.close)}`
+                                : 'Closed'}
                             </span>
                           </li>
                         );

@@ -36,7 +36,8 @@ export default function Footer() {
   const phoneNumber = settings?.phoneNumber || '+92 300 9070520';
   const email = settings?.email || 'support@topthreadz.pk';
   const operatingDays =
-    settings?.operatingDays || 'Store: Mon – Fri: 9:00 AM – 12:00 Midnight | Online Shopping: 24/7';
+    settings?.operatingDays ||
+    'Store: Mon – Fri: 9:00 AM – 12:00 PM | Sat & Sun: Store Closed | Online Shopping: 24/7';
 
   if (pathname?.startsWith('/admin')) return null;
 
@@ -150,38 +151,44 @@ export default function Footer() {
             >
               <ul className="min-h-0 space-y-2.5 overflow-hidden pb-3.5 text-[12.5px] lg:pb-0">
                 <li>
-                  <Link href="/products?category=Unstitched" className={linkClass}>
+                  <Link href="/products/category/unstitched-fabric" className={linkClass}>
                     <span>Unstitched Fabric</span>
                     {underline}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/products?category=Stitched" className={linkClass}>
-                    <span>Stitched Suits</span>
+                  <Link href="/products/category/stitched" className={linkClass}>
+                    <span>Stitched Clothing</span>
                     {underline}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/products?category=Two+Piece" className={linkClass}>
-                    <span>Two Piece Sets</span>
+                  <Link href="/products/category/waist-coats" className={linkClass}>
+                    <span>Waistcoats</span>
                     {underline}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/products?category=Three+Piece" className={linkClass}>
-                    <span>Three Piece</span>
+                  <Link href="/products/category/two-piece" className={linkClass}>
+                    <span>Two Piece Suits</span>
                     {underline}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/products?category=Kurta" className={linkClass}>
-                    <span>Kurta Collection</span>
+                  <Link href="/products/category/three-piece" className={linkClass}>
+                    <span>Three Piece Suits</span>
                     {underline}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/products?category=Kids" className={linkClass}>
-                    <span>Boys &amp; Kids</span>
+                  <Link href="/products/category/kids-section" className={linkClass}>
+                    <span>Kids&apos; Traditional Wear</span>
+                    {underline}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/products" className={linkClass}>
+                    <span>Shop All Products</span>
                     {underline}
                   </Link>
                 </li>
@@ -315,11 +322,19 @@ export default function Footer() {
                   </a>
                 </div>
 
-                <div className="inline-flex items-center gap-2 text-white/50 text-[11.5px]">
+                <div className="inline-flex items-start gap-2 text-white/50 text-[11.5px]">
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04]">
                     <FiClock className="h-2.5 w-2.5 text-white/40" />
                   </span>
-                  <span>{operatingDays}</span>
+                  <ul className="space-y-0.5 leading-5">
+                    {String(operatingDays)
+                      .split('|')
+                      .map((line) => line.trim())
+                      .filter(Boolean)
+                      .map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                  </ul>
                 </div>
               </div>
             </div>
