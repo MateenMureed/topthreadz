@@ -94,7 +94,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   ? 'Store & System Settings'
                   : pathname?.startsWith('/admin/homepage')
                     ? 'Homepage Editor'
-                    : 'Admin';
+                    : pathname?.startsWith('/admin/social')
+                      ? 'Social Publishing'
+                      : 'Admin';
 
   if (!hydrated || !isAuthenticated) {
     return (

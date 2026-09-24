@@ -17,6 +17,7 @@ import orderRoutes from './modules/order/order.routes';
 import paymentRoutes from './modules/payment/payment.routes';
 import adminRoutes from './modules/admin/admin.routes';
 import experienceRoutes from './modules/experience/experience.routes';
+import socialRoutes from './modules/social/social.router';
 import { adminController } from './modules/admin/admin.controller';
 import { adminService } from './modules/admin/admin.service';
 import { upload } from './middleware/upload.middleware';
@@ -99,6 +100,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/experience', experienceRoutes);
+app.use('/api/social', socialRoutes);
 
 app.get('/api/settings/hero-banner', adminController.getHeroBanner.bind(adminController));
 app.post('/api/settings/hero-banner', authenticateAdmin, authorize('ADMIN'), upload.single('image'), adminController.uploadHeroBanner.bind(adminController));

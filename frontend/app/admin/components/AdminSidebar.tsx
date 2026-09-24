@@ -24,6 +24,7 @@ import {
   FiX,
   FiShoppingBag,
   FiExternalLink,
+  FiShare2,
 } from 'react-icons/fi';
 import { SettingsSection } from './types';
 
@@ -74,6 +75,7 @@ function useActiveRoute() {
   const isHomepageRoute = pathname?.startsWith('/admin/homepage') ?? false;
   const isUsersRoute = pathname?.startsWith('/admin/customers') ?? false;
   const isPaymentsRoute = pathname?.startsWith('/admin/payments') ?? false;
+  const isSocialRoute = pathname?.startsWith('/admin/social') ?? false;
   return {
     isProductsRoute,
     isCreateRoute,
@@ -84,6 +86,7 @@ function useActiveRoute() {
     isHomepageRoute,
     isUsersRoute,
     isPaymentsRoute,
+    isSocialRoute,
     pathname,
   };
 }
@@ -96,7 +99,7 @@ export function AdminSidebar({
   onMobileClose,
 }: AdminSidebarProps) {
   const router = useRouter();
-  const { isProductsRoute, isCreateRoute, isOrdersRoute, isPendingView, isSettingsRoute, settingsSection, isHomepageRoute, isUsersRoute, isPaymentsRoute } = useActiveRoute();
+  const { isProductsRoute, isCreateRoute, isOrdersRoute, isPendingView, isSettingsRoute, settingsSection, isHomepageRoute, isUsersRoute, isPaymentsRoute, isSocialRoute } = useActiveRoute();
 
   // Accordion groups — collapsed until the user clicks them
   const [productsOpen, setProductsOpen] = useState(false);
@@ -141,13 +144,20 @@ export function AdminSidebar({
       <nav className="space-y-1.5">
         {/* ── TOP ESSENTIALS ── */}
         <div className="space-y-0.5">
-          <button onClick={() => go('/admin')} className={`${navLinkBase} ${!isProductsRoute && !isOrdersRoute && !isSettingsRoute && !isHomepageRoute && !isUsersRoute && !isPaymentsRoute ? navLinkActive : navLinkIdle}`}>
+          <button onClick={() => go('/admin')} className={`${navLinkBase} ${!isProductsRoute && !isOrdersRoute && !isSettingsRoute && !isHomepageRoute && !isUsersRoute && !isPaymentsRoute && !isSocialRoute ? navLinkActive : navLinkIdle}`}>
             <FiHome className="w-4 h-4 shrink-0" />
             <span>Overview</span>
           </button>
           <button onClick={() => go('/admin/homepage')} className={`${navLinkBase} ${isHomepageRoute ? navLinkActive : navLinkIdle}`}>
             <FiLayers className="w-4 h-4 shrink-0" />
             <span>Homepage</span>
+          </button>
+          {/* Social Publishing */}
+          <button onClick={() => go('/admin/social')} className={`${navLinkBase} ${isSocialRoute ? navLinkActive : navLinkIdle}`}>
+            <span className={`flex h-4 w-4 items-center justify-center shrink-0 rounded bg-gradient-to-br from-[#1877F2] to-[#E1306C] text-white ${isSocialRoute ? 'opacity-100' : 'opacity-70'}`}>
+              <FiShare2 className="w-2.5 h-2.5" />
+            </span>
+            <span>Social Publishing</span>
           </button>
         </div>
 

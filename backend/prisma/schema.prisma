@@ -862,3 +862,44 @@ model MarketingGenerationLog {
   @@index([campaignId])
   @@index([createdAt])
 }
+
+// ═══════════════════════════════════════════════════════════
+// SOCIAL PUBLISHING MODULE (Meta Graph API)
+// ═══════════════════════════════════════════════════════════
+
+enum SocialPlatform {
+  FACEBOOK
+  INSTAGRAM
+  BOTH
+}
+
+enum SocialPostStatus {
+  DRAFT
+  PUBLISHED
+  FAILED
+}
+
+/// Tracks every Facebook / Instagram publish attempt made from the admin panel.
+/// fbPostId and igMediaId are returned by the Meta Graph API after a successful
+/// publish and can be used to link directly to the live post.
+model SocialPost {
+  id           String           @id @default(uuid())
+  productId    String
+  productName  String
+  platform     SocialPlatform
+  caption      String
+  hashtags     String[]         @default([])
+  imageUrl     String
+  productUrl   String
+  fbPostId     String?
+  igMediaId    String?
+  status       SocialPostStatus @default(DRAFT)
+  errorMessage String?
+  publishedAt  DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([productId])
+  @@index([status])
+  @@index([createdAt])
+}
