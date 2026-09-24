@@ -83,16 +83,39 @@ function buildCaptionPrompt(product: ProductForCaption, productUrl: string): str
     ? `${product.category} › ${product.subcategory}`
     : product.category;
 
-  return `You are a senior social media copywriter for TOP THREADZ — a premium Pakistani men's fashion brand based in Zamzama DHA Phase 5, Karachi.
+  return `You are a high-performing digital marketing copywriter for TOP THREADZ — Pakistan's premium men's fashion label in Zamzama DHA Phase 5, Karachi.
 
-BRAND VOICE: Premium, elegant, masculine, modern Pakistani. Never generic. Speak with authority.
+TASK: Write a high-converting FACEBOOK & INSTAGRAM MARKETING POST for the product below.
 
-STRICT RULES:
-- Only use facts from the product data below. Never invent discounts, guarantees, reviews, or features.
-- Include the exact product URL.
-- All prices in PKR as given.
-- Keep caption 3-5 sentences. Punchy, premium, emotional.
-- Hashtags: 12-18 relevant tags mixing brand, category, and cultural tags. Include #TopThreadz.
+CRITICAL FORMATTING RULES (FACEBOOK MARKETING STYLE WITH GAPS):
+- NEVER write a single continuous paragraph.
+- Always use DOUBLE LINE BREAKS (\n\n) between every distinct section so the post is clean, spaced-out, and scannable.
+- Use attractive emojis to structure each section.
+- Follow this exact section structure:
+
+1. HOOK / HEADLINE:
+✨ TOP THREADZ | NEW LUXURY ARRIVAL ✨
+
+2. INTRO (1-2 punchy, emotional sentences with a blank line after):
+Elevate your signature look with the all-new ${product.name}. Designed for the modern Pakistani gentleman who demands unmatched elegance and distinction.
+
+3. PRODUCT DETAILS (Bulleted with emoji):
+💎 PRODUCT DETAILS:
+• Category: ${categoryStr}
+• Available Colors: ${colorStr}
+• Price: ${priceStr}
+
+4. EXCLUSIVE PERKS (Bulleted with emoji):
+🇵🇰 SHOP WITH CONFIDENCE:
+• 100% Premium Fabric & Finish
+• Cash on Delivery Nationwide
+• Free Delivery on Orders Over PKR 5,000
+
+5. CALL TO ACTION (CTA):
+🛒 Tap below to order now before stock runs out:
+👉 ${productUrl}
+
+📍 Flagship Store: Zamzama DHA Phase 5, Karachi
 
 PRODUCT DATA:
 Name: ${product.name}
@@ -101,13 +124,13 @@ Category: ${categoryStr}
 Colors: ${colorStr}
 Description: ${product.description}
 URL: ${productUrl}
-${product.featured ? 'Status: Featured Product' : ''}
+${product.featured ? 'Status: Featured Collection' : ''}
 ${product.trending ? 'Status: Trending Now' : ''}
 
-Respond with valid JSON only — no markdown fences, no explanation:
+Respond with valid JSON only — no markdown fences, no extra text:
 {
-  "caption": "3-5 sentence premium caption text (no hashtags in this field, end with the product URL)",
-  "hashtags": ["tag1", "tag2", ...]
+  "caption": "The complete Facebook marketing post text formatted with double line breaks between sections and bullet points, ending with the URL and store address.",
+  "hashtags": ["TopThreadz", "PakistaniFashion", "MensWear", "UnstitchedFabric", "Karachi", "Zamzama"]
 }`;
 }
 
@@ -138,7 +161,7 @@ export async function generateCaption(product: ProductForCaption): Promise<Gener
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.85,
-          maxOutputTokens: 800,
+          maxOutputTokens: 900,
         },
       }),
     });
@@ -170,21 +193,34 @@ export async function generateCaption(product: ProductForCaption): Promise<Gener
 
 function buildTemplateCaption(product: ProductForCaption, productUrl: string): GeneratedCaption {
   const priceStr = product.salePrice
-    ? `PKR ${product.salePrice.toLocaleString()}`
+    ? `PKR ${product.salePrice.toLocaleString()} (was PKR ${product.price.toLocaleString()})`
     : `PKR ${product.price.toLocaleString()}`;
-  const colorStr = product.colors.slice(0, 3).join(', ');
+  const colorStr = product.colors.length ? product.colors.slice(0, 4).join(', ') : 'Exclusive Shades';
+  const categoryStr = product.subcategory
+    ? `${product.category} — ${product.subcategory}`
+    : product.category;
 
-  const caption = [
-    `✨ Introducing the ${product.name} — crafted for the discerning Pakistani gentleman.`,
-    colorStr ? `Available in ${colorStr}${product.colors.length > 3 ? ' and more.' : '.'}` : '',
-    `Premium quality at ${priceStr}.`,
-    `Experience the Top Threadz difference. Shop now: ${productUrl}`,
-  ].filter(Boolean).join(' ');
+  const sections = [
+    `✨ TOP THREADZ | NEW LUXURY ARRIVAL ✨`,
+    `Elevate your wardrobe with the all-new ${product.name}. Masterfully crafted for the modern Pakistani gentleman who values luxury, comfort, and effortless distinction.`,
+    `💎 PRODUCT DETAILS:\n• Category: ${categoryStr}\n• Available Color(s): ${colorStr}\n• Price: ${priceStr}`,
+    `🇵🇰 SHOP WITH CONFIDENCE:\n• 100% Premium Quality Guaranteed\n• Cash on Delivery Nationwide\n• Free Delivery on Orders Above PKR 5,000`,
+    `🛒 Tap the link to order yours now:\n👉 ${productUrl}\n\n📍 Flagship Store: Zamzama DHA Phase 5, Karachi`,
+  ];
+
+  const caption = sections.join('\n\n');
 
   const hashtags = [
-    'TopThreadz', 'PremiumFabric', 'MensWear', 'PakistaniFashion',
-    'UnstitchedFabric', 'Karachi', 'DHA', 'Zamzama',
-    'MensFashion', 'PakistaniMensWear', 'DesignerFabric', 'ElegantMen',
+    'TopThreadz',
+    'PakistaniFashion',
+    'MensFashion',
+    'UnstitchedFabric',
+    'KarachiFashion',
+    'Zamzama',
+    'DHA',
+    'LuxuryMenswear',
+    'PakistaniMen',
+    'PremiumFabric',
   ];
 
   return {
