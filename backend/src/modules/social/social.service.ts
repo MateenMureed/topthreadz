@@ -155,7 +155,7 @@ export async function generateCaption(product: ProductForCaption): Promise<Gener
   }
 
   try {
-    const geminiModel = env.GEMINI_MODEL || 'gemini-1.5-flash';
+    const geminiModel = env.GEMINI_MODEL || 'gemini-3.6-flash';
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
 
     const response = await fetch(apiUrl, {

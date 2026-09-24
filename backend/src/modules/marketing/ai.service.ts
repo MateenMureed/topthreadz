@@ -226,7 +226,7 @@ function generateTemplateContent(input: CampaignGenerationInput): CampaignGenera
 // ── AI Provider Calls ────────────────────────────────────
 
 async function callGeminiAPI(systemPrompt: string, userPrompt: string): Promise<{ text: string; promptTokens?: number; outputTokens?: number; model: string }> {
-  const model = env.AI_MODEL || 'gemini-2.0-flash';
+  const model = env.AI_MODEL || 'gemini-3.6-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.AI_API_KEY}`;
 
   const response = await fetch(url, {
