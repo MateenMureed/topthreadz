@@ -93,9 +93,13 @@ export async function composePostImage(opts: ComposeOptions): Promise<string> {
 
     // 4. Prepare text content
     const colorText = colorNames.slice(0, 3).join('  ·  ');
-    const detailText = colorText && category
-      ? `${colorText.toUpperCase()}  |  ${category.toUpperCase()}`
-      : (colorText || category || 'PREMIUM COLLECTION').toUpperCase();
+    const cleanCategory = category
+      .replace(/\s*\|\s*Top\s*Threadz/gi, '')
+      .replace(/\s*-\s*Top\s*Threadz/gi, '')
+      .trim();
+    const detailText = colorText && cleanCategory
+      ? `${colorText.toUpperCase()}  |  ${cleanCategory.toUpperCase()}`
+      : (colorText || cleanCategory || 'PREMIUM COLLECTION').toUpperCase();
 
     // Proportional font sizes and positions (relative to image dimensions)
     const detailFontSize = Math.max(18, Math.round(imgW * 0.026));

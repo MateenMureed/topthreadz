@@ -74,6 +74,12 @@ export interface PublishResult {
  * Deliberately kept simple and focused: one rich caption block + hashtag array.
  */
 function buildCaptionPrompt(product: ProductForCaption, productUrl: string): string {
+  // Clean product name to remove any trailing "| Top Threadz" or "- Top Threadz"
+  const cleanName = product.name
+    .replace(/\s*\|\s*Top\s*Threadz/gi, '')
+    .replace(/\s*-\s*Top\s*Threadz/gi, '')
+    .trim();
+
   const priceStr = product.salePrice
     ? `PKR ${product.salePrice.toLocaleString()} (was PKR ${product.price.toLocaleString()}, ${product.discount ?? 0}% off)`
     : `PKR ${product.price.toLocaleString()}`;
@@ -83,60 +89,58 @@ function buildCaptionPrompt(product: ProductForCaption, productUrl: string): str
     ? `${product.category} › ${product.subcategory}`
     : product.category;
 
-  return `You are a high-performing digital marketing copywriter for TOP THREADZ — Pakistan's premium men's fashion label in Zamzama DHA Phase 5, Karachi.
+  return `You are an elite fashion copywriter for TOP THREADZ — Karachi's premier luxury men's label in Zamzama DHA Phase 5.
 
-TASK: Write a high-converting FACEBOOK & INSTAGRAM MARKETING POST for the product below.
+TASK: Write an authentic, human-written, high-converting FACEBOOK MARKETING POST for this product.
 
-CRITICAL FORMATTING RULES (FACEBOOK MARKETING STYLE WITH GAPS):
-- NEVER write a single continuous paragraph.
-- Always use DOUBLE LINE BREAKS (\n\n) between every distinct section so the post is clean, spaced-out, and scannable.
-- Use attractive emojis to structure each section.
-- Follow this exact section structure:
+🚨 STRICT CREATIVE RULES (ANTI-ROBOT / UNIQUE HUMAN VOICE):
+1. BANNED CLICHÉS: NEVER use "Elevate your wardrobe", "Masterfully crafted for the modern gentleman", "Look no further", or "Introducing the...". These sound like AI.
+2. MAKE EVERY POST COMPLETELY UNIQUE: Tailor the tone directly to the product's fabric, color, and practical appeal:
+   - For Wash & Wear: Highlight zero-crease sharpness, all-day crispness, effortless maintenance, office-to-dinner elegance.
+   - For Cotton / Latha: Highlight breathable comfort, lightweight drape, cool natural weave, understated sophistication.
+   - For Dark colors (Black, Navy, Brown, Charcoal): Highlight authoritative presence, bold contrast, evening depth.
+   - For Light colors (Off-White, Cream, Sky): Highlight regal summer purity, timeless heritage, celebratory charm.
+3. STRUCTURE WITH GAPS (FACEBOOK MARKETING STYLE):
+   - Hook: Catchy, unique headline with emojis (varies every time, e.g. "⚡ THE POWER OF PURE TEXTURE", "🍂 DEEP BROWN WASH & WEAR HAS LANDED", "✨ CRISP. COLD. IMMACULATE.")
+   - Blank line (\n\n)
+   - Intro: 2 fresh, natural, human-sounding sentences explaining why this piece feels and looks exceptional to wear.
+   - Blank line (\n\n)
+   - "💎 PRODUCT SPECIFICATIONS:"
+     • Category: ${categoryStr}
+     • Available Color(s): ${colorStr}
+     • Price: ${priceStr}
+   - Blank line (\n\n)
+   - "🇵🇰 SHOP WITH CONFIDENCE:"
+     • 100% Guaranteed Premium Fabric
+     • Cash on Delivery Available Across Pakistan
+     • Free Shipping on Orders Over PKR 5,000
+   - Blank line (\n\n)
+   - CTA with Link & Flagship Location:
+     🛒 Claim yours online before roll runs out:
+     👉 ${productUrl}
 
-1. HOOK / HEADLINE:
-✨ TOP THREADZ | NEW LUXURY ARRIVAL ✨
+     📍 Flagship: Zamzama DHA Phase 5, Karachi
 
-2. INTRO (1-2 punchy, emotional sentences with a blank line after):
-Elevate your signature look with the all-new ${product.name}. Designed for the modern Pakistani gentleman who demands unmatched elegance and distinction.
-
-3. PRODUCT DETAILS (Bulleted with emoji):
-💎 PRODUCT DETAILS:
-• Category: ${categoryStr}
-• Available Colors: ${colorStr}
-• Price: ${priceStr}
-
-4. EXCLUSIVE PERKS (Bulleted with emoji):
-🇵🇰 SHOP WITH CONFIDENCE:
-• 100% Premium Fabric & Finish
-• Cash on Delivery Nationwide
-• Free Delivery on Orders Over PKR 5,000
-
-5. CALL TO ACTION (CTA):
-🛒 Tap below to order now before stock runs out:
-👉 ${productUrl}
-
-📍 Flagship Store: Zamzama DHA Phase 5, Karachi
-
-PRODUCT DATA:
-Name: ${product.name}
+PRODUCT DETAILS:
+Name: ${cleanName}
 Price: ${priceStr}
 Category: ${categoryStr}
 Colors: ${colorStr}
 Description: ${product.description}
 URL: ${productUrl}
-${product.featured ? 'Status: Featured Collection' : ''}
-${product.trending ? 'Status: Trending Now' : ''}
+${product.featured ? 'Status: Featured Roll' : ''}
+${product.trending ? 'Status: High Demand' : ''}
 
-Respond with valid JSON only — no markdown fences, no extra text:
+Respond with valid JSON only — no markdown fences, no commentary:
 {
-  "caption": "The complete Facebook marketing post text formatted with double line breaks between sections and bullet points, ending with the URL and store address.",
+  "caption": "Complete Facebook marketing post text formatted with double line breaks between sections.",
   "hashtags": ["TopThreadz", "PakistaniFashion", "MensWear", "UnstitchedFabric", "Karachi", "Zamzama"]
 }`;
 }
 
 /**
  * Generate a premium social media caption + hashtags for a product using Gemini AI.
- * Falls back to a template if the API key is not configured.
+ * Falls back to dynamic human-written templates if the API key is not configured.
  */
 export async function generateCaption(product: ProductForCaption): Promise<GeneratedCaption> {
   const storeUrl = process.env.STORE_FRONTEND_URL || env.FRONTEND_URL || 'https://www.topthreadz.com.pk';
@@ -146,7 +150,7 @@ export async function generateCaption(product: ProductForCaption): Promise<Gener
   const geminiKey = env.GEMINI_API_KEY;
 
   if (!geminiKey) {
-    logger.warn('[SocialService] GEMINI_API_KEY not set — using template caption');
+    logger.warn('[SocialService] GEMINI_API_KEY not set — using dynamic template caption');
     return buildTemplateCaption(product, productUrl);
   }
 
@@ -160,7 +164,7 @@ export async function generateCaption(product: ProductForCaption): Promise<Gener
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.85,
+          temperature: 0.9, // slightly higher temperature for authentic variety
           maxOutputTokens: 900,
         },
       }),
@@ -191,7 +195,17 @@ export async function generateCaption(product: ProductForCaption): Promise<Gener
   }
 }
 
+/**
+ * Dynamic human-written template generator.
+ * Produces unique, varied openings based on the fabric, colors, and product traits
+ * so no two products ever share the exact same copy.
+ */
 function buildTemplateCaption(product: ProductForCaption, productUrl: string): GeneratedCaption {
+  const cleanName = product.name
+    .replace(/\s*\|\s*Top\s*Threadz/gi, '')
+    .replace(/\s*-\s*Top\s*Threadz/gi, '')
+    .trim();
+
   const priceStr = product.salePrice
     ? `PKR ${product.salePrice.toLocaleString()} (was PKR ${product.price.toLocaleString()})`
     : `PKR ${product.price.toLocaleString()}`;
@@ -200,12 +214,97 @@ function buildTemplateCaption(product: ProductForCaption, productUrl: string): G
     ? `${product.category} — ${product.subcategory}`
     : product.category;
 
+  const nameLower = cleanName.toLowerCase();
+  const isWashAndWear = nameLower.includes('wash') || nameLower.includes('wear');
+  const isCotton = nameLower.includes('cotton') || nameLower.includes('latha');
+  const isDark = product.colors.some(c => /black|dark|navy|charcoal|brown|burgundy|olive/i.test(c)) || /dark|black|navy|brown/i.test(nameLower);
+
+  // Deterministic seed so a product consistently gets a natural fit, but different products get varied copy
+  const seed = (product.id || cleanName).split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+
+  let hook = '✨ TOP THREADZ | CURATED LUXURY ROLL';
+  let intro = `A standout addition to our seasonal roll. The ${cleanName} brings high-density weave and an unmatched natural drape to your traditional wardrobe.`;
+
+  if (isWashAndWear) {
+    const washOptions = [
+      {
+        hook: `👔 WRINKLE-FREE CONFIDENCE | TOP THREADZ`,
+        intro: `Zero midday creases, zero compromise. The ${cleanName} is engineered to stay sharp and crisp from early morning meetings right through to evening gatherings.`,
+      },
+      {
+        hook: `⚡ EFFORTLESS POLISH. ZERO COMPROMISE.`,
+        intro: `When your schedule demands all-day poise without ironing hassles, the ${cleanName} delivers. Breathable, fluid fall, and razor-sharp lines all day long.`,
+      },
+      {
+        hook: `✨ THE DAILY EXECUTIVE STAPLE`,
+        intro: `Subtle sheen, high-durability yarn, and a fall that turns heads. The ${cleanName} gives you the luxury look with easy wash-and-wear care.`,
+      },
+    ];
+    const pick = washOptions[seed % washOptions.length];
+    hook = pick.hook;
+    intro = pick.intro;
+  } else if (isCotton) {
+    const cottonOptions = [
+      {
+        hook: `🌿 THE BREATHABLE HERITAGE WEAVE`,
+        intro: `Nothing feels quite like authentic, high-count cotton. The ${cleanName} pairs an ultra-soft hand-feel with a crisp masculine silhouette suited for any occasion.`,
+      },
+      {
+        hook: `✨ COOL COMFORT, REGAL DRAPE`,
+        intro: `Hand-selected yarns woven to perfection. The ${cleanName} offers cool, lightweight ease without losing that structured, tailored grace you count on.`,
+      },
+      {
+        hook: `🕊️ UNDERSTATED SOPHISTICATION | TOP THREADZ`,
+        intro: `A masterclass in quiet luxury. The ${cleanName} lets the quality of the weave do all the talking — light on skin, immaculate in every setting.`,
+      },
+    ];
+    const pick = cottonOptions[seed % cottonOptions.length];
+    hook = pick.hook;
+    intro = pick.intro;
+  } else if (isDark) {
+    const darkOptions = [
+      {
+        hook: `🖤 DEEP TONES & UNMISTAKABLE DEPTH`,
+        intro: `Command any room with the rich, saturated tones of the ${cleanName}. A commanding choice for formal gatherings, dinners, and evening occasions.`,
+      },
+      {
+        hook: `👑 THE POWER PALETTE | TOP THREADZ`,
+        intro: `Bold, masculine, and unapologetically refined. The ${cleanName} offers an intensely rich depth of shade that holds its brilliant luster wear after wear.`,
+      },
+      {
+        hook: `✨ STATEMENT TAILORING FOR THE DISCERNING`,
+        intro: `Rich tones meet immaculate textile finish. The ${cleanName} is tailored in spirit for men who value quiet strength and dignified style.`,
+      },
+    ];
+    const pick = darkOptions[seed % darkOptions.length];
+    hook = pick.hook;
+    intro = pick.intro;
+  } else {
+    const generalOptions = [
+      {
+        hook: `✨ FRESH FROM OUR EXCLUSIVE ROLLS`,
+        intro: `Selected by our master tailors for its exceptional fall and tactile texture. The ${cleanName} is ready to be cut and styled to your exact preference.`,
+      },
+      {
+        hook: `🌟 CRAFTED FOR SPECIAL OCCASIONS`,
+        intro: `When ordinary fabric simply won't do. The ${cleanName} brings premium textile density and subtle luster that sets your traditional attire apart.`,
+      },
+      {
+        hook: `💎 MODERN EASTERN ATTIRE REDEFINED`,
+        intro: `Designed for moments where presence matters. The ${cleanName} balances traditional eastern aesthetic with contemporary textile excellence.`,
+      },
+    ];
+    const pick = generalOptions[seed % generalOptions.length];
+    hook = pick.hook;
+    intro = pick.intro;
+  }
+
   const sections = [
-    `✨ TOP THREADZ | NEW LUXURY ARRIVAL ✨`,
-    `Elevate your wardrobe with the all-new ${product.name}. Masterfully crafted for the modern Pakistani gentleman who values luxury, comfort, and effortless distinction.`,
-    `💎 PRODUCT DETAILS:\n• Category: ${categoryStr}\n• Available Color(s): ${colorStr}\n• Price: ${priceStr}`,
-    `🇵🇰 SHOP WITH CONFIDENCE:\n• 100% Premium Quality Guaranteed\n• Cash on Delivery Nationwide\n• Free Delivery on Orders Above PKR 5,000`,
-    `🛒 Tap the link to order yours now:\n👉 ${productUrl}\n\n📍 Flagship Store: Zamzama DHA Phase 5, Karachi`,
+    hook,
+    intro,
+    `💎 PRODUCT SPECIFICATIONS:\n• Category: ${categoryStr}\n• Available Color(s): ${colorStr}\n• Price: ${priceStr}`,
+    `🇵🇰 SHOP WITH CONFIDENCE:\n• 100% Guaranteed Premium Fabric\n• Cash on Delivery Nationwide (Pakistan)\n• Free Shipping on Orders Over PKR 5,000`,
+    `🛒 Claim your cut online before rolls run out:\n👉 ${productUrl}\n\n📍 Flagship Store: Zamzama DHA Phase 5, Karachi`,
   ];
 
   const caption = sections.join('\n\n');
