@@ -114,14 +114,19 @@ The `instagram_business_account.id` is your **Instagram Account ID**.
 
 In your **backend** Vercel project → **Settings** → **Environment Variables**, add:
 
-| Variable | Value |
-|---|---|
-| `META_APP_ID` | Your Meta App ID (from App Dashboard) |
-| `META_APP_SECRET` | Your Meta App Secret (from App Dashboard → Settings → Basic) |
-| `META_PAGE_ACCESS_TOKEN` | Your 60-day long-lived Page Access Token |
-| `META_FACEBOOK_PAGE_ID` | Your Facebook Page numeric ID |
-| `META_INSTAGRAM_ACCOUNT_ID` | Your Instagram Business Account numeric ID |
-| `STORE_FRONTEND_URL` | `https://www.topthreadz.com.pk` |
+### Required (Facebook Auto-Posting)
+| Variable | Value | Notes |
+|---|---|---|
+| `META_PAGE_ACCESS_TOKEN` | Your 60-day long-lived Page Access Token | **Required** for posting to Facebook |
+| `META_FACEBOOK_PAGE_ID` | Your Facebook Page numeric ID | **Required** for identifying target page |
+
+### Optional (Instagram & Token Extensions)
+| Variable | Value | Notes |
+|---|---|---|
+| `META_INSTAGRAM_ACCOUNT_ID` | Your Instagram Business Account numeric ID | **Optional** — add whenever you are ready to publish to Instagram |
+| `META_APP_ID` | Your Meta App ID (from App Dashboard) | Optional helper for app reference & token extensions |
+| `META_APP_SECRET` | Your Meta App Secret | Optional helper for token extensions |
+| `STORE_FRONTEND_URL` | `https://www.topthreadz.com.pk` | Defaults to frontend URL |
 
 > ⚠️ **Security**: These must ONLY be in the backend project. Never set them as `NEXT_PUBLIC_*` variables or in the frontend project. The admin UI never receives these values — all Meta API calls happen server-side.
 
@@ -133,6 +138,7 @@ After adding the env vars, trigger a redeploy of your backend Vercel project.
 
 Then visit `/admin/social` in the admin panel — the status banner should turn green showing:
 > ✅ Meta connected — Top Threadz
+> Facebook Page ID: 123456789 · Instagram: Not connected (Optional)
 
 ---
 

@@ -14,7 +14,7 @@ const GRAPH_BASE = 'https://graph.facebook.com/v20.0';
 export interface MetaConfig {
   pageAccessToken: string;
   facebookPageId: string;
-  instagramAccountId: string;
+  instagramAccountId?: string | null;
 }
 
 export interface FbPhotoResult {
@@ -28,6 +28,8 @@ export interface IgPublishResult {
 
 export interface MetaStatusResult {
   configured: boolean;
+  facebookConfigured: boolean;
+  instagramConfigured: boolean;
   facebookPageId: string | null;
   instagramAccountId: string | null;
   tokenValid: boolean | null;
@@ -37,14 +39,15 @@ export interface MetaStatusResult {
 
 /**
  * Read Meta credentials from environment variables.
- * Returns null if any required credential is missing.
+ * Facebook Page credentials (pageAccessToken, facebookPageId) are required.
+ * instagramAccountId is optional.
  */
 export function getMetaConfig(): MetaConfig | null {
   const pageAccessToken = process.env.META_PAGE_ACCESS_TOKEN;
   const facebookPageId = process.env.META_FACEBOOK_PAGE_ID;
-  const instagramAccountId = process.env.META_INSTAGRAM_ACCOUNT_ID;
+  const instagramAccountId = process.env.META_INSTAGRAM_ACCOUNT_ID || null;
 
-  if (!pageAccessToken || !facebookPageId || !instagramAccountId) {
+  if (!pageAccessToken || !facebookPageId) {
     return null;
   }
 
@@ -81,6 +84,8 @@ export async function getMetaStatus(): Promise<MetaStatusResult> {
   if (!config) {
     return {
       configured: false,
+      facebookConfigured: false,
+      instagramConfigured: Boolean(process.env.META_INSTAGRAM_ACCOUNT_ID),
       facebookPageId: process.env.META_FACEBOOK_PAGE_ID || null,
       instagramAccountId: process.env.META_INSTAGRAM_ACCOUNT_ID || null,
       tokenValid: null,
@@ -90,9 +95,11 @@ export async function getMetaStatus(): Promise<MetaStatusResult> {
   const { valid, pageName, error } = await validateToken(config);
 
   return {
-    configured: true,
+    configured: Boolean(valid),
+    facebookConfigured: true,
+    instagramConfigured: Boolean(config.instagramAccountId),
     facebookPageId: config.facebookPageId,
-    instagramAccountId: config.instagramAccountId,
+    instagramAccountId: config.instagramAccountId ?? null,
     tokenValid: valid,
     pageName,
     error,
@@ -147,6 +154,10 @@ export async function publishToInstagram(
   imageUrl: string,
   caption: string,
 ): Promise<IgPublishResult> {
+  if (!config.instagramAccountId) {
+    throw new Error('Instagram Account ID is not configured (META_INSTAGRAM_ACCOUNT_ID missing).');
+  }
+
   // ── Step 1: Create media container ──────────────────────
   const containerEndpoint = `${GRAPH_BASE}/${config.instagramAccountId}/media`;
 

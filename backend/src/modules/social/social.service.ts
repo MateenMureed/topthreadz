@@ -204,7 +204,7 @@ export async function publishPost(req: PublishRequest): Promise<PublishResult> {
   const config = getMetaConfig();
 
   if (!config) {
-    throw new Error('Meta integration is not configured. Please set META_PAGE_ACCESS_TOKEN, META_FACEBOOK_PAGE_ID, and META_INSTAGRAM_ACCOUNT_ID in your environment variables.');
+    throw new Error('Meta integration is not configured. Please set META_PAGE_ACCESS_TOKEN and META_FACEBOOK_PAGE_ID in your environment variables.');
   }
 
   // Build the full post text: caption + hashtags
@@ -240,9 +240,17 @@ export async function publishPost(req: PublishRequest): Promise<PublishResult> {
     }
 
     if (req.platform === 'INSTAGRAM' || req.platform === 'BOTH') {
-      const igResult = await publishToInstagram(config, composedImageUrl, fullCaption);
-      igMediaId = igResult.id;
-      logger.info('[SocialService] Published to Instagram:', igMediaId);
+      if (!config.instagramAccountId) {
+        if (req.platform === 'INSTAGRAM') {
+          throw new Error('Instagram Account ID is not configured. Please set META_INSTAGRAM_ACCOUNT_ID in your environment variables.');
+        } else {
+          logger.warn('[SocialService] Skipping Instagram: META_INSTAGRAM_ACCOUNT_ID not configured');
+        }
+      } else {
+        const igResult = await publishToInstagram(config, composedImageUrl, fullCaption);
+        igMediaId = igResult.id;
+        logger.info('[SocialService] Published to Instagram:', igMediaId);
+      }
     }
   } catch (err: any) {
     errorMessage = err.message;

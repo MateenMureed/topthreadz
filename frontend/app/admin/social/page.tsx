@@ -51,6 +51,8 @@ function FiFacebook({ className }: { className?: string }) {
 
 interface MetaStatus {
   configured: boolean;
+  facebookConfigured?: boolean;
+  instagramConfigured?: boolean;
   facebookPageId: string | null;
   instagramAccountId: string | null;
   tokenValid: boolean | null;
@@ -303,18 +305,28 @@ export default function SocialPublishingPage() {
           </div>
         </div>
       ) : (
-        <div className="mb-5 flex items-center gap-3 rounded-xl border border-[#BBF7D0] bg-[#F0FDF4] p-4">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#16A34A]">
-            <FiCheck className="h-4 w-4 text-white" />
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#BBF7D0] bg-[#F0FDF4] p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#16A34A]">
+              <FiCheck className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <p className="font-semibold text-[#15803D]">
+                Meta connected{statusData.pageName ? ` — ${statusData.pageName}` : ''}
+              </p>
+              <p className="text-xs text-[#15803D]/70">
+                Facebook Page ID: {statusData.facebookPageId}
+                {statusData.instagramAccountId
+                  ? ` · Instagram Account ID: ${statusData.instagramAccountId}`
+                  : ' · Instagram: Not connected (Optional)'}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="font-semibold text-[#15803D]">
-              Meta connected{statusData.pageName ? ` — ${statusData.pageName}` : ''}
-            </p>
-            <p className="text-xs text-[#15803D]/70">
-              Page ID: {statusData.facebookPageId} · IG Account: {statusData.instagramAccountId}
-            </p>
-          </div>
+          {!statusData.instagramAccountId && (
+            <span className="rounded-full bg-[#FEF3C7] px-2.5 py-0.5 text-[11px] font-semibold text-[#D97706]">
+              Facebook Ready · Instagram Optional
+            </span>
+          )}
         </div>
       )}
 
@@ -494,8 +506,9 @@ export default function SocialPublishingPage() {
                 <button
                   type="button"
                   onClick={() => handlePublish('INSTAGRAM')}
-                  disabled={publishMutation.isPending || tokenWarning}
-                  className="flex flex-col items-center gap-2 py-4 rounded-[8px] border border-[#E1306C]/30 bg-[#FFF0F6] text-[#E1306C] font-semibold text-xs hover:bg-[#FFE4EF] transition-colors disabled:opacity-40"
+                  disabled={publishMutation.isPending || tokenWarning || !statusData?.instagramAccountId}
+                  title={!statusData?.instagramAccountId ? 'Instagram is not configured yet (optional — add META_INSTAGRAM_ACCOUNT_ID to backend env)' : undefined}
+                  className="flex flex-col items-center gap-2 py-4 rounded-[8px] border border-[#E1306C]/30 bg-[#FFF0F6] text-[#E1306C] font-semibold text-xs hover:bg-[#FFE4EF] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {publishMutation.isPending && publishMutation.variables?.platform === 'INSTAGRAM' ? (
                     <FiRefreshCw className="h-5 w-5 animate-spin" />
@@ -503,14 +516,18 @@ export default function SocialPublishingPage() {
                     <FiInstagram className="h-5 w-5" />
                   )}
                   <span>Instagram</span>
+                  {!statusData?.instagramAccountId && (
+                    <span className="text-[10px] font-normal text-[#9CA3AF]">(Optional)</span>
+                  )}
                 </button>
 
                 {/* Publish to Both */}
                 <button
                   type="button"
                   onClick={() => handlePublish('BOTH')}
-                  disabled={publishMutation.isPending || tokenWarning}
-                  className="flex flex-col items-center gap-2 py-4 rounded-[8px] border border-[#6366F1]/30 bg-[#EEF2FF] text-[#6366F1] font-semibold text-xs hover:bg-[#E0E7FF] transition-colors disabled:opacity-40"
+                  disabled={publishMutation.isPending || tokenWarning || !statusData?.instagramAccountId}
+                  title={!statusData?.instagramAccountId ? 'Requires Instagram to be configured. Use "Facebook" button instead.' : undefined}
+                  className="flex flex-col items-center gap-2 py-4 rounded-[8px] border border-[#6366F1]/30 bg-[#EEF2FF] text-[#6366F1] font-semibold text-xs hover:bg-[#E0E7FF] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {publishMutation.isPending && publishMutation.variables?.platform === 'BOTH' ? (
                     <FiRefreshCw className="h-5 w-5 animate-spin" />
@@ -520,6 +537,9 @@ export default function SocialPublishingPage() {
                     </span>
                   )}
                   <span>Publish Both</span>
+                  {!statusData?.instagramAccountId && (
+                    <span className="text-[10px] font-normal text-[#9CA3AF]">(Need IG)</span>
+                  )}
                 </button>
               </div>
 
@@ -813,6 +833,7 @@ export default function SocialPublishingPage() {
           hashtags={hashtags}
           imageUrl={previewImageUrl}
           productUrl={productUrl}
+          hasInstagram={Boolean(statusData?.instagramAccountId)}
           onClose={() => setPreviewOpen(false)}
           onPublish={handlePublish}
           isPublishing={publishMutation.isPending}
@@ -831,6 +852,7 @@ function PostPreviewModal({
   hashtags,
   imageUrl,
   productUrl,
+  hasInstagram = true,
   onClose,
   onPublish,
   isPublishing,
@@ -841,6 +863,7 @@ function PostPreviewModal({
   hashtags: string[];
   imageUrl: string;
   productUrl: string;
+  hasInstagram?: boolean;
   onClose: () => void;
   onPublish: (platform: 'FACEBOOK' | 'INSTAGRAM' | 'BOTH') => void;
   isPublishing: boolean;
@@ -939,17 +962,19 @@ function PostPreviewModal({
               <button
                 type="button"
                 onClick={() => { onPublish('INSTAGRAM'); onClose(); }}
-                disabled={isPublishing || tokenWarning}
-                className="flex flex-col items-center gap-1.5 rounded-xl border border-[#E1306C]/30 bg-[#FFF0F6] py-3 text-[#E1306C] font-semibold text-xs hover:bg-[#FFE4EF] transition-colors disabled:opacity-40"
+                disabled={isPublishing || tokenWarning || !hasInstagram}
+                title={!hasInstagram ? 'Instagram is not configured yet (optional)' : undefined}
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-[#E1306C]/30 bg-[#FFF0F6] py-3 text-[#E1306C] font-semibold text-xs hover:bg-[#FFE4EF] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <FiInstagram className="h-5 w-5" />
-                Instagram
+                Instagram {!hasInstagram && '(Optional)'}
               </button>
               <button
                 type="button"
                 onClick={() => { onPublish('BOTH'); onClose(); }}
-                disabled={isPublishing || tokenWarning}
-                className="flex flex-col items-center gap-1.5 rounded-xl border border-[#6366F1]/30 bg-[#EEF2FF] py-3 text-[#6366F1] font-semibold text-xs hover:bg-[#E0E7FF] transition-colors disabled:opacity-40"
+                disabled={isPublishing || tokenWarning || !hasInstagram}
+                title={!hasInstagram ? 'Requires Instagram account' : undefined}
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-[#6366F1]/30 bg-[#EEF2FF] py-3 text-[#6366F1] font-semibold text-xs hover:bg-[#E0E7FF] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <span className="flex items-center gap-0.5">
                   <FiFacebook className="h-4 w-4" /><FiInstagram className="h-4 w-4" />
@@ -996,19 +1021,40 @@ function MetaSetupBanner({ status }: { status?: MetaStatus }) {
       <div className="mb-5 rounded-xl border border-[#FEF3C7] bg-[#FFFBEB] p-4">
         <p className="flex items-center gap-2 font-semibold text-[#D97706]">
           <FiAlertTriangle className="h-4 w-4 shrink-0" />
-          Meta credentials not configured
+          Facebook Credentials Required
         </p>
         <p className="mt-1 text-sm text-[#D97706]/80">
-          The following backend environment variables are missing. Add them to your Vercel backend project (not the frontend).
+          To start auto-posting to Facebook, add these 2 environment variables in your Vercel backend project:
         </p>
-        <ul className="mt-3 space-y-1 font-mono text-xs text-[#92400E]">
-          {['META_APP_ID', 'META_APP_SECRET', 'META_PAGE_ACCESS_TOKEN', 'META_FACEBOOK_PAGE_ID', 'META_INSTAGRAM_ACCOUNT_ID'].map(v => (
-            <li key={v} className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#D97706] shrink-0" />
-              {v}
-            </li>
-          ))}
-        </ul>
+        <div className="mt-3 space-y-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-[#92400E]">Required for Facebook:</p>
+            <ul className="mt-1 space-y-1 font-mono text-xs text-[#92400E]">
+              {['META_PAGE_ACCESS_TOKEN', 'META_FACEBOOK_PAGE_ID'].map(v => (
+                <li key={v} className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#D97706] shrink-0" />
+                  <span className="font-bold">{v}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="pt-2 border-t border-[#FEF3C7]/80">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">Optional (can add later):</p>
+            <ul className="mt-1 space-y-1 font-mono text-xs text-[#6B7280]">
+              {[
+                { name: 'META_INSTAGRAM_ACCOUNT_ID', desc: 'Required only if posting to Instagram' },
+                { name: 'META_APP_ID', desc: 'Meta App ID' },
+                { name: 'META_APP_SECRET', desc: 'Meta App Secret' },
+              ].map(item => (
+                <li key={item.name} className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#9CA3AF] shrink-0" />
+                  <span>{item.name}</span>
+                  <span className="font-sans text-[11px] text-[#9CA3AF]">({item.desc})</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </div>
 
       {/* Step-by-step */}
